@@ -58,12 +58,26 @@ void main() {
           equals(200));
 
       expect(
+          await _futureOrMultiply(10, 2)
+              .resolveMapped((n) => n * 10,
+                  validate: _validateEven, defaultValue: -1)
+              .asFuture,
+          equals(200));
+
+      expect(
           _futureOrMultiply(-10, 2).resolveMapped((n) => n * 10) is Future<int>,
           isTrue);
       expect(await _futureOrMultiply(-10, 2).resolveMapped((n) => n * 10),
           equals(-200));
       expect(
           await _futureOrMultiply(-10, 2).resolveMapped((n) => n * 10).asFuture,
+          equals(-200));
+
+      expect(
+          await _futureOrMultiply(-10, 2)
+              .resolveMapped((n) => n * 10,
+                  validate: _validateEven, defaultValue: -1)
+              .asFuture,
           equals(-200));
     });
 
@@ -74,11 +88,24 @@ void main() {
       expect(await _futureOrMultiply(10, 2).resolveWith(() => 1000).asFuture,
           equals(1000));
 
+      expect(
+          await _futureOrMultiply(10, 2)
+              .resolveWith(() => 1000, validate: _validateEven, defaultValue: 0)
+              .asFuture,
+          equals(1000));
+
       expect(_futureOrMultiply(-10, 2).resolveWith(() => -1000) is Future<int>,
           isTrue);
       expect(await _futureOrMultiply(-10, 2).resolveWith(() => -1000),
           equals(-1000));
       expect(await _futureOrMultiply(-10, 2).resolveWith(() => -1000).asFuture,
+          equals(-1000));
+
+      expect(
+          await _futureOrMultiply(-10, 2)
+              .resolveWith(() => -1000,
+                  validate: _validateEven, defaultValue: 0)
+              .asFuture,
           equals(-1000));
     });
 
@@ -141,7 +168,9 @@ void main() {
 
       expect(l.asFutures.length, equals(2));
       expect(l.resolveAll(), equals([20, 40]));
+      expect(l.waitFutures(), equals([]));
       expect(await l.asFutures.resolveAll(), equals([20, 40]));
+      expect(await l.asFutures.waitFutures(), equals([20, 40]));
 
       expect(l.resolveAllMapped((v) => v * 10), equals([200, 400]));
 
@@ -175,7 +204,9 @@ void main() {
 
       expect(l.asFutures.length, equals(2));
       expect(l.resolveAll().isResolved, isFalse);
+      expect(await l.waitFutures(), equals([-40]));
       expect(await l.asFutures.resolveAll(), equals([20, -40]));
+      expect(await l.asFutures.waitFutures(), equals([20, -40]));
 
       expect(l.resolveAllMapped((v) => v * 10).isResolved, isFalse);
       expect(await l.resolveAllMapped((v) => v * 10), equals([200, -400]));
@@ -195,10 +226,18 @@ void main() {
           isFalse);
       expect(await l2.resolveAllValidated(_validateEven, defaultValue: 0),
           equals([30, 0]));
+      expect(
+          await l2.asFutures
+              .resolveAllValidated(_validateEven, defaultValue: 0),
+          equals([30, 0]));
 
       expect(await l2.resolveAllJoined((l) => l.join()), equals('30-63'));
+      expect(await l2.asFutures.resolveAllJoined((l) => l.join()),
+          equals('30-63'));
 
       expect(await l2.resolveAllReduced((a, b) => a + b), equals(-33));
+      expect(
+          await l2.asFutures.resolveAllReduced((a, b) => a + b), equals(-33));
     });
 
     test('All Future', () async {
@@ -224,6 +263,35 @@ void main() {
 
       expect(await l.asFutures.resolveAllJoined((l) => l.join()),
           equals('-20-40'));
+
+      expect(await l.asFutures.resolveAllReduced((a, b) => a + b), equals(-60));
+
+      expect(await l.waitFuturesAndReturnValue(-123), equals(-123));
+
+      expect([].waitFuturesAndReturnValue(-1), equals(-1));
+
+      expect(await [].asFutures.resolveAll(), equals([]));
+
+      expect(await [].asFutures.resolveAllMapped((e) => e * 10), equals([]));
+
+      expect(await [].asFutures.resolveAllValidated(_validateEven), equals([]));
+
+      expect(await [].asFutures.resolveAllJoined((l) => l.join()), equals(''));
+
+      expect(await [].asFutures.waitFutures(), equals([]));
+
+      expect(await l.asFutures.waitFuturesAndReturnValue(-123), equals(-123));
+
+      expect(await [].asFutures.waitFuturesAndReturnValue(-1), equals(-1));
+
+      StateError? noElementError;
+      try {
+        expect(
+            await [].asFutures.resolveAllReduced((a, b) => a + b), equals(-60));
+      } catch (e) {
+        noElementError = e as StateError;
+      }
+      expect(noElementError, isNotNull);
     });
   });
 }
