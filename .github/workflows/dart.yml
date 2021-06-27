@@ -32,6 +32,8 @@ jobs:
         run: dart test
       - name: Generate coverage report
         run: |
+          apt-get update -y
+          apt-get install -y lcov
           dart pub run test_cov
           genhtml -o coverage coverage/lcov.info
       - name: Upload coverage to Codecov
