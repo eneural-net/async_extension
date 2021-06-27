@@ -17,7 +17,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Dart version
-        run: dart --version
+        run: |
+          dart --version
+          uname -a
       - name: Install dependencies
         run: dart pub get
       - name: dart format
