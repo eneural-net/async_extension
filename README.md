@@ -10,6 +10,7 @@
 [![Pull Requests](https://img.shields.io/github/issues-pr/eneural-net/async_extension?logo=github&logoColor=white)](https://github.com/eneural-net/async_extension/pulls)
 [![Code size](https://img.shields.io/github/languages/code-size/eneural-net/async_extension?logo=github&logoColor=white)](https://github.com/eneural-net/async_extension)
 [![License](https://img.shields.io/github/license/eneural-net/async_extension?logo=open-source-initiative&logoColor=green)](https://github.com/eneural-net/async_extension/blob/master/LICENSE)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Feneural-net%2Fasync_extension.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Feneural-net%2Fasync_extension?ref=badge_shield)
 
 Dart [async][dart_async] extensions, to help usage of `Future`, `FutureOr` and `async` methods. Also
 allows performance improvements when using `sync` and `async` code.
@@ -115,3 +116,5 @@ Graciliano M. Passos: [gmpassos@GitHub][github].
 [Apache License - Version 2.0][apache_license]
 
 [apache_license]: https://www.apache.org/licenses/LICENSE-2.0.txt
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Feneural-net%2Fasync_extension.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Feneural-net%2Fasync_extension?ref=badge_large)
