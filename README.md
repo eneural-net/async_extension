@@ -71,6 +71,28 @@ enabled by `async_extension`.
 I hope that in the future the Dart VM moves to use something like that,
 since `async` methods are a bottleneck, specially for the VM `GC`.
 
+## Benchmark
+
+See the benchmark at `example/async_extension_benchmark.dart`. 
+
+An example of the benchmark output:
+
+```text
+//-------------------------------------------------
+// OUTPUT
+//-------------------------------------------------
+// session[9]> Benchmark[await:ComputationSync]{ sum: 999999000000, iterations: 1000000, time: 778ms , speed: 1285347.0437017994 iter./s }
+// session[9]> Benchmark[await:ComputationAsync]{ sum: 999999000000, iterations: 1000000, time: 899ms , speed: 1112347.0522803115 iter./s }
+// session[9]> Benchmark[optimized:ComputationSync]{ sum: 999999000000, iterations: 1000000, time: 28ms , speed: 35714285.71428572 iter./s }
+// session[9]> Benchmark[optimized:ComputationAsync]{ sum: 999999000000, iterations: 1000000, time: 810ms , speed: 1234567.9012345679 iter./s }
+//
+```
+
+The optimized benchmark (that uses `async_extension`) is fast in both scenarios
+(when the computation is `sync` or `async`). It shows that when the computation is `sync`, the avoidance of `Future`
+instances (and related dispatch/schedule) improves the performance significantly. Also shows that for `async` computation the
+optimized benchmark is not slower than a normal Dart `async` method version. 
+
 ## Source
 
 The official source code is [hosted @ GitHub][github_async_extension]:
