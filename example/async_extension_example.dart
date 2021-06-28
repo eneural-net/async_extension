@@ -15,7 +15,7 @@ class ComputationSync extends Computation {
   }
 }
 
-/// A sync computation: returns a [Future].
+/// A async computation: returns a [Future].
 class ComputationAsync extends Computation {
   @override
   Future<int> compute(int a, int b) {
