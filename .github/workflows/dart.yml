@@ -30,10 +30,12 @@ jobs:
         run: dart run dependency_validator
       - name: Run tests
         run: dart test
-      - name: Generate coverage report
+      - name: Install lcov
         run: |
           apt-get update -y
           apt-get install -y lcov
+      - name: Generate coverage report
+        run: |
           dart pub run test_cov
           genhtml -o coverage coverage/lcov.info
       - name: Upload coverage to Codecov
