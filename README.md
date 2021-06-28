@@ -11,7 +11,7 @@
 [![Code size](https://img.shields.io/github/languages/code-size/eneural-net/async_extension?logo=github&logoColor=white)](https://github.com/eneural-net/async_extension)
 [![License](https://img.shields.io/github/license/eneural-net/async_extension?logo=open-source-initiative&logoColor=green)](https://github.com/eneural-net/async_extension/blob/master/LICENSE)
 
-Dart [async][dart_async] extensions, to help usage of Future, FutureOr and async methods. Also
+Dart [async][dart_async] extensions, to help usage of `Future`, `FutureOr` and `async` methods. Also
 allows performance improvements when using `sync` and `async` code.
 
 [dart_async]: https://api.dart.dev/stable/2.13.1/dart-async/dart-async-library.html
@@ -33,7 +33,7 @@ import 'package:async_extension/async_extension.dart';
 // Sync/Async Computation without declare an `async` method:
 void doComputation() {
 
-  // Compute something that can be a [Future] or an [int]:
+  // Compute something that can be a `Future` or an `int`:
   FutureOr<int> n = computeSomething();
 
   // Resolves `n` and multiply by 10:
@@ -51,11 +51,10 @@ void doComputation() {
   
 }
 
-// An `async` method (a [Future] instance is always created):
+// An `async` method (a `Future` instance is always created):
 Future<String> processResult(FutureOr<int> n) async {
-  // await `n10`:
   var result = await n ;
-
+  
   return 'result: $result' ;
 }
 ```
