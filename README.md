@@ -60,6 +60,42 @@ Future<String> processResult(FutureOr<int> n) async {
 }
 ```
 
+## Arithmetic operators
+
+The arithmetic operators for `Future` and `FutureOr` are implemented for direct use. 
+
+### Usage of `Future` arithmetic operators:
+
+```text
+
+  var sum = await (Future.value(10) + Future.value(20)) ;
+
+  var sub = await (Future.value(10) - Future.value(20)) ;
+  
+  var mul = await (Future.value(10) * Future.value(20)) ;
+  
+  var div = await (Future.value(10) / Future.value(20)) ;
+  
+  var divInt = await (Future.value(10) ~/ Future.value(20)) ;
+
+```
+
+### Usage of `FutureOr` arithmetic operators (2nd term):
+
+```text
+
+  var sum = await (Future.value(10) + 20) ;
+
+  var sub = await (Future.value(10) - 20) ;
+  
+  var mul = await (Future.value(10) * 20) ;
+  
+  var div = await (Future.value(10) / 20) ;
+  
+  var divInt = await (Future.value(10) ~/ 20) ;
+
+```
+
 ## VM Optimization
 
 This paradigm shows that it's possible to improve the Dart VM performance

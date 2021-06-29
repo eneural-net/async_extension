@@ -22,14 +22,39 @@ extension FutureOrExtension<T> on FutureOr<T> {
       return this;
     }
 
-    if (this is Future) {
-      var future = this as Future<T>;
-      return future.then((value) =>
+    var self = this;
+
+    if (self is Future<T>) {
+      return self.then((value) =>
           _validate(value, validate: validate, defaultValue: defaultValue)
               as FutureOr<T>);
     } else {
       return _validate<T>(this as T,
           validate: validate, defaultValue: defaultValue) as FutureOr<T>;
+    }
+  }
+
+  /// Resolves `this` and [other] with [resolver].
+  FutureOr<R> resolveBoth<R>(
+      FutureOr<T> other, FutureOr<R> Function(T val1, T val2) resolver) {
+    var self = this;
+
+    if (self is Future<T>) {
+      if (other is Future<T>) {
+        return self.then((v1) {
+          return other.then((v2) => resolver(v1, v2));
+        });
+      } else {
+        return self.then((v1) {
+          return resolver(v1, other);
+        });
+      }
+    } else {
+      if (other is Future<T>) {
+        return other.then((v2) => resolver(self, v2));
+      } else {
+        return resolver(self, other);
+      }
     }
   }
 
@@ -41,14 +66,14 @@ extension FutureOrExtension<T> on FutureOr<T> {
       return this;
     }
 
-    if (this is Future<T>) {
-      var future = this as Future<T>;
-      return future.then((value) =>
+    var self = this;
+
+    if (self is Future<T>) {
+      return self.then((value) =>
           _validate(value, validate: validate, defaultValue: defaultValue)
               as FutureOr<T>);
     } else {
-      return _validate(this as T,
-          validate: validate, defaultValue: defaultValue);
+      return _validate(self, validate: validate, defaultValue: defaultValue);
     }
   }
 
@@ -63,64 +88,35 @@ extension FutureOrExtension<T> on FutureOr<T> {
   }
 
   /// Resolves this instance mapping to [mapper] and return its result.
-  ///
-  /// - [validate] will validate the result of [mapper].
-  FutureOr<R> resolveMapped<R>(FutureOr<R> Function(T val) mapper,
-      {FutureOr<bool> Function(R? val)? validate, R? defaultValue}) {
-    if (validate == null && defaultValue == null) {
-      if (this is Future) {
-        var future = this as Future<T>;
-        return future.then((r) => mapper(r));
-      } else {
-        return mapper(this as T);
-      }
-    }
+  FutureOr<R> resolveMapped<R>(FutureOr<R> Function(T val) mapper) {
+    var self = this;
 
-    if (this is Future) {
-      var future = this as Future<T>;
-      return future.then((r) {
-        var val = mapper(r);
-        return val.resolve(validate: validate, defaultValue: defaultValue);
-      });
+    if (self is Future<T>) {
+      return self.then((r) => mapper(r));
     } else {
-      var val = mapper(this as T);
-      return val.resolve(validate: validate, defaultValue: defaultValue);
+      return mapper(self);
     }
   }
 
   /// Resolves this instance with [resolver] result.
-  ///
-  /// - [validate] will validate the result of [resolver].
-  FutureOr<R> resolveWith<R>(FutureOr<R> Function() resolver,
-      {FutureOr<bool> Function(R? val)? validate, R? defaultValue}) {
-    if (validate == null && defaultValue == null) {
-      if (this is Future) {
-        var future = this as Future<T>;
-        return future.then((r) => resolver());
-      } else {
-        return resolver();
-      }
-    }
+  FutureOr<R> resolveWith<R>(FutureOr<R> Function() resolver) {
+    var self = this;
 
-    if (this is Future) {
-      var future = this as Future<T>;
-      return future.then((r) {
-        var val = resolver();
-        return val.resolve(validate: validate, defaultValue: defaultValue);
-      });
+    if (self is Future<T>) {
+      return self.then((r) => resolver());
     } else {
-      var val = resolver();
-      return val.resolve(validate: validate, defaultValue: defaultValue);
+      return resolver();
     }
   }
 
   /// Resolves this instance and calls [callback]. Returns `void`.
   FutureOr<void> onResolve<R>(void Function(T r) callback) {
-    if (this is Future) {
-      var future = this as Future<T>;
-      return future.then((r) => callback(r));
+    var self = this;
+
+    if (self is Future<T>) {
+      return self.then((r) => callback(r));
     } else {
-      callback(this as T);
+      callback(self);
     }
   }
 }
@@ -244,6 +240,7 @@ extension IterableFutureOrExtension<T> on Iterable<FutureOr<T>> {
     }
   }
 
+  /// Waits futures and returns [value].
   FutureOr<V> waitFuturesAndReturnValue<V>(V value) {
     var futures = selectFutures();
     if (futures.isEmpty) {
@@ -254,8 +251,27 @@ extension IterableFutureOrExtension<T> on Iterable<FutureOr<T>> {
   }
 }
 
-/// Extension for `List<Future<T>>`.
-extension ListFutureExtension<T> on List<Future<T>> {
+extension FutureExtension<T> on Future<T> {
+  /// Returns the type of [T].
+  Type get type => T;
+
+  /// Resolves `this` [Future] and [other] with [resolver].
+  Future<R> resolveBoth<R>(
+      FutureOr<T> other, FutureOr<R> Function(T val1, T val2) resolver) {
+    if (other is Future<T>) {
+      return then((v1) {
+        return other.then((v2) => resolver(v1, v2));
+      });
+    } else {
+      return then((v1) {
+        return resolver(v1, other);
+      });
+    }
+  }
+}
+
+/// Extension for `Iterable<Future<T>>`.
+extension IterableFutureExtension<T> on Iterable<Future<T>> {
   Future<List<T>> resolveAll() {
     if (isEmpty) {
       return Future.value(<T>[]);
@@ -263,6 +279,7 @@ extension ListFutureExtension<T> on List<Future<T>> {
     return Future.wait(this);
   }
 
+  /// Resolves this [Future]s and maps with [mapper].
   Future<List<R>> resolveAllMapped<R>(R Function(T e) mapper) {
     if (isEmpty) {
       return Future.value(<R>[]);
@@ -273,6 +290,7 @@ extension ListFutureExtension<T> on List<Future<T>> {
     });
   }
 
+  /// Resolves this [Future]s and validates with [validate].
   Future<List<T>> resolveAllValidated(bool Function(T e) validate,
       {T? defaultValue}) {
     if (isEmpty) {
@@ -284,6 +302,7 @@ extension ListFutureExtension<T> on List<Future<T>> {
     });
   }
 
+  /// Resolves this [Future]s and join values with [joiner].
   Future<R> resolveAllJoined<R>(FutureOr<R> Function(List<T> l) joiner) {
     if (isEmpty) {
       return Future.value(joiner(<T>[]));
@@ -292,6 +311,7 @@ extension ListFutureExtension<T> on List<Future<T>> {
     return Future.wait(this).then(joiner);
   }
 
+  /// Resolves this [Future]s and reduces values with [reducer].
   Future<T> resolveAllReduced<R>(T Function(T value, T element) reducer) {
     if (isEmpty) {
       return Future.value(<T>[].reduce(reducer));
@@ -302,6 +322,7 @@ extension ListFutureExtension<T> on List<Future<T>> {
     });
   }
 
+  /// Waits this [Future]s
   Future<List<T>> waitFutures() {
     if (isEmpty) {
       return Future.value(<T>[]);
@@ -310,6 +331,7 @@ extension ListFutureExtension<T> on List<Future<T>> {
     }
   }
 
+  /// Waits this [Future]s and return [value].
   Future<V> waitFuturesAndReturnValue<V>(V value) {
     if (isEmpty) {
       return Future.value(value);
@@ -317,4 +339,136 @@ extension ListFutureExtension<T> on List<Future<T>> {
       return Future.wait(this).then((_) => value);
     }
   }
+}
+
+extension FutureOrIntExtension on FutureOr<int> {
+  /// Operator to sum `FutureOr<int>`.
+  FutureOr<int> operator +(FutureOr<int> other) =>
+      resolveBoth(other, (n1, n2) => n1 + n2);
+
+  /// Operator to subtract `FutureOr<int>`.
+  FutureOr<int> operator -(FutureOr<int> other) =>
+      resolveBoth(other, (n1, n2) => n1 - n2);
+
+  /// Operator to multiply `FutureOr<int>`.
+  FutureOr<int> operator *(FutureOr<int> other) =>
+      resolveBoth(other, (n1, n2) => n1 * n2);
+
+  /// Operator to divide `FutureOr<int>`.
+  FutureOr<double> operator /(FutureOr<int> other) =>
+      resolveBoth(other, (n1, n2) => n1 / n2);
+
+  /// Operator to divide (to int) `FutureOr<int>`.
+  FutureOr<int> operator ~/(FutureOr<int> other) =>
+      resolveBoth(other, (n1, n2) => n1 ~/ n2);
+}
+
+extension FutureOrDoubleExtension on FutureOr<double> {
+  /// Operator to sum `FutureOr<double>`.
+  FutureOr<double> operator +(FutureOr<double> other) =>
+      resolveBoth(other, (n1, n2) => n1 + n2);
+
+  /// Operator to subtract `FutureOr<double>`.
+  FutureOr<double> operator -(FutureOr<double> other) =>
+      resolveBoth(other, (n1, n2) => n1 - n2);
+
+  /// Operator to multiply `FutureOr<double>`.
+  FutureOr<double> operator *(FutureOr<double> other) =>
+      resolveBoth(other, (n1, n2) => n1 * n2);
+
+  /// Operator to divide `FutureOr<double>`.
+  FutureOr<double> operator /(FutureOr<double> other) =>
+      resolveBoth(other, (n1, n2) => n1 / n2);
+
+  /// Operator to divide (to int) `FutureOr<int>`.
+  FutureOr<int> operator ~/(FutureOr<double> other) =>
+      resolveBoth(other, (n1, n2) => n1 ~/ n2);
+}
+
+extension FutureOrNumExtension on FutureOr<num> {
+  /// Operator to sum `FutureOr<num>`.
+  FutureOr<num> operator +(FutureOr<num> other) =>
+      resolveBoth(other, (n1, n2) => n1 + n2);
+
+  /// Operator to subtract `FutureOr<num>`.
+  FutureOr<num> operator -(FutureOr<num> other) =>
+      resolveBoth(other, (n1, n2) => n1 - n2);
+
+  /// Operator to multiply `FutureOr<num>`.
+  FutureOr<num> operator *(FutureOr<num> other) =>
+      resolveBoth(other, (n1, n2) => n1 * n2);
+
+  /// Operator to divide `FutureOr<num>`.
+  FutureOr<double> operator /(FutureOr<num> other) =>
+      resolveBoth(other, (n1, n2) => n1 / n2);
+
+  /// Operator to divide (to int) `FutureOr<num>`.
+  FutureOr<int> operator ~/(FutureOr<num> other) =>
+      resolveBoth(other, (n1, n2) => n1 ~/ n2);
+}
+
+extension FutureIntExtension on Future<int> {
+  /// Operator to sum `FutureOr<int>`.
+  Future<int> operator +(FutureOr<int> other) =>
+      resolveBoth(other, (n1, n2) => n1 + n2);
+
+  /// Operator to subtract `FutureOr<int>`.
+  Future<int> operator -(FutureOr<int> other) =>
+      resolveBoth(other, (n1, n2) => n1 - n2);
+
+  /// Operator to multiply `FutureOr<int>`.
+  Future<int> operator *(FutureOr<int> other) =>
+      resolveBoth(other, (n1, n2) => n1 * n2);
+
+  /// Operator to divide `FutureOr<int>`.
+  Future<double> operator /(FutureOr<int> other) =>
+      resolveBoth(other, (n1, n2) => n1 / n2);
+
+  /// Operator to divide (to int) `FutureOr<int>`.
+  Future<int> operator ~/(FutureOr<int> other) =>
+      resolveBoth(other, (n1, n2) => n1 ~/ n2);
+}
+
+extension FutureDoubleExtension on Future<double> {
+  /// Operator to sum `FutureOr<double>`.
+  Future<double> operator +(FutureOr<double> other) =>
+      resolveBoth(other, (n1, n2) => n1 + n2);
+
+  /// Operator to subtract `FutureOr<double>`.
+  Future<double> operator -(FutureOr<double> other) =>
+      resolveBoth(other, (n1, n2) => n1 - n2);
+
+  /// Operator to multiply `FutureOr<double>`.
+  Future<double> operator *(FutureOr<double> other) =>
+      resolveBoth(other, (n1, n2) => n1 * n2);
+
+  /// Operator to divide `FutureOr<double>`.
+  Future<double> operator /(FutureOr<double> other) =>
+      resolveBoth(other, (n1, n2) => n1 / n2);
+
+  /// Operator to divide (to int) `FutureOr<int>`.
+  Future<int> operator ~/(FutureOr<double> other) =>
+      resolveBoth(other, (n1, n2) => n1 ~/ n2);
+}
+
+extension FutureNumExtension on Future<num> {
+  /// Operator to sum `FutureOr<num>`.
+  Future<num> operator +(FutureOr<num> other) =>
+      resolveBoth(other, (n1, n2) => n1 + n2);
+
+  /// Operator to subtract `FutureOr<num>`.
+  Future<num> operator -(FutureOr<num> other) =>
+      resolveBoth(other, (n1, n2) => n1 - n2);
+
+  /// Operator to multiply `FutureOr<num>`.
+  Future<num> operator *(FutureOr<num> other) =>
+      resolveBoth(other, (n1, n2) => n1 * n2);
+
+  /// Operator to divide `FutureOr<num>`.
+  Future<double> operator /(FutureOr<num> other) =>
+      resolveBoth(other, (n1, n2) => n1 / n2);
+
+  /// Operator to divide (to int) `FutureOr<num>`.
+  Future<int> operator ~/(FutureOr<num> other) =>
+      resolveBoth(other, (n1, n2) => n1 ~/ n2);
 }

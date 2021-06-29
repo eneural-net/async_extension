@@ -58,26 +58,12 @@ void main() {
           equals(200));
 
       expect(
-          await _futureOrMultiply(10, 2)
-              .resolveMapped((n) => n * 10,
-                  validate: _validateEven, defaultValue: -1)
-              .asFuture,
-          equals(200));
-
-      expect(
           _futureOrMultiply(-10, 2).resolveMapped((n) => n * 10) is Future<int>,
           isTrue);
       expect(await _futureOrMultiply(-10, 2).resolveMapped((n) => n * 10),
           equals(-200));
       expect(
           await _futureOrMultiply(-10, 2).resolveMapped((n) => n * 10).asFuture,
-          equals(-200));
-
-      expect(
-          await _futureOrMultiply(-10, 2)
-              .resolveMapped((n) => n * 10,
-                  validate: _validateEven, defaultValue: -1)
-              .asFuture,
           equals(-200));
     });
 
@@ -88,25 +74,162 @@ void main() {
       expect(await _futureOrMultiply(10, 2).resolveWith(() => 1000).asFuture,
           equals(1000));
 
-      expect(
-          await _futureOrMultiply(10, 2)
-              .resolveWith(() => 1000, validate: _validateEven, defaultValue: 0)
-              .asFuture,
-          equals(1000));
-
       expect(_futureOrMultiply(-10, 2).resolveWith(() => -1000) is Future<int>,
           isTrue);
       expect(await _futureOrMultiply(-10, 2).resolveWith(() => -1000),
           equals(-1000));
       expect(await _futureOrMultiply(-10, 2).resolveWith(() => -1000).asFuture,
           equals(-1000));
+    });
+
+    test('resolveBoth', () async {
+      expect(
+          await _futureOrMultiply(10, 2)
+              .resolveBoth(_futureOrMultiply(20, 2), (v1, v2) => v1 + v2),
+          equals(60));
+
+      expect(
+          await _futureOrMultiply(10, 2)
+              .resolveBoth(_futureOrMultiply(-20, 2), (v1, v2) => v1 + v2),
+          equals(-20));
 
       expect(
           await _futureOrMultiply(-10, 2)
-              .resolveWith(() => -1000,
-                  validate: _validateEven, defaultValue: 0)
-              .asFuture,
-          equals(-1000));
+              .resolveBoth(_futureOrMultiply(20, 2), (v1, v2) => v1 + v2),
+          equals(20));
+
+      expect(
+          await _futureOrMultiply(-10, 2)
+              .resolveBoth(_futureOrMultiply(-20, 2), (v1, v2) => v1 + v2),
+          equals(-60));
+    });
+
+    test('FutureOr operators +,-,*,/,~/ int', () async {
+      expect(await (_futureOrMultiply(10, 2) + _futureOrMultiply(20, 2)),
+          equals(60));
+
+      expect(await (_futureOrMultiply(10, 2) - _futureOrMultiply(20, 2)),
+          equals(-20));
+
+      expect(await (_futureOrMultiply(10, 2) * _futureOrMultiply(20, 2)),
+          equals(800));
+
+      expect(await (_futureOrMultiply(10, 2) / _futureOrMultiply(20, 2)),
+          equals(0.5));
+
+      expect(await (_futureOrMultiply(20, 2) ~/ _futureOrMultiply(10, 2)),
+          equals(2));
+    });
+
+    test('FutureOr operators +,-,*,/,~/ double', () async {
+      expect(
+          await (_futureOrMultiply(10.0, 2.0) + _futureOrMultiply(20.0, 2.0)),
+          equals(60));
+
+      expect(
+          await (_futureOrMultiply(10.0, 2.0) - _futureOrMultiply(20.0, 2.0)),
+          equals(-20));
+
+      expect(
+          await (_futureOrMultiply(10.0, 2.0) * _futureOrMultiply(20.0, 2.0)),
+          equals(800));
+
+      expect(
+          await (_futureOrMultiply(10.0, 2.0) / _futureOrMultiply(20.0, 2.0)),
+          equals(0.5));
+
+      expect(
+          await (_futureOrMultiply(20.0, 2.0) ~/ _futureOrMultiply(10.0, 2.0)),
+          equals(2));
+    });
+
+    test('FutureOr operators +,-,*,/,~/ num', () async {
+      expect(await (_futureOrMultiply(10.0, 2) + _futureOrMultiply(20, 2)),
+          equals(60));
+
+      expect(await (_futureOrMultiply(10.0, 2) - _futureOrMultiply(20, 2)),
+          equals(-20));
+
+      expect(await (_futureOrMultiply(10.0, 2) * _futureOrMultiply(20, 2)),
+          equals(800));
+
+      expect(await (_futureOrMultiply(10.0, 2) / _futureOrMultiply(20, 2)),
+          equals(0.5));
+
+      expect(await (_futureOrMultiply(20.0, 2) ~/ _futureOrMultiply(10, 2)),
+          equals(2));
+    });
+
+    test('Future operators +,-,*,/,~/ int', () async {
+      expect(await (Future.value(10) + Future.value(20)), equals(30));
+
+      expect(await (Future.value(20) - Future.value(10)), equals(10));
+
+      expect(await (Future.value(20) * Future.value(10)), equals(200));
+
+      expect(await (Future.value(10) / Future.value(20)), equals(0.5));
+
+      expect(await (Future.value(20) ~/ Future.value(10)), equals(2));
+    });
+
+    test('Future operators +,-,*,/,~/ double', () async {
+      expect(await (Future.value(10.0) + Future.value(20.0)), equals(30));
+
+      expect(await (Future.value(20.0) - Future.value(10.0)), equals(10));
+
+      expect(await (Future.value(20.0) * Future.value(10.0)), equals(200));
+
+      expect(await (Future.value(10.0) / Future.value(20.0)), equals(0.5));
+
+      expect(await (Future.value(20.0) ~/ Future.value(10.0)), equals(2));
+    });
+
+    test('Future operators +,-,*,/,~/ num', () async {
+      expect(
+          await (Future<num>.value(10.0) + Future<num>.value(20)), equals(30));
+
+      expect(
+          await (Future<num>.value(20.0) - Future<num>.value(10)), equals(10));
+
+      expect(await (Future<num>.value(20.0) * Future<num>.value(10.0)),
+          equals(200));
+
+      expect(await (Future<num>.value(10.0) / Future<num>.value(20.0)),
+          equals(0.5));
+
+      expect(await (Future<num>.value(20.0) ~/ Future<num>.value(10.0)),
+          equals(2));
+    });
+
+    test('Future + FutureOr operators +,-,*,/,~/ num', () async {
+      expect(await (Future<num>.value(10.0) + 20), equals(30));
+
+      expect(await (Future<num>.value(20.0) - 10), equals(10));
+
+      expect(await (Future<num>.value(20.0) * 10.0), equals(200));
+
+      expect(await (Future<num>.value(10.0) / 20.0), equals(0.5));
+
+      expect(await (Future<num>.value(20.0) ~/ 10.0), equals(2));
+    });
+
+    test('FutureOr + Future operators +,-,*,/,~/ num', () async {
+      // ignore: unnecessary_cast
+      expect(await ((20 as FutureOr<int>) + Future<int>.value(10)), equals(30));
+
+      // ignore: unnecessary_cast
+      expect(await ((20 as FutureOr<int>) - Future<int>.value(10)), equals(10));
+
+      expect(
+          // ignore: unnecessary_cast
+          await ((20 as FutureOr<int>) * Future<int>.value(10)),
+          equals(200));
+
+      // ignore: unnecessary_cast
+      expect(await ((20 as FutureOr<int>) / Future<int>.value(10)), equals(2));
+
+      // ignore: unnecessary_cast
+      expect(await ((20 as FutureOr<int>) ~/ Future<int>.value(10)), equals(2));
     });
 
     test('isResolved', () async {
@@ -151,6 +274,22 @@ void main() {
       expect(onResolve2, isEmpty);
       await ret;
       expect(onResolve2, equals([-123]));
+    });
+  });
+
+  group('IterableFutureOrExtension', () {
+    setUp(() {});
+
+    test('All Resolved', () async {
+      expect(Future.value(123).type, equals(int));
+
+      expect(
+          await Future.value(110)
+              .resolveBoth(Future.value(220), (v1, v2) => v1 + v2),
+          equals(330));
+
+      expect(await Future.value(110).resolveBoth(220, (v1, v2) => v1 + v2),
+          equals(330));
     });
   });
 
@@ -298,11 +437,11 @@ void main() {
 
 /// Multiply [a] * [b], and returns `int` for positive [a] and
 /// a [Future] for negative [a].
-FutureOr<int> _futureOrMultiply(int a, int b) {
+FutureOr<T> _futureOrMultiply<T extends num>(T a, T b) {
   if (a > 0) {
-    return a * b;
+    return (a * b) as T;
   } else {
-    return Future.value(a * b);
+    return Future<T>.value((a * b) as T);
   }
 }
 

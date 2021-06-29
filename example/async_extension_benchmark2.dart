@@ -26,9 +26,12 @@ class ComputationAsync extends Computation {
 /// A benchmark result.
 class Benchmark {
   String type;
+
   Computation computation;
   int sum;
+
   int iterations;
+
   Duration time;
 
   Benchmark(this.type, this.computation, this.sum, this.iterations, this.time);
@@ -46,15 +49,12 @@ Future<Benchmark> doBenchmarkAwait(
     Computation computation, int iterations) async {
   var init = DateTime.now();
 
-  var results = <Future<int>>[];
+  var sum = 0;
 
   for (var i = 0; i < iterations; ++i) {
     var result = computation.compute(i, i);
-    results.add(result.asFuture);
+    sum += (await result);
   }
-
-  var sum =
-      (await Future.wait(results)).reduce((value, element) => value + element);
 
   var end = DateTime.now();
   var time = Duration(
@@ -68,14 +68,12 @@ FutureOr<Benchmark> doBenchmarkOptimized(
     Computation computation, int iterations) {
   var init = DateTime.now();
 
-  var results = <FutureOr<int>>[];
+  FutureOr<int> sum = 0;
 
   for (var i = 0; i < iterations; ++i) {
     var result = computation.compute(i, i);
-    results.add(result);
+    sum = sum.resolveBoth<int>(result, (v1, v2) => v1 + v2);
   }
-
-  var sum = results.resolveAllReduced((value, element) => value + element);
 
   return sum.resolveMapped((val) {
     var end = DateTime.now();
@@ -112,8 +110,8 @@ void main() async {
 //-------------------------------------------------
 // OUTPUT
 //-------------------------------------------------
-// session[9]> Benchmark[await:ComputationSync]{ sum: 999999000000, iterations: 1000000, time: 778ms , speed: 1285347.0437017994 iter./s }
-// session[9]> Benchmark[await:ComputationAsync]{ sum: 999999000000, iterations: 1000000, time: 899ms , speed: 1112347.0522803115 iter./s }
+// session[9]> Benchmark[await:ComputationSync]{ sum: 999999000000, iterations: 1000000, time: 187ms , speed: 5347593.582887701 iter./s }
+// session[9]> Benchmark[await:ComputationAsync]{ sum: 999999000000, iterations: 1000000, time: 297ms , speed: 3367003.3670033673 iter./s }
 // session[9]> Benchmark[optimized:ComputationSync]{ sum: 999999000000, iterations: 1000000, time: 28ms , speed: 35714285.71428572 iter./s }
-// session[9]> Benchmark[optimized:ComputationAsync]{ sum: 999999000000, iterations: 1000000, time: 810ms , speed: 1234567.9012345679 iter./s }
+// session[9]> Benchmark[optimized:ComputationAsync]{ sum: 999999000000, iterations: 1000000, time: 1487ms , speed: 672494.9562878278 iter./s }
 //
