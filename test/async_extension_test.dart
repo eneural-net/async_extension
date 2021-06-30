@@ -127,6 +127,90 @@ void main() {
           equals(-60));
     });
 
+    test('AsyncLoop 1', () async {
+      var countInt = <int>[0];
+      var countFuture = <int>[0];
+
+      var asyncLoop = AsyncLoop<int>(1, (i) => i <= 10, (i) => i + 1, (i) {
+        var ret = _futureOrMultiply(i % 2 == 0 ? i : -i, 2);
+        if (ret is Future) {
+          countFuture[0]++;
+        } else {
+          countInt[0]++;
+        }
+        print('$i> $ret');
+        return ret.resolveMapped((v) => i < 5);
+      });
+
+      expect(await asyncLoop.run(), equals(5));
+
+      expect(countInt[0], equals(2));
+      expect(countFuture[0], equals(3));
+    });
+
+    test('AsyncLoop 2', () async {
+      var countInt = <int>[0];
+      var countFuture = <int>[0];
+
+      var asyncLoop = AsyncLoop<int>(1, (i) => i <= 10, (i) => i + 1, (i) {
+        var ret = _futureOrMultiply(i % 2 == 0 ? i : -i, 2);
+        if (ret is Future) {
+          countFuture[0]++;
+        } else {
+          countInt[0]++;
+        }
+        print('$i> $ret');
+        return ret.resolveMapped((v) => i < 6);
+      });
+
+      expect(await asyncLoop.run(), equals(6));
+
+      expect(countInt[0], equals(3));
+      expect(countFuture[0], equals(3));
+    });
+
+    test('AsyncSequenceLoop 1', () async {
+      var countInt = <int>[0];
+      var countFuture = <int>[0];
+
+      var asyncLoop = AsyncSequenceLoop(1, 11, (i) {
+        var ret = _futureOrMultiply(i % 2 == 0 ? i : -i, 2);
+        if (ret is Future) {
+          countFuture[0]++;
+        } else {
+          countInt[0]++;
+        }
+        print('$i> $ret');
+        return ret.resolveMapped((v) => i < 5);
+      });
+
+      expect(await asyncLoop.run(), equals(5));
+
+      expect(countInt[0], equals(2));
+      expect(countFuture[0], equals(3));
+    });
+
+    test('AsyncSequenceLoop 2', () async {
+      var countInt = <int>[0];
+      var countFuture = <int>[0];
+
+      var asyncLoop = AsyncSequenceLoop(1, 11, (i) {
+        var ret = _futureOrMultiply(i % 2 == 0 ? i : -i, 2);
+        if (ret is Future) {
+          countFuture[0]++;
+        } else {
+          countInt[0]++;
+        }
+        print('$i> $ret');
+        return ret.resolveMapped((v) => i < 6);
+      });
+
+      expect(await asyncLoop.run(), equals(6));
+
+      expect(countInt[0], equals(3));
+      expect(countFuture[0], equals(3));
+    });
+
     test('FutureOr operators +,-,*,/,~/ int', () async {
       expect(await (_futureOrMultiply(10, 2) + _futureOrMultiply(20, 2)),
           equals(60));

@@ -487,3 +487,107 @@ extension FutureNumExtension on Future<num> {
   Future<int> operator ~/(FutureOr<num> other) =>
       resolveBoth(other, (n1, n2) => n1 ~/ n2);
 }
+
+/// An async loop, similar to a `for` loop block.
+///
+/// - [i] the `for` cursor.
+/// - [condition] the `for` condition.
+/// - [next] the `for` next/after statement.
+/// - [body] the `for` body/block.
+class AsyncLoop<I> {
+  /// The `for` cursor.
+  I i;
+
+  /// The `for` condition.
+  final bool Function(I i) condition;
+
+  /// The `for` next/after statement.
+  final I Function(I i) next;
+
+  /// The `for` body/block.
+  final FutureOr<bool> Function(I i) body;
+
+  /// Constructor.
+  ///
+  /// - [init] is the initial value of [i]
+  AsyncLoop(I init, this.condition, this.next, this.body) : i = init;
+
+  FutureOr<I> run() {
+    return _runBody(i);
+  }
+
+  FutureOr<I> _runBody(I i) {
+    if (!condition(i)) {
+      return i;
+    }
+
+    var ret = body(i);
+
+    if (ret is Future<bool>) {
+      return ret.then((ok) {
+        if (!ok) {
+          return i;
+        }
+
+        i = next(i);
+        return _runBody(i);
+      });
+    } else {
+      if (!ret) {
+        return i;
+      }
+
+      i = next(i);
+      return _runBody(i);
+    }
+  }
+}
+
+/// An async sequence loop, from [i] to [limit] (exclusive).
+///
+/// - See [AsyncLoop].
+class AsyncSequenceLoop {
+  /// The `for` cursor.
+  int i;
+
+  /// The [i] limit (exclusive) for the sequence.
+  final int limit;
+
+  /// The `for` body/block.
+  final FutureOr<bool> Function(int i) body;
+
+  /// Constructor.
+  ///
+  /// - [init] is the initial value of [i].
+  AsyncSequenceLoop(int init, this.limit, this.body) : i = init;
+
+  FutureOr<int> run() {
+    return _runBody(i);
+  }
+
+  FutureOr<int> _runBody(int i) {
+    if (i >= limit) {
+      return i;
+    }
+
+    var ret = body(i);
+
+    if (ret is Future<bool>) {
+      return ret.then((ok) {
+        if (!ok) {
+          return i;
+        }
+
+        ++i;
+        return _runBody(i);
+      });
+    } else {
+      if (!ret) {
+        return i;
+      }
+
+      ++i;
+      return _runBody(i);
+    }
+  }
+}

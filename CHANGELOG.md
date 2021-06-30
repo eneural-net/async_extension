@@ -1,3 +1,7 @@
+## 1.0.4
+
+- Added `AsyncLoop` and `AsyncSequenceLoop`. 
+
 ## 1.0.3
 
 - Added `FutureOr.then`.

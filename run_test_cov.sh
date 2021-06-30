@@ -1,6 +1,6 @@
 #!/bin/bash
 
-dart pub run test_cov
+dart run test_cov
 
 genhtml -o coverage coverage/lcov.info
 
