@@ -1,3 +1,7 @@
+## 1.0.3
+
+- Added `FutureOr.then`.
+
 ## 1.0.2
 
 - Added `resolveBoth` for `FutureOr` and `Future`.

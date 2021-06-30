@@ -67,6 +67,29 @@ void main() {
           equals(-200));
     });
 
+    test('then', () async {
+      expect(_futureOrMultiply(10, 2).then((n) => n * 10), equals(200));
+      expect(await _futureOrMultiply(10, 2).then((n) => n * 10), equals(200));
+      expect(await _futureOrMultiply(10, 2).then((n) => n * 10).asFuture,
+          equals(200));
+
+      expect(
+          _futureOrMultiply(-10, 2).then((n) => n * 10) is Future<int>, isTrue);
+      expect(await _futureOrMultiply(-10, 2).then((n) => n * 10), equals(-200));
+      expect(await _futureOrMultiply(-10, 2).then((n) => n * 10).asFuture,
+          equals(-200));
+    });
+
+    test('then error', () async {
+      expect(() {
+        return _futureOrMultiply(10, 2, true).then((n) => n * 10);
+      }, throwsStateError);
+
+      expect(() {
+        return _futureOrMultiply(-10, 2, true).then((n) => n * 10);
+      }, throwsStateError);
+    });
+
     test('resolveWith', () async {
       expect(_futureOrMultiply(10, 2).resolveWith(() => 1000), equals(1000));
       expect(
@@ -437,10 +460,17 @@ void main() {
 
 /// Multiply [a] * [b], and returns `int` for positive [a] and
 /// a [Future] for negative [a].
-FutureOr<T> _futureOrMultiply<T extends num>(T a, T b) {
+FutureOr<T> _futureOrMultiply<T extends num>(T a, T b,
+    [bool throwError = false]) {
   if (a > 0) {
+    if (throwError) {
+      throw StateError('Error');
+    }
     return (a * b) as T;
   } else {
+    if (throwError) {
+      return Future.error(StateError('Error'), StackTrace.current);
+    }
     return Future<T>.value((a * b) as T);
   }
 }

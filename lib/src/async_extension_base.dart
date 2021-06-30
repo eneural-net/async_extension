@@ -98,6 +98,21 @@ extension FutureOrExtension<T> on FutureOr<T> {
     }
   }
 
+  /// Same as [Future.then].
+  ///
+  /// - Note: it's not possible to implement `onError` and have the same
+  ///   behavior at [Future.then], since `onError` will be called
+  ///   only if `this` is a [Future], and not when it's a [T].
+  FutureOr<R> then<R>(FutureOr<R> Function(T value) onValue) {
+    var self = this;
+
+    if (self is Future<T>) {
+      return self.then(onValue);
+    } else {
+      return onValue(self);
+    }
+  }
+
   /// Resolves this instance with [resolver] result.
   FutureOr<R> resolveWith<R>(FutureOr<R> Function() resolver) {
     var self = this;
