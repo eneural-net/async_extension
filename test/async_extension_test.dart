@@ -49,6 +49,16 @@ void main() {
     });
 
     test('resolveMapped', () async {
+      expect(await _futureOrMultiply(10, 2).resolveWithValue(123), equals(123));
+
+      expect(
+          await _futureOrMultiply(10, -2).resolveWithValue(123), equals(123));
+
+      expect(
+          await _futureOrMultiply(-10, -2).resolveWithValue(123), equals(123));
+    });
+
+    test('resolveMapped', () async {
       expect(
           _futureOrMultiply(10, 2).resolveMapped((n) => n * 10), equals(200));
       expect(await _futureOrMultiply(10, 2).resolveMapped((n) => n * 10),
@@ -384,7 +394,7 @@ void main() {
     });
   });
 
-  group('IterableFutureOrExtension', () {
+  group('FutureExtension', () {
     setUp(() {});
 
     test('All Resolved', () async {
@@ -409,6 +419,42 @@ void main() {
       expect(l.isAllResolved, isTrue);
       expect(l.isAllFuture, isFalse);
 
+      expect(l.allAsList, equals([20, 40]));
+      expect(l.map((e) => e).allAsList, equals([20, 40]));
+
+      expect(l.resolveAll(), equals([20, 40]));
+      expect(l.map((e) => e).resolveAll(), equals([20, 40]));
+      expect(l.toList().resolveAll(), equals([20, 40]));
+      expect(l.toList().map((e) => e).resolveAll(), equals([20, 40]));
+
+      expect(l.resolveAll() as List<int>, equals([20, 40]));
+      expect((l.resolveAll() as List<int>).map((e) => e).resolveAll(),
+          equals([20, 40]));
+
+      expect(l.resolveAllWith(() => 123), equals(123));
+      expect(
+          (l.resolveAll() as List<int>).resolveAllWith(() => 123), equals(123));
+
+      expect(l.resolveAllWithValue(456), equals(456));
+      expect(
+          (l.resolveAll() as List<int>).resolveAllWithValue(456), equals(456));
+
+      expect(l.resolveAllMapped((value) => value * 10), equals([200, 400]));
+      expect(
+          (l.resolveAll() as List<int>).resolveAllMapped((value) => value * 10),
+          equals([200, 400]));
+
+      expect(l.resolveAllThen((value) => value.reduce((v, e) => v * e)),
+          equals(800));
+
+      expect(l.resolveAllValidated((v) => v > 30, defaultValue: 101),
+          equals([101, 40]));
+
+      expect(
+          (l.resolveAll() as List<int>)
+              .resolveAllValidated((v) => v > 30, defaultValue: 101),
+          equals([101, 40]));
+
       expect(l.selectResolved(), equals([20, 40]));
       expect(l.selectFutures(), isEmpty);
 
@@ -431,12 +477,18 @@ void main() {
 
       expect(l2.resolveAllJoined((l) => l.join()), equals('3063'));
 
+      expect((l2.resolveAll() as List<int>).resolveAllJoined((l) => l.join()),
+          equals('3063'));
+
       expect(l2.resolveAllValidated(_validateEven, defaultValue: 0).isResolved,
           isTrue);
       expect(l2.resolveAllValidated(_validateEven, defaultValue: 0),
           equals([30, 0]));
 
       expect(l2.resolveAllReduced((a, b) => a + b), equals(93));
+
+      expect((l2.resolveAll() as List<int>).resolveAllReduced((a, b) => a + b),
+          equals(93));
     });
 
     test('Not All Resolved ; Not All Future', () async {
@@ -444,6 +496,21 @@ void main() {
 
       expect(l.isAllResolved, isFalse);
       expect(l.isAllFuture, isFalse);
+
+      expect(l.allAsList.map((e) => e is num ? e : 'future'),
+          equals([20, 'future']));
+      expect(l.map((e) => e).allAsList.map((e) => e is num ? e : 'future'),
+          equals([20, 'future']));
+
+      expect(await l.resolveAll(), equals([20, -40]));
+      expect(await l.resolveAllWith(() => 123), equals(123));
+      expect(await l.resolveAllWithValue(456), equals(456));
+
+      expect(
+          await l.resolveAllMapped((value) => value * 10), equals([200, -400]));
+
+      expect(await l.resolveAllThen((value) => value.reduce((v, e) => v * e)),
+          equals(-800));
 
       expect(l.selectResolved(), equals([20]));
       expect(l.selectFutures().length, equals(1));
@@ -491,6 +558,9 @@ void main() {
 
       expect(l.isAllResolved, isFalse);
       expect(l.isAllFuture, isTrue);
+
+      expect(l.allAsList.map((e) => e is num ? e : 'future'),
+          equals(['future', 'future']));
 
       expect(l.selectResolved().isEmpty, isTrue);
       expect(l.selectFutures().length, equals(2));

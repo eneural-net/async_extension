@@ -124,6 +124,17 @@ extension FutureOrExtension<T> on FutureOr<T> {
     }
   }
 
+  /// Resolves this instance with [value].
+  FutureOr<V> resolveWithValue<V>(V value) {
+    var self = this;
+
+    if (self is Future<T>) {
+      return self.then((r) => value);
+    } else {
+      return value;
+    }
+  }
+
   /// Resolves this instance and calls [callback]. Returns `void`.
   FutureOr<void> onResolve<R>(void Function(T r) callback) {
     var self = this;
@@ -180,25 +191,102 @@ extension IterableFutureOrExtension<T> on Iterable<FutureOr<T>> {
   /// Selects all elements that are resolved (of type [T])
   List<T> selectResolved() => whereResolved().toList();
 
+  /// Returns all elements in a List.
+  /// Ensures that an [Iterable] is fully constructed.
+  List<FutureOr<T>> get allAsList {
+    var self = this;
+
+    if (self is List<FutureOr<T>>) {
+      return self;
+    } else {
+      return self.toList();
+    }
+  }
+
   /// Resolve all elements.
   FutureOr<List<T>> resolveAll() {
-    if (isEmpty) return <T>[];
+    var self = this;
 
-    if (isAllResolved) {
-      return cast<T>().toList();
+    if (self is List<T>) {
+      return self;
+    } else if (self is Iterable<T>) {
+      return self.toList();
+    }
+
+    var all = allAsList;
+    if (all.isEmpty) return <T>[];
+
+    if (all.isAllResolved) {
+      return all.cast<T>();
     } else {
-      return Future.wait(asFutures);
+      return Future.wait(all.asFutures);
+    }
+  }
+
+  /// Resolves all elements then resolves with [resolver] result.
+  FutureOr<R> resolveAllWith<R>(FutureOr<R> Function() resolver) {
+    var self = this;
+
+    if (self is List<T> || self is Set<T>) {
+      return resolver();
+    }
+
+    var all = allAsList;
+
+    if (all.isAllResolved) {
+      return resolver();
+    } else {
+      return Future.wait(all.asFutures).then((r) => resolver());
+    }
+  }
+
+  /// Same as `Future.wait(this).then`.
+  ///
+  /// - Note: it's not possible to implement `onError` and have the same
+  ///   behavior at [Future.then], since `onError` will be called
+  ///   only if `this` is a [Future], and not when it's a [T].
+  FutureOr<R> resolveAllThen<R>(FutureOr<R> Function(List<T> values) onValues) {
+    var all = resolveAll();
+
+    if (all is List<T>) {
+      return onValues(all);
+    } else {
+      return all.then(onValues);
+    }
+  }
+
+  /// Resolves all elements then resolves with [value].
+  FutureOr<V> resolveAllWithValue<V>(V value) {
+    var self = this;
+
+    if (self is List<T> || self is Set<T>) {
+      return value;
+    }
+
+    var all = allAsList;
+
+    if (all.isAllResolved) {
+      return value;
+    } else {
+      return Future.wait(all.asFutures).then((r) => value);
     }
   }
 
   /// Resolves all elements and map them with [mapper].
   FutureOr<List<R>> resolveAllMapped<R>(R Function(T e) mapper) {
-    if (isEmpty) return <R>[];
+    var self = this;
 
-    if (isAllResolved) {
-      return cast<T>().map(mapper).toList();
+    if (self is Iterable<T>) {
+      return self.map(mapper).toList();
+    }
+
+    var all = allAsList;
+    if (all.isEmpty) return <R>[];
+
+    if (all.isAllResolved) {
+      return all.cast<T>().map(mapper).toList();
     } else {
-      return Future.wait(asFutures).then((l) {
+      return Future.wait(all.asFutures).then((l) {
         return l.map(mapper).toList();
       });
     }
@@ -208,12 +296,22 @@ extension IterableFutureOrExtension<T> on Iterable<FutureOr<T>> {
   /// If an element is not valid will use [defaultValue].
   FutureOr<List<T>> resolveAllValidated(bool Function(T e) validate,
       {T? defaultValue}) {
-    if (isEmpty) return <T>[];
+    var self = this;
 
-    if (isAllResolved) {
-      return cast<T>().map((v) => validate(v) ? v : defaultValue as T).toList();
+    if (self is Iterable<T>) {
+      return self.map((v) => validate(v) ? v : defaultValue as T).toList();
+    }
+
+    var all = allAsList;
+    if (all.isEmpty) return <T>[];
+
+    if (all.isAllResolved) {
+      return all
+          .cast<T>()
+          .map((v) => validate(v) ? v : defaultValue as T)
+          .toList();
     } else {
-      return Future.wait(asFutures).then((l) {
+      return Future.wait(all.asFutures).then((l) {
         return l.map((v) => validate(v) ? v : defaultValue as T).toList();
       });
     }
@@ -221,25 +319,40 @@ extension IterableFutureOrExtension<T> on Iterable<FutureOr<T>> {
 
   /// Resolves all elements and join them with [joiner].
   FutureOr<R> resolveAllJoined<R>(FutureOr<R> Function(List<T> r) joiner) {
-    if (isEmpty) return joiner(<T>[]);
+    var self = this;
 
-    if (isAllResolved) {
-      var l = cast<T>().toList();
+    if (self is Iterable<T>) {
+      var l = self.toList();
+      return joiner(l);
+    }
+
+    var all = allAsList;
+    if (all.isEmpty) return joiner(<T>[]);
+
+    if (all.isAllResolved) {
+      var l = all.cast<T>();
       return joiner(l);
     } else {
-      return Future.wait(asFutures).resolveMapped(joiner);
+      return Future.wait(all.asFutures).resolveMapped(joiner);
     }
   }
 
   /// Resolves all elements and reduce them with [reducer].
   FutureOr<T> resolveAllReduced<R>(T Function(T value, T element) reducer) {
-    if (isEmpty) return <T>[].reduce(reducer);
+    var self = this;
 
-    if (isAllResolved) {
-      var l = cast<T>().toList();
+    if (self is Iterable<T>) {
+      return self.reduce(reducer);
+    }
+
+    var all = allAsList;
+    if (all.isEmpty) return <T>[].reduce(reducer);
+
+    if (all.isAllResolved) {
+      var l = all.cast<T>();
       return l.reduce(reducer);
     } else {
-      return Future.wait(asFutures).resolveMapped((l) {
+      return Future.wait(all.asFutures).resolveMapped((l) {
         return l.reduce(reducer);
       });
     }
@@ -510,7 +623,10 @@ class AsyncLoop<I> {
   /// Constructor.
   ///
   /// - [init] is the initial value of [i]
-  AsyncLoop(I init, this.condition, this.next, this.body) : i = init;
+  AsyncLoop(I init, this.condition, this.next, this.body)
+      :
+        // ignore: prefer_initializing_formals
+        i = init;
 
   FutureOr<I> run() {
     return _runBody(i);
@@ -559,7 +675,10 @@ class AsyncSequenceLoop {
   /// Constructor.
   ///
   /// - [init] is the initial value of [i].
-  AsyncSequenceLoop(int init, this.limit, this.body) : i = init;
+  AsyncSequenceLoop(int init, this.limit, this.body)
+      :
+        // ignore: prefer_initializing_formals
+        i = init;
 
   FutureOr<int> run() {
     return _runBody(i);

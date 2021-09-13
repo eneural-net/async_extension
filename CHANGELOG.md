@@ -1,3 +1,15 @@
+## 1.0.5
+
+- The package now exports `dart:async`.
+- New extensions:
+  - resolveWithValue
+  - resolveAllWithValue
+  - resolveAllThen
+  - allAsList
+- Optimized some resolutions
+  - Now ensures that iterables won't be iterated more than once.
+  - Ensures that `List` and `Set` won't be converted to `List` when not needed.
+
 ## 1.0.4
 
 - Added `AsyncLoop` and `AsyncSequenceLoop`. 
