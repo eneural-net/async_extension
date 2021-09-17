@@ -1,3 +1,11 @@
+## 1.0.6
+
+- New extension methods for nullable types:
+  - `whereNotNull`
+  - `whereNotNullResolved`
+  - `resolveAllNotNull`
+- Fixed `isResolved` detection for when `T` is `Object` or `dynamic`.
+
 ## 1.0.5
 
 - The package now exports `dart:async`.

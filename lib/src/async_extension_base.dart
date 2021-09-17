@@ -1,5 +1,18 @@
 import 'dart:async';
 
+var _tObjectNull = _typeGetter<Object?>();
+var _tFutureNull = _typeGetter<Future?>();
+
+bool _isNotFuture(Type type) {
+  return type != Future &&
+      type != dynamic &&
+      type != Object &&
+      type != _tFutureNull &&
+      type != _tObjectNull;
+}
+
+Type _typeGetter<T>() => T;
+
 /// Extension for [FutureOr].
 extension FutureOrExtension<T> on FutureOr<T> {
   /// Returns the type of [T].
@@ -147,12 +160,64 @@ extension FutureOrExtension<T> on FutureOr<T> {
   }
 }
 
+/// Extensions that apply to iterables with a nullable element type.
+extension IterableFutureOrExtensionNullable<T> on Iterable<FutureOr<T?>> {
+  /// Selects the non-null elements [T] of this iterable.
+  ///
+  /// Note that [Future] with null values won't be identified as null elements,
+  /// since they are not resolved yet.
+  Iterable<FutureOr<T?>> whereNotNull() sync* {
+    for (var element in this) {
+      if (element != null) {
+        yield element;
+      }
+    }
+  }
+
+  /// Selects the non-null resolved elements [T] of this iterable.
+  Iterable<T> whereNotNullResolved() sync* {
+    for (var element in this) {
+      if (element != null && element is! Future) {
+        yield element!;
+      }
+    }
+  }
+
+  /// Resolve all elements and select all non-null elements.
+  FutureOr<List<T>> resolveAllNotNull() {
+    var self = this;
+
+    if (_isNotFuture(T)) {
+      if (self is List<T>) {
+        return self;
+      } else if (self is List<T?>) {
+        return self.whereNotNullResolved().toList();
+      } else if (self is Iterable<T>) {
+        return self.toList();
+      } else if (self is Iterable<T?>) {
+        return self.whereNotNullResolved().toList();
+      }
+    }
+
+    var all = allAsList;
+    if (all.isEmpty) return <T>[];
+
+    if (all.isAllResolved) {
+      return all.whereNotNullResolved().toList();
+    } else {
+      return Future.wait<T?>(all.asFutures).then((values) {
+        return values.whereNotNullResolved().toList();
+      });
+    }
+  }
+}
+
 /// Extension for `Iterable<FutureOr<T>>`.
 extension IterableFutureOrExtension<T> on Iterable<FutureOr<T>> {
   /// Returns `true` if all elements are a [Future].
   bool get isAllFuture {
     if (this is Iterable<Future<T>>) return true;
-    if (this is Iterable<T>) return false;
+    if (this is Iterable<T> && _isNotFuture(T)) return false;
 
     for (var e in this) {
       if (e is! Future) return false;
@@ -162,7 +227,7 @@ extension IterableFutureOrExtension<T> on Iterable<FutureOr<T>> {
 
   /// Returns `true` if all elements are resolved, NOT a [Future].
   bool get isAllResolved {
-    if (this is Iterable<T>) return true;
+    if (this is Iterable<T> && _isNotFuture(T)) return true;
     if (this is Iterable<Future<T>>) return false;
 
     for (var e in this) {
@@ -207,10 +272,12 @@ extension IterableFutureOrExtension<T> on Iterable<FutureOr<T>> {
   FutureOr<List<T>> resolveAll() {
     var self = this;
 
-    if (self is List<T>) {
-      return self;
-    } else if (self is Iterable<T>) {
-      return self.toList();
+    if (_isNotFuture(T)) {
+      if (self is List<T>) {
+        return self;
+      } else if (self is Iterable<T>) {
+        return self.toList();
+      }
     }
 
     var all = allAsList;
@@ -227,7 +294,7 @@ extension IterableFutureOrExtension<T> on Iterable<FutureOr<T>> {
   FutureOr<R> resolveAllWith<R>(FutureOr<R> Function() resolver) {
     var self = this;
 
-    if (self is List<T> || self is Set<T>) {
+    if (_isNotFuture(T) && (self is List<T> || self is Set<T>)) {
       return resolver();
     }
 
@@ -259,7 +326,8 @@ extension IterableFutureOrExtension<T> on Iterable<FutureOr<T>> {
   FutureOr<V> resolveAllWithValue<V>(V value) {
     var self = this;
 
-    if (self is List<T> || self is Set<T>) {
+    if (_isNotFuture(T) && (self is List<T> || self is Set<T>)) {
+      print(T);
       return value;
     }
 
@@ -276,7 +344,7 @@ extension IterableFutureOrExtension<T> on Iterable<FutureOr<T>> {
   FutureOr<List<R>> resolveAllMapped<R>(R Function(T e) mapper) {
     var self = this;
 
-    if (self is Iterable<T>) {
+    if (_isNotFuture(T) && self is Iterable<T>) {
       return self.map(mapper).toList();
     }
 
@@ -298,7 +366,7 @@ extension IterableFutureOrExtension<T> on Iterable<FutureOr<T>> {
       {T? defaultValue}) {
     var self = this;
 
-    if (self is Iterable<T>) {
+    if (_isNotFuture(T) && self is Iterable<T>) {
       return self.map((v) => validate(v) ? v : defaultValue as T).toList();
     }
 
@@ -321,7 +389,7 @@ extension IterableFutureOrExtension<T> on Iterable<FutureOr<T>> {
   FutureOr<R> resolveAllJoined<R>(FutureOr<R> Function(List<T> r) joiner) {
     var self = this;
 
-    if (self is Iterable<T>) {
+    if (_isNotFuture(T) && self is Iterable<T>) {
       var l = self.toList();
       return joiner(l);
     }
@@ -341,7 +409,7 @@ extension IterableFutureOrExtension<T> on Iterable<FutureOr<T>> {
   FutureOr<T> resolveAllReduced<R>(T Function(T value, T element) reducer) {
     var self = this;
 
-    if (self is Iterable<T>) {
+    if (_isNotFuture(T) && self is Iterable<T>) {
       return self.reduce(reducer);
     }
 

@@ -610,6 +610,79 @@ void main() {
       expect(noElementError, isNotNull);
     });
   });
+
+  group('IterableFutureOrExtensionNullable', () {
+    test('whereNotNull', () async {
+      expect(await [20, null, Future.value(40)].whereNotNull().resolveAll(),
+          equals([20, 40]));
+
+      expect(
+          await [20, null, Future.value(40)]
+              .map((e) => e)
+              .whereNotNull()
+              .resolveAll(),
+          equals([20, 40]));
+
+      expect(await [20, Future.value(40)].whereNotNull().resolveAll(),
+          equals([20, 40]));
+
+      expect(await [20, 40].whereNotNull().resolveAll(), equals([20, 40]));
+      expect([20, 40].whereNotNull().resolveAll(), equals([20, 40]));
+
+      expect(
+          await [20, null, 40].whereNotNull().resolveAll(), equals([20, 40]));
+      expect([20, null, 40].whereNotNull().resolveAll(), equals([20, 40]));
+
+      expect([20, null, 40].map((e) => e).whereNotNull().resolveAll(),
+          equals([20, 40]));
+    });
+
+    test('whereNotNullResolved', () async {
+      expect([20, null, Future.value(40)].whereNotNullResolved(), equals([20]));
+
+      expect([20, null, Future.value(40)].map((e) => e).whereNotNullResolved(),
+          equals([20]));
+
+      expect([20, Future.value(40)].whereNotNullResolved(), equals([20]));
+
+      expect([20, null, 40].whereNotNullResolved(), equals([20, 40]));
+
+      expect([20, null, 40].map((e) => e).whereNotNullResolved(),
+          equals([20, 40]));
+
+      expect([20, 40].whereNotNullResolved(), equals([20, 40]));
+    });
+
+    test('resolveAllNotNull', () async {
+      expect(await ([20, null, Future.value(40)].resolveAllNotNull()),
+          equals([20, 40]));
+
+      expect(
+          await ([20, null, Future.value(40)]
+              .map((e) => e)
+              .resolveAllNotNull()),
+          equals([20, 40]));
+
+      expect(await ([20, null, 40].resolveAllNotNull()), equals([20, 40]));
+
+      expect(
+          await ([20, Future.value(40)].resolveAllNotNull()), equals([20, 40]));
+
+      expect(await ([20, 40].resolveAllNotNull()), equals([20, 40]));
+
+      expect(([20, null, 40].resolveAllNotNull()), equals([20, 40]));
+
+      expect(
+          ([20, null, 40].map((e) => e).resolveAllNotNull()), equals([20, 40]));
+
+      expect((<FutureOr<int?>>[20, null, 40].map((e) => e).resolveAllNotNull()),
+          equals([20, 40]));
+
+      expect(([20, 40].resolveAllNotNull()), equals([20, 40]));
+
+      expect(([20, 40].map((e) => e).resolveAllNotNull()), equals([20, 40]));
+    });
+  });
 }
 
 /// Multiply [a] * [b], and returns `int` for positive [a] and
