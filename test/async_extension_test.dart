@@ -489,6 +489,24 @@ void main() {
 
       expect((l2.resolveAll() as List<int>).resolveAllReduced((a, b) => a + b),
           equals(93));
+
+      expect(await [Future.value(10), Future.value(20)].resolveAll(),
+          equals([10, 20]));
+
+      expect(await [Future.value(10), Future.value(20), 30].resolveAll(),
+          equals([10, 20, 30]));
+
+      expect(
+          await [
+            Future.value(Future.value([1, 2])),
+            Future.value(Future.value([3, 4])),
+            [5, 6]
+          ].resolveAll(),
+          equals([
+            [1, 2],
+            [3, 4],
+            [5, 6]
+          ]));
     });
 
     test('Not All Resolved ; Not All Future', () async {
