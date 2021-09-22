@@ -1,3 +1,14 @@
+## 1.0.7
+
+- New extension methods:
+  - `resolveOther`
+  - `resolveAllNullable`
+- New `Map` extension methods:
+  - `resolveAllKeys`
+  - `resolveAllEntries`
+  - `resolveAllValues`
+  - `resolveAllValuesNullable`
+
 ## 1.0.6
 
 - New extension methods for nullable types:

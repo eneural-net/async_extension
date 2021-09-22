@@ -48,6 +48,10 @@ extension FutureOrExtension<T> on FutureOr<T> {
   }
 
   /// Resolves `this` and [other] with [resolver].
+  ///
+  /// Note that the parameter [other] should be of the same [Type] of `this` instance.
+  ///
+  /// See also [resolveOther].
   FutureOr<R> resolveBoth<R>(
       FutureOr<T> other, FutureOr<R> Function(T val1, T val2) resolver) {
     var self = this;
@@ -64,6 +68,33 @@ extension FutureOrExtension<T> on FutureOr<T> {
       }
     } else {
       if (other is Future<T>) {
+        return other.then((v2) => resolver(self, v2));
+      } else {
+        return resolver(self, other);
+      }
+    }
+  }
+
+  /// Resolves `this` and [other] with [resolver].
+  ///
+  /// This method is similar to [resolveBoth], but accepts an [other] parameter
+  /// with a different [Type] of `this` instance.
+  FutureOr<R> resolveOther<R, E>(
+      FutureOr<E> other, FutureOr<R> Function(T val1, E val2) resolver) {
+    var self = this;
+
+    if (self is Future<T>) {
+      if (other is Future<E>) {
+        return self.then((v1) {
+          return other.then((v2) => resolver(v1, v2));
+        });
+      } else {
+        return self.then((v1) {
+          return resolver(v1, other);
+        });
+      }
+    } else {
+      if (other is Future<E>) {
         return other.then((v2) => resolver(self, v2));
       } else {
         return resolver(self, other);
@@ -207,6 +238,34 @@ extension IterableFutureOrExtensionNullable<T> on Iterable<FutureOr<T?>> {
     } else {
       return Future.wait<T?>(all.asFutures).then((values) {
         return values.whereNotNullResolved().toList();
+      });
+    }
+  }
+
+  /// Resolve all elements.
+  FutureOr<List<T?>> resolveAllNullable() {
+    var self = this;
+
+    if (_isNotFuture(T)) {
+      if (self is List<T>) {
+        return self;
+      } else if (self is List<T?>) {
+        return self.toList();
+      } else if (self is Iterable<T>) {
+        return self.toList();
+      } else if (self is Iterable<T?>) {
+        return self.toList();
+      }
+    }
+
+    var all = allAsList;
+    if (all.isEmpty) return <T>[];
+
+    if (all.isAllResolved) {
+      return all.cast<T?>().toList();
+    } else {
+      return Future.wait<T?>(all.asFutures).then((values) {
+        return values.toList();
       });
     }
   }
@@ -534,6 +593,79 @@ extension IterableFutureExtension<T> on Iterable<Future<T>> {
     } else {
       return Future.wait(this).then((_) => value);
     }
+  }
+}
+
+extension MapFutureValueExtension<K, V> on Map<K, FutureOr<V>> {
+  /// Resolve all [Map] values (non nullable).
+  FutureOr<Map<K, V>> resolveAllValues() {
+    var keys = this.keys.toList(growable: false);
+    var futureValues =
+        keys.map((k) => this[k]!).cast<FutureOr<V?>>().toList(growable: false);
+
+    return futureValues.resolveAllJoined((values) {
+      var entries = List.generate(values.length, (i) {
+        var k = keys[i];
+        var v = values[i]!;
+        return MapEntry(k, v);
+      });
+      return Map<K, V>.fromEntries(entries);
+    });
+  }
+}
+
+extension MapFutureValueNullableExtension<K, V extends Object>
+    on Map<K, FutureOr<V?>> {
+  /// Resolve all [Map] values that can be `null`.
+  FutureOr<Map<K, V?>> resolveAllValuesNullable() {
+    var keys = this.keys.toList(growable: false);
+    var futureValues =
+        keys.map((k) => this[k]).cast<FutureOr<V?>>().toList(growable: false);
+
+    return futureValues.resolveAllNullable().resolveMapped((values) {
+      var entries = List.generate(values.length, (i) {
+        var k = keys[i];
+        var v = values[i];
+        return MapEntry(k, v);
+      });
+      return Map<K, V?>.fromEntries(entries);
+    });
+  }
+}
+
+extension MapFutureKeyExtension<K, V> on Map<FutureOr<K>, V> {
+  /// Resolve all [Map] keys.
+  FutureOr<Map<K, V>> resolveAllKeys() {
+    var futureKeys = keys.toList(growable: false);
+    var values = keys.map((k) => this[k]!).toList(growable: false);
+
+    return futureKeys.resolveAllJoined((keys) {
+      var entries = List.generate(values.length, (i) {
+        var k = keys[i];
+        var v = values[i];
+        return MapEntry(k, v);
+      });
+      return Map<K, V>.fromEntries(entries);
+    });
+  }
+}
+
+extension MapFutureExtension<K, V> on Map<FutureOr<K>, FutureOr<V>> {
+  /// Resolve all [Map] entries.
+  FutureOr<Map<K, V>> resolveAllEntries() {
+    var futureKeys = keys.toList(growable: false);
+    var futureValues = keys.map((k) => this[k]!).toList(growable: false);
+
+    return futureKeys.resolveAllJoined((keys) {
+      return futureValues.resolveAllJoined((values) {
+        var entries = List.generate(values.length, (i) {
+          var k = keys[i];
+          var v = values[i];
+          return MapEntry(k, v);
+        });
+        return Map<K, V>.fromEntries(entries);
+      });
+    });
   }
 }
 

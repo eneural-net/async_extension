@@ -137,6 +137,31 @@ void main() {
           equals(-60));
     });
 
+    test('resolveOther', () async {
+      expect(
+          await _futureOrMultiply(10, 2)
+              .resolveOther(_futureOrMultiply(20, 2), (v1, v2) => '$v1,$v2'),
+          equals('20,40'));
+
+      expect(
+          await _futureOrMultiply(10, 2)
+              .resolveOther('foo', (v1, v2) => '$v1,$v2'),
+          equals('20,foo'));
+
+      expect(
+          await _futureOrMultiply(10, 2)
+              .resolveOther(Future.value('bar'), (v1, v2) => '$v1,$v2'),
+          equals('20,bar'));
+
+      expect(
+          await Future.value('foo')
+              .resolveOther(Future.value('bar'), (v1, v2) => '$v1,$v2'),
+          equals('foo,bar'));
+
+      expect(await Future.value('foo').resolveOther(200, (v1, v2) => '$v1,$v2'),
+          equals('foo,200'));
+    });
+
     test('AsyncLoop 1', () async {
       var countInt = <int>[0];
       var countFuture = <int>[0];
@@ -699,6 +724,74 @@ void main() {
       expect(([20, 40].resolveAllNotNull()), equals([20, 40]));
 
       expect(([20, 40].map((e) => e).resolveAllNotNull()), equals([20, 40]));
+    });
+
+    test('resolveAllNullable', () async {
+      expect(
+          await ([20, null, 40].resolveAllNullable()), equals([20, null, 40]));
+
+      expect(await ([20, 30, 40].resolveAllNullable()), equals([20, 30, 40]));
+
+      expect(await ([20, 30, 40].map((e) => e).resolveAllNullable()),
+          equals([20, 30, 40]));
+
+      expect(await (<dynamic>[20, 30, 40].resolveAllNullable()),
+          equals([20, 30, 40]));
+
+      expect(await ([20, null, 40].map((e) => e).resolveAllNullable()),
+          equals([20, null, 40]));
+
+      expect(await ([20, null, Future.value(40)].resolveAllNullable()),
+          equals([20, null, 40]));
+
+      expect(
+          await ([20, null, Future.value(40)]
+              .map((e) => e)
+              .resolveAllNullable()),
+          equals([20, null, 40]));
+    });
+  });
+
+  group('MapFutureValueExtension', () {
+    test('resolveAllValues', () async {
+      expect(await {'a': 1, 'b': Future.value(2)}.resolveAllValues(),
+          equals({'a': 1, 'b': 2}));
+
+      expect(
+          await {'a': 1, 'b': 2}.resolveAllValues(), equals({'a': 1, 'b': 2}));
+    });
+
+    test('resolveAllValuesNullable', () async {
+      expect(
+          await {'a': 1, 'b': Future.value(2), 'c': null}
+              .resolveAllValuesNullable(),
+          equals({'a': 1, 'b': 2, 'c': null}));
+
+      expect(
+          await {'a': 1, 'b': 2, 'c': Future.value(null)}
+              .resolveAllValuesNullable(),
+          equals({'a': 1, 'b': 2, 'c': null}));
+    });
+  });
+
+  group('MapFutureKeyExtension', () {
+    test('resolveAllKeys', () async {
+      expect(await {Future.value('a'): 1, 'b': 2}.resolveAllKeys(),
+          equals({'a': 1, 'b': 2}));
+
+      expect(await {'a': 1, 'b': 2}.resolveAllKeys(), equals({'a': 1, 'b': 2}));
+    });
+  });
+
+  group('MapFutureExtension', () {
+    test('resolveAllEntries', () async {
+      expect(
+          await {Future.value('a'): 1, 'b': 2, 'c': Future.value(3)}
+              .resolveAllEntries(),
+          equals({'a': 1, 'b': 2, 'c': 3}));
+
+      expect(await {'a': 1, 'b': 2, 'c': 3}.resolveAllEntries(),
+          equals({'a': 1, 'b': 2, 'c': 3}));
     });
   });
 }
