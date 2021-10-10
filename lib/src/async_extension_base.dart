@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'async_extension_try.dart';
+
 var _tObjectNull = _typeGetter<Object?>();
 var _tFutureNull = _typeGetter<Future?>();
 
@@ -144,14 +146,16 @@ extension FutureOrExtension<T> on FutureOr<T> {
 
   /// Same as [Future.then].
   ///
-  /// - Note: it's not possible to implement `onError` and have the same
+  /// - Note: it's not possible to implement `onError` with the same
   ///   behavior at [Future.then], since `onError` will be called
   ///   only if `this` is a [Future], and not when it's a [T].
-  FutureOr<R> then<R>(FutureOr<R> Function(T value) onValue) {
+  /// - See [asyncTry].
+  FutureOr<R> then<R>(FutureOr<R> Function(T value) onValue,
+      {Function? onError}) {
     var self = this;
 
     if (self is Future<T>) {
-      return self.then(onValue);
+      return self.then(onValue, onError: onError);
     } else {
       return onValue(self);
     }

@@ -1,3 +1,10 @@
+## 1.0.8
+
+- Added `asyncTry`:
+  - Executes a `block` in a `try`, `then`, `catch` and `finally` execution chain.
+- Using standard Dart coverage.
+- coverage: ^1.0.3
+
 ## 1.0.7
 
 - New extension methods:
