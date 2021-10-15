@@ -1,3 +1,7 @@
+## 1.0.9
+
+- `whereNotNull` renamed to `whereNotNullSync` to avoid conflict with package `collection`.
+
 ## 1.0.8
 
 - Added `asyncTry`:

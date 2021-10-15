@@ -656,27 +656,27 @@ void main() {
 
   group('IterableFutureOrExtensionNullable', () {
     test('whereNotNull', () async {
-      expect(await [20, null, Future.value(40)].whereNotNull().resolveAll(),
+      expect(await [20, null, Future.value(40)].whereNotNullSync().resolveAll(),
           equals([20, 40]));
 
       expect(
           await [20, null, Future.value(40)]
               .map((e) => e)
-              .whereNotNull()
+              .whereNotNullSync()
               .resolveAll(),
           equals([20, 40]));
 
-      expect(await [20, Future.value(40)].whereNotNull().resolveAll(),
+      expect(await [20, Future.value(40)].whereNotNullSync().resolveAll(),
           equals([20, 40]));
 
-      expect(await [20, 40].whereNotNull().resolveAll(), equals([20, 40]));
-      expect([20, 40].whereNotNull().resolveAll(), equals([20, 40]));
+      expect(await [20, 40].whereNotNullSync().resolveAll(), equals([20, 40]));
+      expect([20, 40].whereNotNullSync().resolveAll(), equals([20, 40]));
 
-      expect(
-          await [20, null, 40].whereNotNull().resolveAll(), equals([20, 40]));
-      expect([20, null, 40].whereNotNull().resolveAll(), equals([20, 40]));
+      expect(await [20, null, 40].whereNotNullSync().resolveAll(),
+          equals([20, 40]));
+      expect([20, null, 40].whereNotNullSync().resolveAll(), equals([20, 40]));
 
-      expect([20, null, 40].map((e) => e).whereNotNull().resolveAll(),
+      expect([20, null, 40].map((e) => e).whereNotNullSync().resolveAll(),
           equals([20, 40]));
     });
 

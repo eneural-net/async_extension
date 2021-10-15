@@ -201,7 +201,7 @@ extension IterableFutureOrExtensionNullable<T> on Iterable<FutureOr<T?>> {
   ///
   /// Note that [Future] with null values won't be identified as null elements,
   /// since they are not resolved yet.
-  Iterable<FutureOr<T?>> whereNotNull() sync* {
+  Iterable<FutureOr<T?>> whereNotNullSync() sync* {
     for (var element in this) {
       if (element != null) {
         yield element;
@@ -390,7 +390,6 @@ extension IterableFutureOrExtension<T> on Iterable<FutureOr<T>> {
     var self = this;
 
     if (_isNotFuture(T) && (self is List<T> || self is Set<T>)) {
-      print(T);
       return value;
     }
 
