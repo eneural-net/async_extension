@@ -18,7 +18,7 @@ Type _typeGetter<T>() => T;
 /// Extension for [FutureOr].
 extension FutureOrExtension<T> on FutureOr<T> {
   /// Returns the type of [T].
-  Type get type => T;
+  Type get genericType => T;
 
   /// Returns a [Future] of this instance.
   Future<T> get asFuture =>
@@ -511,7 +511,7 @@ extension IterableFutureOrExtension<T> on Iterable<FutureOr<T>> {
 
 extension FutureExtension<T> on Future<T> {
   /// Returns the type of [T].
-  Type get type => T;
+  Type get genericType => T;
 
   /// Resolves `this` [Future] and [other] with [resolver].
   Future<R> resolveBoth<R>(
@@ -604,12 +604,12 @@ extension MapFutureValueExtension<K, V> on Map<K, FutureOr<V>> {
   FutureOr<Map<K, V>> resolveAllValues() {
     var keys = this.keys.toList(growable: false);
     var futureValues =
-        keys.map((k) => this[k]!).cast<FutureOr<V?>>().toList(growable: false);
+        keys.map((k) => this[k]!).cast<FutureOr<V>>().toList(growable: false);
 
     return futureValues.resolveAllJoined((values) {
       var entries = List.generate(values.length, (i) {
         var k = keys[i];
-        var v = values[i]!;
+        var v = values[i];
         return MapEntry(k, v);
       });
       return Map<K, V>.fromEntries(entries);

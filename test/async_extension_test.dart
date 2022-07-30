@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:async_extension/async_extension.dart';
 import 'package:test/test.dart';
 
@@ -380,8 +378,8 @@ void main() {
     });
 
     test('type', () async {
-      expect(_futureOrMultiply(10, 2).type, equals(int));
-      expect(_futureOrMultiply(-10, 2).type, equals(int));
+      expect(_futureOrMultiply(10, 2).genericType, equals(int));
+      expect(_futureOrMultiply(-10, 2).genericType, equals(int));
     });
 
     test('type', () async {
@@ -423,7 +421,7 @@ void main() {
     setUp(() {});
 
     test('All Resolved', () async {
-      expect(Future.value(123).type, equals(int));
+      expect(Future.value(123).genericType, equals(int));
 
       expect(
           await Future.value(110)
@@ -610,7 +608,7 @@ void main() {
 
       expect(await l.selectFutures().waitFutures(), equals([-20, -40]));
 
-      expect(l.selectFutures().resolveAll() is Future<List<int>>, isTrue);
+      expect(l.selectFutures().resolveAll(), isA<Future<List<int>>>());
       expect(await l.selectFutures().resolveAll(), equals([-20, -40]));
 
       expect(l.asFutures.length, equals(2));

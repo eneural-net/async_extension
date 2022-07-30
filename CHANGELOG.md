@@ -1,3 +1,13 @@
+## 1.0.10
+
+- `FutureExtension` and `FutureOrExtension`:
+  - Renamed `type` getter to `genericType` to avoid issues with nullable variables.
+- Update GitHub CI.
+- lints: ^2.0.0
+- test: ^1.17.12
+- dependency_validator: ^3.2.2
+- coverage: ^1.0.4
+
 ## 1.0.9
 
 - `whereNotNull` renamed to `whereNotNullSync` to avoid conflict with package `collection`.
