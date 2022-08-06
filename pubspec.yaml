@@ -1,6 +1,6 @@
 name: async_extension
 description: Dart async extensions, to help usage of Future, FutureOr and async methods. Also allows performance improvements when using sync and async code.
-version: 1.0.11
+version: 1.0.12
 homepage: https://github.com/eneural-net/async_extension
 
 environment:

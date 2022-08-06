@@ -93,8 +93,10 @@ class _ErrorFunction<R> {
     try {
       Object? ret = _callFunction(error, stackTrace);
 
-      if (ret is Future<R?>) {
-        return ret.then((o) => _callFinally(o, finallyFunction), onError: (e) {
+      if (ret is Future) {
+        return ret.then((o) {
+          return _callFinally(o, finallyFunction);
+        }, onError: (e) {
           return _callFinally(null, finallyFunction, e);
         });
       } else {
@@ -200,13 +202,21 @@ Future<R?> _returnFuture<R>(
 ) {
   if (thenFunction != null) {
     return ret.then(
-      (r) => thenFunction.call(r, errorFunction, finallyFunction),
-      onError: (e, s) => _completeError(e, s, errorFunction, finallyFunction),
+      (r) {
+        return thenFunction.call(r, errorFunction, finallyFunction);
+      },
+      onError: (e, s) {
+        return _completeError(e, s, errorFunction, finallyFunction);
+      },
     );
   } else if (errorFunction != null || finallyFunction != null) {
     return ret.then(
-      (r) => _complete(r, errorFunction, finallyFunction),
-      onError: (e, s) => _completeError(e, s, errorFunction, finallyFunction),
+      (r) {
+        return _complete(r, errorFunction, finallyFunction);
+      },
+      onError: (e, s) {
+        return _completeError(e, s, errorFunction, finallyFunction);
+      },
     );
   } else {
     return ret;

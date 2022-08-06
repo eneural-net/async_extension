@@ -1,3 +1,8 @@
+## 1.0.12
+
+- `asyncTry`:
+  - Fix issue when `onError` returns a `Future` with a type different from the main function.
+
 ## 1.0.11
 
 - `AsyncLoop`:
