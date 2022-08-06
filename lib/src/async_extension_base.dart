@@ -831,34 +831,45 @@ class AsyncLoop<I> {
         // ignore: prefer_initializing_formals
         i = init;
 
+  static AsyncLoop forEach<T>(
+      Iterable<T> itr, FutureOr<bool> Function(T e) block) {
+    if (itr is List<T>) {
+      return AsyncLoop<int>(
+          0, (i) => i < itr.length, (i) => i + 1, (i) => block(itr[i]));
+    } else {
+      var iterator = itr.iterator;
+      return AsyncLoop<int>(0, (i) => iterator.moveNext(), (i) => i + 1,
+          (_) => block(iterator.current));
+    }
+  }
+
   FutureOr<I> run() {
     return _runBody(i);
   }
 
   FutureOr<I> _runBody(I i) {
-    if (!condition(i)) {
-      return i;
-    }
+    while (condition(i)) {
+      var ret = body(i);
 
-    var ret = body(i);
+      if (ret is Future<bool>) {
+        return ret.then((ok) {
+          if (!ok) {
+            return i;
+          }
 
-    if (ret is Future<bool>) {
-      return ret.then((ok) {
-        if (!ok) {
+          i = next(i);
+          return _runBody(i);
+        });
+      } else {
+        if (!ret) {
           return i;
         }
 
         i = next(i);
-        return _runBody(i);
-      });
-    } else {
-      if (!ret) {
-        return i;
       }
-
-      i = next(i);
-      return _runBody(i);
     }
+
+    return i;
   }
 }
 

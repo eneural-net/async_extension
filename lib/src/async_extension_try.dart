@@ -18,17 +18,29 @@ FutureOr<R?> _completeError<R>(Object error, StackTrace stackTrace,
   if (errorFunction != null) {
     return errorFunction.call(error, stackTrace, finallyFunction);
   } else if (finallyFunction != null) {
-    finallyFunction.call();
-    throw error;
+    var ret = finallyFunction.call();
+    if (ret is Future<R?>) {
+      return ret.then((_) {
+        throw error;
+      }, onError: (e) {
+        throw e;
+      });
+    } else {
+      throw error;
+    }
   } else {
     throw error;
   }
 }
 
-FutureOr<R?> _finally<R>(R? result, _FinallyFunction<R>? finallyFunction) {
+FutureOr<R?> _finally<R>(R? result, _FinallyFunction<R>? finallyFunction,
+    [Object? thrownError]) {
   if (finallyFunction != null) {
-    return finallyFunction.call(result);
+    return finallyFunction.call(result, thrownError);
   } else {
+    if (thrownError != null) {
+      throw thrownError;
+    }
     return result;
   }
 }
@@ -78,12 +90,18 @@ class _ErrorFunction<R> {
     }
     _called = true;
 
-    Object? ret = _callFunction(error, stackTrace);
+    try {
+      Object? ret = _callFunction(error, stackTrace);
 
-    if (ret is Future<R?>) {
-      return ret.then((o) => _callFinally(o, finallyFunction));
-    } else {
-      return _callFinally(ret, finallyFunction);
+      if (ret is Future<R?>) {
+        return ret.then((o) => _callFinally(o, finallyFunction), onError: (e) {
+          return _callFinally(null, finallyFunction, e);
+        });
+      } else {
+        return _callFinally(ret, finallyFunction);
+      }
+    } catch (e) {
+      return _callFinally(null, finallyFunction, e);
     }
   }
 
@@ -95,10 +113,11 @@ class _ErrorFunction<R> {
     }
   }
 
-  FutureOr<R?> _callFinally(Object? o, _FinallyFunction<R>? finallyFunction) {
+  FutureOr<R?> _callFinally(Object? o, _FinallyFunction<R>? finallyFunction,
+      [Object? thrownError]) {
     var r = o is R ? o : null;
     result = r;
-    return _finally(r, finallyFunction);
+    return _finally(r, finallyFunction, thrownError);
   }
 }
 
@@ -113,7 +132,7 @@ class _FinallyFunction<R> {
 
   Future<R?>? _callFuture;
 
-  FutureOr<R?> call([R? r]) {
+  FutureOr<R?> call([R? r, Object? thrownError]) {
     if (_called) {
       if (_callFuture != null) {
         return _callFuture!;
@@ -125,11 +144,21 @@ class _FinallyFunction<R> {
       result = r;
 
       var ret = function();
-      if (ret is Future) {
-        var future = ret.then((_) => result);
+      if (ret is Future<void>) {
+        var future = ret.then((_) {
+          if (thrownError != null) {
+            throw thrownError;
+          }
+          return result;
+        }, onError: (e) {
+          throw e;
+        });
         _callFuture = future;
         return future;
       } else {
+        if (thrownError != null) {
+          throw thrownError;
+        }
         return result;
       }
     }

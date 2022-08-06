@@ -2,6 +2,82 @@ import 'package:async_extension/async_extension.dart';
 import 'package:test/test.dart';
 
 void main() {
+  // Ensure that the standard Dart behavior happens in any platform.
+  // Also it's a reference for the `asyncTry` behavior.
+  group('Dart standard', () {
+    test('try/catch/finally', () {
+      Object? error;
+      Object? f;
+      try {
+        throw StateError("e1");
+      } catch (e) {
+        error = e;
+      } finally {
+        f = 'final';
+      }
+
+      expect(error,
+          isA<StateError>().having((e) => e.message, 'message', equals('e1')));
+
+      expect(f, equals('final'));
+    });
+
+    test('try/catch/rethrow/finally inside try/catch', () {
+      Object? error;
+      Object? subError;
+      Object? f;
+
+      try {
+        try {
+          throw StateError("e1");
+        } catch (e) {
+          subError = e;
+          rethrow;
+        } finally {
+          f = 'final';
+        }
+      } catch (e) {
+        error = e;
+      }
+
+      expect(error,
+          isA<StateError>().having((e) => e.message, 'message', equals('e1')));
+
+      expect(subError,
+          isA<StateError>().having((e) => e.message, 'message', equals('e1')));
+
+      expect(f, equals('final'));
+    });
+
+    test('try/catch/rethrow/finally/throw inside try/catch', () {
+      Object? error;
+      Object? subError;
+      Object? f;
+
+      try {
+        try {
+          throw StateError("e1");
+        } catch (e) {
+          subError = e;
+          rethrow;
+        } finally {
+          f = 'final';
+          throw StateError("e2");
+        }
+      } catch (e) {
+        error = e;
+      }
+
+      expect(error,
+          isA<StateError>().having((e) => e.message, 'message', equals('e2')));
+
+      expect(subError,
+          isA<StateError>().having((e) => e.message, 'message', equals('e1')));
+
+      expect(f, equals('final'));
+    });
+  });
+
   group('FutureOrExtension', () {
     setUp(() {});
 
@@ -200,6 +276,50 @@ void main() {
 
       expect(countInt[0], equals(3));
       expect(countFuture[0], equals(3));
+    });
+
+    test('AsyncLoop 3', () async {
+      var l = [1, 2, 3];
+
+      var sum = 0;
+
+      var a1 = AsyncLoop.forEach<int>(l, (e) {
+        sum += e;
+        return true;
+      });
+
+      expect(await a1.run(), equals(3));
+      expect(sum, equals(6));
+    });
+
+    test('AsyncLoop 4', () async {
+      var l = [1, 2, 3];
+
+      var sum = 0;
+
+      var a1 = AsyncLoop.forEach<int>(l.map((e) => e * 2), (e) {
+        sum += e;
+        return true;
+      });
+
+      expect(await a1.run(), equals(3));
+      expect(sum, equals(12));
+    });
+
+    test('AsyncLoop 5', () async {
+      var l = [1, 2, 3];
+
+      var sum = 0;
+
+      var a1 = AsyncLoop.forEach<int>(l, (e) {
+        return _asFuture(() {
+          sum += e;
+          return true;
+        });
+      });
+
+      expect(await a1.run(), equals(3));
+      expect(sum, equals(6));
     });
 
     test('AsyncSequenceLoop 1', () async {
@@ -800,8 +920,8 @@ void main() {
       expect(await asyncTry<int>(() => Future.value(123)), equals(123));
 
       expect(
-          await asyncTry<int>(() => Future.delayed(
-              Duration(milliseconds: 100), () => Future.value(123))),
+          await asyncTry<int>(
+              () => _asFuture(() => Future.value(123), delayMs: 50)),
           equals(123));
     });
 
@@ -817,20 +937,20 @@ void main() {
 
       expect(
           await asyncTry<int>(
-            () => Future.delayed(Duration(milliseconds: 100), () => 123),
+            () => _asFuture(() => 123, delayMs: 50),
             then: (n) => n! * 2,
           ),
           equals(246));
 
       expect(
           await asyncTry<int>(
-            () => Future.delayed(Duration(milliseconds: 100), () => 123),
+            () => _asFuture(() => 123, delayMs: 50),
             then: (n) => Future.value(n! * 3),
           ),
           equals(369));
     });
 
-    test('then+delay+error', () async {
+    test('then+catch+delay+error', () async {
       expect(asyncTry<int>(() => 123, then: (n) => n! * 2), equals(246));
 
       var error1 = <StateError>[];
@@ -846,7 +966,7 @@ void main() {
       var error2 = <StateError>[];
       expect(
           await asyncTry<int>(
-            () => Future.delayed(Duration(milliseconds: 100), () => 123),
+            () => _asFuture(() => 123, delayMs: 50),
             then: (n) => throw StateError('e2'),
             onError: (e) => error2.add(e),
           ),
@@ -856,16 +976,15 @@ void main() {
       var error3 = <StateError>[];
       expect(
           await asyncTry<int>(
-            () => Future.delayed(Duration(milliseconds: 100), () => 123),
-            then: (n) => Future.delayed(
-                Duration(milliseconds: 100), () => throw StateError('e3')),
+            () => _asFuture(() => 123, delayMs: 50),
+            then: (n) => _asFuture(() => throw StateError('e3'), delayMs: 50),
             onError: (e) => error3.add(e),
           ),
           isNull);
       expect(error3.map((e) => e.message), equals(['e3']));
     });
 
-    test('error', () async {
+    test('error+catch', () async {
       var error1 = <StateError>[];
       expect(
           asyncTry<int>(() => throw StateError('e1'), onError: (e) {
@@ -896,14 +1015,14 @@ void main() {
             () => Future.microtask(() => throw StateError('e3')),
             onError: (e) {
               error3.add(e);
-              return Future.delayed(Duration(milliseconds: 100), () => -3);
+              return _asFuture(() => -3, delayMs: 50);
             },
           ),
           equals(-3));
       expect(error3.map((e) => e.message), equals(['e3']));
     });
 
-    test('error(no onError)', () async {
+    test('error', () async {
       var error1 = <StateError>[];
       FutureOr<int?> ret1;
       try {
@@ -917,8 +1036,8 @@ void main() {
       var error2 = <StateError>[];
       FutureOr<int?> ret2;
       try {
-        ret2 = await asyncTry<int>(() => Future.delayed(
-            Duration(milliseconds: 100), () => throw StateError('e2')));
+        ret2 = await asyncTry<int>(
+            () => _asFuture(() => throw StateError('e2'), delayMs: 50));
       } catch (e) {
         error2.add(e as StateError);
       }
@@ -948,10 +1067,9 @@ void main() {
       var finally3 = <int>[];
       expect(
           await asyncTry<int>(
-            () => Future.delayed(
-                Duration(milliseconds: 100),
-                () => Future.delayed(
-                    Duration(milliseconds: 100), () => Future.value(111))),
+            () => _asFuture(
+                () => _asFuture(() => Future.value(111), delayMs: 50),
+                delayMs: 50),
             onFinally: () => finally3.add(3),
           ),
           equals(111));
@@ -961,14 +1079,13 @@ void main() {
       expect(
           await asyncTry<int>(
             () => Future.value(123),
-            onFinally: () => Future.delayed(
-                Duration(milliseconds: 100), () => finally4.add(4)),
+            onFinally: () => _asFuture(() => finally4.add(4), delayMs: 50),
           ),
           equals(123));
       expect(finally4, equals([4]));
     });
 
-    test('error(no onError)+finally', () async {
+    test('error+finally', () async {
       var error1 = <StateError>[];
       var finally1 = <int>[];
       FutureOr<int?> ret1;
@@ -987,14 +1104,50 @@ void main() {
       FutureOr<int?> ret2;
       try {
         ret2 = await asyncTry<int>(
-            () => Future.delayed(
-                Duration(milliseconds: 100), () => throw StateError('e2')),
+            () => _asFuture(() => throw StateError('e2'), delayMs: 50),
             onFinally: () => finally2.add(2));
       } catch (e) {
         error2.add(e as StateError);
       }
       expect(ret2, isNull);
       expect(error2.map((e) => e.message), equals(['e2']));
+      expect(finally2, equals([2]));
+    });
+
+    test('error+finally+error2', () async {
+      var error1 = <StateError>[];
+      var finally1 = <int>[];
+      FutureOr<int?> ret1;
+      try {
+        ret1 = asyncTry<int>(() => throw StateError('e1'),
+            // ignore: void_checks
+            onFinally: () {
+          finally1.add(1);
+          throw StateError('fe1');
+        });
+      } catch (e) {
+        error1.add(e as StateError);
+      }
+      expect(ret1, isNull);
+      expect(error1.map((e) => e.message), equals(['fe1']));
+      expect(finally1, equals([1]));
+
+      var error2 = <StateError>[];
+      var finally2 = <int>[];
+      FutureOr<int?> ret2;
+      try {
+        ret2 = await asyncTry<int>(
+            () => _asFuture(() => throw StateError('e2'), delayMs: 50),
+            // ignore: void_checks
+            onFinally: () => _asFuture(() {
+                  finally2.add(2);
+                  throw StateError('fe2');
+                }));
+      } catch (e) {
+        error2.add(e as StateError);
+      }
+      expect(ret2, isNull);
+      expect(error2.map((e) => e.message), equals(['fe2']));
       expect(finally2, equals([2]));
     });
 
@@ -1022,7 +1175,7 @@ void main() {
       var finally3 = <int>[];
       expect(
           await asyncTry<int>(
-            () => Future.delayed(Duration(milliseconds: 100), () => 123),
+            () => _asFuture(() => 123, delayMs: 50),
             then: (n) => n! * 2,
             onFinally: () => finally3.add(3),
           ),
@@ -1032,17 +1185,15 @@ void main() {
       var finally4 = <int>[];
       expect(
           await asyncTry<int>(
-            () => Future.delayed(Duration(milliseconds: 100), () => 123),
-            then: (n) =>
-                Future.delayed(Duration(milliseconds: 100), () => n! * 2),
-            onFinally: () => Future.delayed(
-                Duration(milliseconds: 100), () => finally4.add(4)),
+            () => _asFuture(() => 123, delayMs: 50),
+            then: (n) => _asFuture(() => n! * 2, delayMs: 50),
+            onFinally: () => _asFuture(() => finally4.add(4), delayMs: 50),
           ),
           equals(246));
       expect(finally4, equals([4]));
     });
 
-    test('error+finally', () async {
+    test('error+catch+finally', () async {
       var error1 = <StateError>[];
       var finally1 = <int>[];
       expect(
@@ -1074,7 +1225,7 @@ void main() {
       expect(finally2, equals([2]));
     });
 
-    test('error+then+finally', () async {
+    test('error+catch+then+finally', () async {
       var error1 = <StateError>[];
       var finally1 = <int>[];
       expect(
@@ -1092,8 +1243,7 @@ void main() {
       var finally2 = <int>[];
       expect(
           await asyncTry<int>(
-            () => Future.delayed(
-                Duration(milliseconds: 100), () => throw StateError('e2')),
+            () => _asFuture(() => throw StateError('e2'), delayMs: 50),
             then: (n) => n! * 2,
             onError: (e) => error2.add(e),
             onFinally: () => finally2.add(2),
@@ -1103,7 +1253,7 @@ void main() {
       expect(finally2, equals([2]));
     });
 
-    test('then+error+finally', () async {
+    test('then+error+catch+finally', () async {
       var error1 = <StateError>[];
       var finally1 = <int>[];
       expect(
@@ -1130,8 +1280,162 @@ void main() {
       expect(error2.map((e) => e.message), equals(['e2']));
       expect(finally2, equals([2]));
     });
+
+    test('error+catch+finally', () async {
+      var error1 = <StateError>[];
+      var finally1 = <int>[];
+      expect(
+          asyncTry<int>(
+            () => throw StateError('e1'),
+            onError: (e) => error1.add(e),
+            onFinally: () => finally1.add(1),
+          ),
+          isNull);
+      expect(error1.map((e) => e.message), equals(['e1']));
+      expect(finally1, equals([1]));
+
+      var error2 = <StateError>[];
+      var finally2 = <int>[];
+      expect(
+          await asyncTry<int>(
+            () => _asFuture(() => throw StateError('e2')),
+            onError: (e) => error2.add(e),
+            onFinally: () => finally2.add(2),
+          ),
+          isNull);
+      expect(error2.map((e) => e.message), equals(['e2']));
+      expect(finally2, equals([2]));
+    });
+
+    test('error+finally', () async {
+      var finally1 = <int>[];
+      await expectLater(
+          () => asyncTry<int>(
+                () => throw StateError('e1'),
+                onFinally: () => finally1.add(1),
+              ),
+          throwsA(isA<StateError>()
+              .having((e) => e.message, 'message', equals('e1'))));
+      expect(finally1, equals([1]));
+
+      var finally2 = <int>[];
+
+      await expectLater(
+          () => asyncTry<int>(
+                () => _asFuture(() => throw StateError('e2')),
+                onFinally: () => _asFuture(() => finally2.add(2)),
+              ),
+          throwsA(isA<StateError>()
+              .having((e) => e.message, 'message', equals('e2'))));
+
+      expect(finally2, equals([2]));
+    });
+
+    test('error+catch+rethrow+finally', () async {
+      var error1 = <StateError>[];
+      var finally1 = <int>[];
+      expect(
+          () => asyncTry<int>(
+                () => throw StateError('e1'),
+                onError: (e) {
+                  error1.add(e);
+                  throw e;
+                },
+                onFinally: () => finally1.add(1),
+              ),
+          throwsA(isA<StateError>()
+              .having((e) => e.message, 'message', equals('e1'))));
+
+      expect(error1.map((e) => e.message), equals(['e1']));
+      expect(finally1, equals([1]));
+
+      var error2 = <StateError>[];
+      var finally2 = <int>[];
+
+      await expectLater(
+          () => asyncTry<int>(
+                () => _asFuture(() => throw StateError('e2')),
+                onError: (e) {
+                  error2.add(e);
+                  throw e;
+                },
+                onFinally: () => _asFuture(() => finally2.add(2)),
+              ),
+          throwsA(isA<StateError>()
+              .having((e) => e.message, 'message', equals('e2'))));
+
+      expect(error2.map((e) => e.message), equals(['e2']));
+      expect(finally2, equals([2]));
+
+      var error3 = <StateError>[];
+      var finally3 = <int>[];
+
+      await expectLater(
+          () => asyncTry<int>(
+                () => _asFuture(() => throw StateError('e3')),
+                onError: (e) => _asFuture(() {
+                  error3.add(e);
+                  throw e;
+                }),
+                onFinally: () => _asFuture(() => finally3.add(2)),
+              ),
+          throwsA(isA<StateError>()
+              .having((e) => e.message, 'message', equals('e3'))));
+
+      expect(error3.map((e) => e.message), equals(['e3']));
+      expect(finally3, equals([2]));
+    });
+
+    test('error+catch+rethrow+finally+error2', () async {
+      var error1 = <StateError>[];
+
+      var finally1 = <int>[];
+      expect(
+          () => asyncTry<int>(
+                () => throw StateError('e1'),
+                onError: (e) {
+                  error1.add(e);
+                  throw e;
+                },
+                // ignore: void_checks
+                onFinally: () {
+                  finally1.add(1);
+                  throw StateError('fe1');
+                },
+              ),
+          throwsA(isA<StateError>()
+              .having((e) => e.message, 'message', equals('fe1'))));
+
+      expect(error1.map((e) => e.message), equals(['e1']));
+      expect(finally1, equals([1]));
+
+      var error2 = <StateError>[];
+      var finally2 = <int>[];
+
+      await expectLater(
+          () => asyncTry<int>(
+                () => _asFuture<int>(() => throw StateError('e2')),
+                onError: (e) {
+                  error2.add(e);
+                  throw e;
+                },
+                // ignore: void_checks
+                onFinally: () => _asFuture(() {
+                  finally2.add(2);
+                  throw StateError('fe2');
+                }),
+              ),
+          throwsA(isA<StateError>()
+              .having((e) => e.message, 'message', equals('fe2'))));
+
+      expect(error2.map((e) => e.message), equals(['e2']));
+      expect(finally2, equals([2]));
+    });
   });
 }
+
+Future<T> _asFuture<T>(FutureOr<T> Function() f, {int delayMs = 1}) =>
+    Future.delayed(Duration(milliseconds: delayMs), f);
 
 /// Multiply [a] * [b], and returns `int` for positive [a] and
 /// a [Future] for negative [a].

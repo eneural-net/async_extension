@@ -1,3 +1,13 @@
+## 1.0.11
+
+- `AsyncLoop`:
+  - Added `AsyncLoop.forEach`.
+  - Optimize `_runBody` to avoid recursion.
+- `asyncTry`:
+  - Fix behavior when an error is rethrown inside an `onError` block.
+  - Fix behavior when an error is thrown inside an `onFinally` block.
+  - Ensures the same behavior of standard Dart `try/catch` blocks.
+
 ## 1.0.10
 
 - `FutureExtension` and `FutureOrExtension`:
