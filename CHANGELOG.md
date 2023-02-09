@@ -1,3 +1,11 @@
+## 1.1.0
+
+- Fix GitHub CI badge.
+- sdk: '>=2.18.0 <3.0.0'
+- lints: ^2.0.1
+- test: ^1.23.0
+- coverage: ^1.6.3 
+
 ## 1.0.12
 
 - `asyncTry`:
