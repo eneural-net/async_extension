@@ -3,7 +3,7 @@
 [![pub package](https://img.shields.io/pub/v/async_extension.svg?logo=dart&logoColor=00b9fc)](https://pub.dev/packages/async_extension)
 [![Null Safety](https://img.shields.io/badge/null-safety-brightgreen)](https://dart.dev/null-safety)
 [![Codecov](https://img.shields.io/codecov/c/github/eneural-net/async_extension)](https://app.codecov.io/gh/eneural-net/async_extension)
-[![CI](https://img.shields.io/github/workflow/status/eneural-net/async_extension/Dart%20CI/master?logo=github-actions&logoColor=white)](https://github.com/eneural-net/async_extension/actions)
+[![Dart CI](https://github.com/eneural-net/async_extension/actions/workflows/dart.yml/badge.svg?branch=master)](https://github.com/eneural-net/async_extension/actions/workflows/dart.yml)
 [![GitHub Tag](https://img.shields.io/github/v/tag/eneural-net/async_extension?logo=git&logoColor=white)](https://github.com/eneural-net/async_extension/releases)
 [![New Commits](https://img.shields.io/github/commits-since/eneural-net/async_extension/latest?logo=git&logoColor=white)](https://github.com/eneural-net/async_extension/network)
 [![Last Commits](https://img.shields.io/github/last-commit/eneural-net/async_extension?logo=git&logoColor=white)](https://github.com/eneural-net/async_extension/commits/master)
