@@ -1,3 +1,12 @@
+## 1.1.1
+
+- Optimize:
+  - `resolveMapped`, `resolveAllValuesNullable`.
+  - `resolveAllValues`, `resolveAllValuesNullable`, `resolveAllKeys`, `resolveAllEntries`.
+
+- sdk: '>=2.18.0 <4.0.0'
+- test: ^1.24.3
+
 ## 1.1.0
 
 - Fix GitHub CI badge.

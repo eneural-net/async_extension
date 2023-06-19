@@ -880,15 +880,61 @@ void main() {
     });
 
     test('resolveAllValuesNullable', () async {
-      expect(
-          await {'a': 1, 'b': Future.value(2), 'c': null}
-              .resolveAllValuesNullable(),
+      var map0 = <String, int?>{'a': 1, 'b': 2, 'c': null};
+      expect(await map0.resolveAllValuesNullable(),
           equals({'a': 1, 'b': 2, 'c': null}));
 
-      expect(
-          await {'a': 1, 'b': 2, 'c': Future.value(null)}
-              .resolveAllValuesNullable(),
+      var map1 = <String, FutureOr<int?>>{
+        'a': 1,
+        'b': Future<int>.value(2),
+        'c': null
+      };
+      expect(await map1.resolveAllValuesNullable(),
           equals({'a': 1, 'b': 2, 'c': null}));
+
+      var map2 = <String, FutureOr<int?>>{
+        'a': 1,
+        'b': 2,
+        'c': Future<int?>.value(null)
+      };
+      expect(await map2.resolveAllValuesNullable(),
+          equals({'a': 1, 'b': 2, 'c': null}));
+
+      var map3 = <String, FutureOr<int?>>{
+        'a': 1,
+        'b': null,
+        'c': Future.value(null),
+        'd': Future.value(4)
+      };
+      expect(await map3.resolveAllValuesNullable(),
+          equals({'a': 1, 'b': null, 'c': null, 'd': 4}));
+
+      var map4 = <String, Object?>{
+        'a': 1,
+        'b': null,
+        'c': Future.value(null),
+        'd': Future.value(4)
+      };
+      expect(await map4.resolveAllValuesNullable(),
+          equals({'a': 1, 'b': null, 'c': null, 'd': 4}));
+
+      var map5 = <String, dynamic>{
+        'a': 1,
+        'b': null,
+        'c': Future.value(null),
+        'd': Future.value(4)
+      };
+      expect(await map5.resolveAllValuesNullable(),
+          equals({'a': 1, 'b': null, 'c': null, 'd': 4}));
+
+      var map6 = <String, Object>{
+        'a': 1,
+        'b': 2,
+        'c': Future.value(null),
+        'd': Future.value(4)
+      };
+      expect(await map6.resolveAllValuesNullable(),
+          equals({'a': 1, 'b': 2, 'c': null, 'd': 4}));
     });
   });
 
