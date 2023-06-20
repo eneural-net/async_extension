@@ -138,7 +138,7 @@ extension FutureOrExtension<T> on FutureOr<T> {
     var self = this;
 
     if (self is Future<T>) {
-      return self.then((r) => mapper(r));
+      return self.then(mapper);
     } else {
       return mapper(self);
     }
@@ -188,7 +188,7 @@ extension FutureOrExtension<T> on FutureOr<T> {
     var self = this;
 
     if (self is Future<T>) {
-      return self.then((r) => callback(r));
+      return self.then(callback);
     } else {
       callback(self);
     }
@@ -602,6 +602,11 @@ extension IterableFutureExtension<T> on Iterable<Future<T>> {
 extension MapFutureValueExtension<K, V> on Map<K, FutureOr<V>> {
   /// Resolve all [Map] values (non nullable).
   FutureOr<Map<K, V>> resolveAllValues() {
+    var self = this;
+    if (self is Map<K, V> && _isNotFuture(V)) {
+      return self;
+    }
+
     var keys = this.keys.toList(growable: false);
     var futureValues =
         keys.map((k) => this[k]!).cast<FutureOr<V>>().toList(growable: false);
@@ -621,6 +626,11 @@ extension MapFutureValueNullableExtension<K, V extends Object>
     on Map<K, FutureOr<V?>> {
   /// Resolve all [Map] values that can be `null`.
   FutureOr<Map<K, V?>> resolveAllValuesNullable() {
+    var self = this;
+    if (self is Map<K, V?> && _isNotFuture(V)) {
+      return self;
+    }
+
     var keys = this.keys.toList(growable: false);
     var futureValues =
         keys.map((k) => this[k]).cast<FutureOr<V?>>().toList(growable: false);
@@ -639,6 +649,11 @@ extension MapFutureValueNullableExtension<K, V extends Object>
 extension MapFutureKeyExtension<K, V> on Map<FutureOr<K>, V> {
   /// Resolve all [Map] keys.
   FutureOr<Map<K, V>> resolveAllKeys() {
+    var self = this;
+    if (self is Map<K, V> && _isNotFuture(K)) {
+      return self;
+    }
+
     var futureKeys = keys.toList(growable: false);
     var values = keys.map((k) => this[k]!).toList(growable: false);
 
@@ -656,6 +671,11 @@ extension MapFutureKeyExtension<K, V> on Map<FutureOr<K>, V> {
 extension MapFutureExtension<K, V> on Map<FutureOr<K>, FutureOr<V>> {
   /// Resolve all [Map] entries.
   FutureOr<Map<K, V>> resolveAllEntries() {
+    var self = this;
+    if (self is Map<K, V> && _isNotFuture(K) && _isNotFuture(V)) {
+      return self;
+    }
+
     var futureKeys = keys.toList(growable: false);
     var futureValues = keys.map((k) => this[k]!).toList(growable: false);
 
