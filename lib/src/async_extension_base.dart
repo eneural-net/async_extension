@@ -709,11 +709,13 @@ extension FutureOrIterableExtension<T> on FutureOr<Iterable<T>> {
 
   FutureOr<T> get first => then((itr) => itr.first);
 
-  FutureOr<T?> get firstOrNull => then((itr) => itr.firstOrNull);
+  FutureOr<T?> get firstOrNull =>
+      then((itr) => IterableExtensions(itr).firstOrNull);
 
   FutureOr<T> get last => then((itr) => itr.last);
 
-  FutureOr<T?> get lastOrNull => then((itr) => itr.lastOrNull);
+  FutureOr<T?> get lastOrNull =>
+      then((itr) => IterableExtensions(itr).lastOrNull);
 }
 
 extension FutureIterableExtension<T> on Future<Iterable<T>> {

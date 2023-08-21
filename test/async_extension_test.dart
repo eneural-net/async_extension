@@ -553,6 +553,40 @@ void main() {
     });
   });
 
+  group('FutureOrIterableExtension', () {
+    test('Iterable', () {
+      FutureOr<Iterable<int>> futureOrItr = [1, 2, 3];
+
+      expect(futureOrItr.toList(), equals([1, 2, 3]));
+      expect(futureOrItr.asList, equals([1, 2, 3]));
+      expect(futureOrItr.toSet(), equals({1, 2, 3}));
+      expect(futureOrItr.length, equals(3));
+      expect(futureOrItr.isEmpty, isFalse);
+      expect(futureOrItr.isNotEmpty, isTrue);
+      expect(futureOrItr.first, equals(1));
+      expect(futureOrItr.firstOrNull, equals(1));
+      expect(futureOrItr.last, equals(3));
+      expect(futureOrItr.lastOrNull, equals(3));
+    });
+  });
+
+  group('FutureIterableExtension', () {
+    test('Iterable', () async {
+      Future<Iterable<int>> futureItr = Future.value([1, 2, 3]);
+
+      expect(await futureItr.toList(), equals([1, 2, 3]));
+      expect(await futureItr.asList, equals([1, 2, 3]));
+      expect(await futureItr.toSet(), equals({1, 2, 3}));
+      expect(await futureItr.length, equals(3));
+      expect(await futureItr.isEmpty, isFalse);
+      expect(await futureItr.isNotEmpty, isTrue);
+      expect(await futureItr.first, equals(1));
+      expect(await futureItr.firstOrNull, equals(1));
+      expect(await futureItr.last, equals(3));
+      expect(await futureItr.lastOrNull, equals(3));
+    });
+  });
+
   group('IterableFutureOrExtension', () {
     setUp(() {});
 
