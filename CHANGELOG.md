@@ -1,3 +1,8 @@
+## 1.2.1
+
+- New `FutureOrIterableExtension` and `FutureIterableExtension`.
+- test: ^1.24.6
+
 ## 1.2.0
 
 - sdk: '>=3.0.0 <4.0.0'
