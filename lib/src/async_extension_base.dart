@@ -692,6 +692,54 @@ extension MapFutureExtension<K, V> on Map<FutureOr<K>, FutureOr<V>> {
   }
 }
 
+extension FutureOrIterableExtension<T> on FutureOr<Iterable<T>> {
+  FutureOr<List<T>> toList({bool growable = true}) =>
+      then((itr) => itr.toList());
+
+  FutureOr<Set<T>> toSet() => then((itr) => itr.toSet());
+
+  FutureOr<List<T>> get asList =>
+      then((itr) => itr is List<T> ? itr : itr.toList());
+
+  FutureOr<int> get length => then((itr) => itr.length);
+
+  FutureOr<bool> get isEmpty => then((itr) => itr.isEmpty);
+
+  FutureOr<bool> get isNotEmpty => then((itr) => itr.isNotEmpty);
+
+  FutureOr<T> get first => then((itr) => itr.first);
+
+  FutureOr<T?> get firstOrNull => then((itr) => itr.firstOrNull);
+
+  FutureOr<T> get last => then((itr) => itr.last);
+
+  FutureOr<T?> get lastOrNull => then((itr) => itr.lastOrNull);
+}
+
+extension FutureIterableExtension<T> on Future<Iterable<T>> {
+  FutureOr<List<T>> toList({bool growable = true}) =>
+      then((itr) => itr.toList());
+
+  Future<Set<T>> toSet() => then((itr) => itr.toSet());
+
+  Future<List<T>> get asList =>
+      then((itr) => itr is List<T> ? itr : itr.toList());
+
+  Future<int> get length => then((itr) => itr.length);
+
+  Future<bool> get isEmpty => then((itr) => itr.isEmpty);
+
+  Future<bool> get isNotEmpty => then((itr) => itr.isNotEmpty);
+
+  Future<T> get first => then((itr) => itr.first);
+
+  Future<T?> get firstOrNull => then((itr) => itr.firstOrNull);
+
+  Future<T> get last => then((itr) => itr.last);
+
+  Future<T?> get lastOrNull => then((itr) => itr.lastOrNull);
+}
+
 extension FutureOrIntExtension on FutureOr<int> {
   /// Operator to sum `FutureOr<int>`.
   FutureOr<int> operator +(FutureOr<int> other) =>
