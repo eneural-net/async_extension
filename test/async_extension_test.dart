@@ -557,16 +557,16 @@ void main() {
     test('Iterable', () {
       FutureOr<Iterable<int>> futureOrItr = [1, 2, 3];
 
-      expect(futureOrItr.toList(), equals([1, 2, 3]));
-      expect(futureOrItr.asList, equals([1, 2, 3]));
-      expect(futureOrItr.toSet(), equals({1, 2, 3}));
-      expect(futureOrItr.length, equals(3));
-      expect(futureOrItr.isEmpty, isFalse);
-      expect(futureOrItr.isNotEmpty, isTrue);
-      expect(futureOrItr.first, equals(1));
-      expect(futureOrItr.firstOrNull, equals(1));
-      expect(futureOrItr.last, equals(3));
-      expect(futureOrItr.lastOrNull, equals(3));
+      expect(futureOrItr.toListAsync(), equals([1, 2, 3]));
+      expect(futureOrItr.asListAsync, equals([1, 2, 3]));
+      expect(futureOrItr.toSetAsync(), equals({1, 2, 3}));
+      expect(futureOrItr.lengthAsync, equals(3));
+      expect(futureOrItr.isEmptyAsync, isFalse);
+      expect(futureOrItr.isNotEmptyAsync, isTrue);
+      expect(futureOrItr.firstAsync, equals(1));
+      expect(futureOrItr.firstOrNullAsync, equals(1));
+      expect(futureOrItr.lastAsync, equals(3));
+      expect(futureOrItr.lastOrNullAsync, equals(3));
     });
   });
 
@@ -574,16 +574,16 @@ void main() {
     test('Iterable', () async {
       Future<Iterable<int>> futureItr = Future.value([1, 2, 3]);
 
-      expect(await futureItr.toList(), equals([1, 2, 3]));
-      expect(await futureItr.asList, equals([1, 2, 3]));
-      expect(await futureItr.toSet(), equals({1, 2, 3}));
-      expect(await futureItr.length, equals(3));
-      expect(await futureItr.isEmpty, isFalse);
-      expect(await futureItr.isNotEmpty, isTrue);
-      expect(await futureItr.first, equals(1));
-      expect(await futureItr.firstOrNull, equals(1));
-      expect(await futureItr.last, equals(3));
-      expect(await futureItr.lastOrNull, equals(3));
+      expect(await futureItr.toListAsync(), equals([1, 2, 3]));
+      expect(await futureItr.asListAsync, equals([1, 2, 3]));
+      expect(await futureItr.toSetAsync(), equals({1, 2, 3}));
+      expect(await futureItr.lengthAsync, equals(3));
+      expect(await futureItr.isEmptyAsync, isFalse);
+      expect(await futureItr.isNotEmptyAsync, isTrue);
+      expect(await futureItr.firstAsync, equals(1));
+      expect(await futureItr.firstOrNullAsync, equals(1));
+      expect(await futureItr.lastAsync, equals(3));
+      expect(await futureItr.lastOrNullAsync, equals(3));
     });
   });
 

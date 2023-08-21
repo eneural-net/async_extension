@@ -1,3 +1,8 @@
+## 1.2.2
+
+- `FutureOrIterableExtension` and `FutureIterableExtension`.
+  - Use suffix `Async` to avoid extension overwrite issues. 
+
 ## 1.2.1
 
 - New `FutureOrIterableExtension` and `FutureIterableExtension`.

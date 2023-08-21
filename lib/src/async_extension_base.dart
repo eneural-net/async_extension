@@ -693,53 +693,53 @@ extension MapFutureExtension<K, V> on Map<FutureOr<K>, FutureOr<V>> {
 }
 
 extension FutureOrIterableExtension<T> on FutureOr<Iterable<T>> {
-  FutureOr<List<T>> toList({bool growable = true}) =>
+  FutureOr<List<T>> toListAsync({bool growable = true}) =>
       then((itr) => itr.toList());
 
-  FutureOr<Set<T>> toSet() => then((itr) => itr.toSet());
+  FutureOr<Set<T>> toSetAsync() => then((itr) => itr.toSet());
 
-  FutureOr<List<T>> get asList =>
+  FutureOr<List<T>> get asListAsync =>
       then((itr) => itr is List<T> ? itr : itr.toList());
 
-  FutureOr<int> get length => then((itr) => itr.length);
+  FutureOr<int> get lengthAsync => then((itr) => itr.length);
 
-  FutureOr<bool> get isEmpty => then((itr) => itr.isEmpty);
+  FutureOr<bool> get isEmptyAsync => then((itr) => itr.isEmpty);
 
-  FutureOr<bool> get isNotEmpty => then((itr) => itr.isNotEmpty);
+  FutureOr<bool> get isNotEmptyAsync => then((itr) => itr.isNotEmpty);
 
-  FutureOr<T> get first => then((itr) => itr.first);
+  FutureOr<T> get firstAsync => then((itr) => itr.first);
 
-  FutureOr<T?> get firstOrNull =>
+  FutureOr<T?> get firstOrNullAsync =>
       then((itr) => IterableExtensions(itr).firstOrNull);
 
-  FutureOr<T> get last => then((itr) => itr.last);
+  FutureOr<T> get lastAsync => then((itr) => itr.last);
 
-  FutureOr<T?> get lastOrNull =>
+  FutureOr<T?> get lastOrNullAsync =>
       then((itr) => IterableExtensions(itr).lastOrNull);
 }
 
 extension FutureIterableExtension<T> on Future<Iterable<T>> {
-  FutureOr<List<T>> toList({bool growable = true}) =>
+  FutureOr<List<T>> toListAsync({bool growable = true}) =>
       then((itr) => itr.toList());
 
-  Future<Set<T>> toSet() => then((itr) => itr.toSet());
+  Future<Set<T>> toSetAsync() => then((itr) => itr.toSet());
 
-  Future<List<T>> get asList =>
+  Future<List<T>> get asListAsync =>
       then((itr) => itr is List<T> ? itr : itr.toList());
 
-  Future<int> get length => then((itr) => itr.length);
+  Future<int> get lengthAsync => then((itr) => itr.length);
 
-  Future<bool> get isEmpty => then((itr) => itr.isEmpty);
+  Future<bool> get isEmptyAsync => then((itr) => itr.isEmpty);
 
-  Future<bool> get isNotEmpty => then((itr) => itr.isNotEmpty);
+  Future<bool> get isNotEmptyAsync => then((itr) => itr.isNotEmpty);
 
-  Future<T> get first => then((itr) => itr.first);
+  Future<T> get firstAsync => then((itr) => itr.first);
 
-  Future<T?> get firstOrNull => then((itr) => itr.firstOrNull);
+  Future<T?> get firstOrNullAsync => then((itr) => itr.firstOrNull);
 
-  Future<T> get last => then((itr) => itr.last);
+  Future<T> get lastAsync => then((itr) => itr.last);
 
-  Future<T?> get lastOrNull => then((itr) => itr.lastOrNull);
+  Future<T?> get lastOrNullAsync => then((itr) => itr.lastOrNull);
 }
 
 extension FutureOrIntExtension on FutureOr<int> {
