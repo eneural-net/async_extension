@@ -625,7 +625,7 @@ void main() {
         expect(futureOrItr.lastOrNullAsync, equals(3));
       }
       {
-        FutureOr<Iterable<int>?> futureOrItr = null;
+        FutureOr<Iterable<int>?> futureOrItr;
 
         expect(futureOrItr.toListOrNullAsync(), equals(null));
         expect(futureOrItr.asListOrNullAsync, equals(null));
