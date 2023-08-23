@@ -611,6 +611,60 @@ void main() {
     });
   });
 
+  group('FutureOrIterableNullableExtension', () {
+    test('Iterable', () {
+      {
+        FutureOr<Iterable<int>?> futureOrItr = [1, 2, 3];
+
+        expect(futureOrItr.toListOrNullAsync(), equals([1, 2, 3]));
+        expect(futureOrItr.asListOrNullAsync, equals([1, 2, 3]));
+        expect(futureOrItr.toSetOrNullAsync(), equals({1, 2, 3}));
+        expect(futureOrItr.isEmptyOrNullAsync, isFalse);
+        expect(futureOrItr.isNotEmptyAsync, isTrue);
+        expect(futureOrItr.firstOrNullAsync, equals(1));
+        expect(futureOrItr.lastOrNullAsync, equals(3));
+      }
+      {
+        FutureOr<Iterable<int>?> futureOrItr = null;
+
+        expect(futureOrItr.toListOrNullAsync(), equals(null));
+        expect(futureOrItr.asListOrNullAsync, equals(null));
+        expect(futureOrItr.toSetOrNullAsync(), equals(null));
+        expect(futureOrItr.isEmptyOrNullAsync, isTrue);
+        expect(futureOrItr.isNotEmptyAsync, isFalse);
+        expect(futureOrItr.firstOrNullAsync, equals(null));
+        expect(futureOrItr.lastOrNullAsync, equals(null));
+      }
+    });
+  });
+
+  group('FutureIterableNullableExtension', () {
+    test('Iterable', () async {
+      {
+        Future<Iterable<int>?> futureOrItr = Future.value([1, 2, 3]);
+
+        expect(await futureOrItr.toListOrNullAsync(), equals([1, 2, 3]));
+        expect(await futureOrItr.asListOrNullAsync, equals([1, 2, 3]));
+        expect(await futureOrItr.toSetOrNullAsync(), equals({1, 2, 3}));
+        expect(await futureOrItr.isEmptyOrNullAsync, isFalse);
+        expect(await futureOrItr.isNotEmptyAsync, isTrue);
+        expect(await futureOrItr.firstOrNullAsync, equals(1));
+        expect(await futureOrItr.lastOrNullAsync, equals(3));
+      }
+      {
+        Future<Iterable<int>?> futureOrItr = Future.value(null);
+
+        expect(await futureOrItr.toListOrNullAsync(), equals(null));
+        expect(await futureOrItr.asListOrNullAsync, equals(null));
+        expect(await futureOrItr.toSetOrNullAsync(), equals(null));
+        expect(await futureOrItr.isEmptyOrNullAsync, isTrue);
+        expect(await futureOrItr.isNotEmptyAsync, isFalse);
+        expect(await futureOrItr.firstOrNullAsync, equals(null));
+        expect(await futureOrItr.lastOrNullAsync, equals(null));
+      }
+    });
+  });
+
   group('IterableFutureOrExtension', () {
     setUp(() {});
 
