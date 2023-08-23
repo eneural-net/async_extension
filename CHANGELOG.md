@@ -1,3 +1,8 @@
+## 1.2.3
+
+- New `FutureNullableExtension` and `FutureOrNullableExtension`:
+  - `orElseAsync` and `orElseGeAsync`.
+
 ## 1.2.2
 
 - `FutureOrIterableExtension` and `FutureIterableExtension`.
