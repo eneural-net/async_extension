@@ -553,6 +553,30 @@ void main() {
     });
   });
 
+  group('FutureNullableExtension', () {
+    test('Iterable', () async {
+      Future<int?> futureInt1 = Future.value(100);
+      expect(await futureInt1.orElseAsync(101), equals(100));
+      expect(await futureInt1.orElseGeAsync(() => 1001), equals(100));
+
+      Future<int?> futureInt2 = Future.value(null);
+      expect(await futureInt2.orElseAsync(101), equals(101));
+      expect(await futureInt2.orElseGeAsync(() => 1001), equals(1001));
+    });
+  });
+
+  group('FutureOrNullableExtension', () {
+    test('Iterable', () {
+      FutureOr<int?> futureOrInt1 = 100;
+      expect(futureOrInt1.orElseAsync(101), equals(100));
+      expect(futureOrInt1.orElseGeAsync(() => 1001), equals(100));
+
+      FutureOr<int?> futureOrInt2;
+      expect(futureOrInt2.orElseAsync(101), equals(101));
+      expect(futureOrInt2.orElseGeAsync(() => 1001), equals(1001));
+    });
+  });
+
   group('FutureOrIterableExtension', () {
     test('Iterable', () {
       FutureOr<Iterable<int>> futureOrItr = [1, 2, 3];

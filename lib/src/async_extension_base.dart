@@ -874,6 +874,30 @@ extension FutureNumExtension on Future<num> {
       resolveBoth(other, (n1, n2) => n1 ~/ n2);
 }
 
+extension FutureNullableExtension<T extends Object> on Future<T?> {
+  /// Returns the value of this [Future] ([T]). If the value is null,
+  /// it will return the [defaultValue].
+  Future<T> orElseAsync(T defaultValue) =>
+      then((value) => value ?? defaultValue);
+
+  /// Returns the value of this [Future] ([T]). If the value is null,
+  /// it will return the value returned by [defaultGetter].
+  Future<T> orElseGeAsync(FutureOr<T> Function() defaultGetter) =>
+      then((value) => value ?? defaultGetter());
+}
+
+extension FutureOrNullableExtension<T extends Object> on FutureOr<T?> {
+  /// Returns the value of this [FutureOr] ([T]). If the value is null,
+  /// it will return the [defaultValue].
+  FutureOr<T> orElseAsync(T defaultValue) =>
+      then((value) => value ?? defaultValue);
+
+  /// Returns the value of this [Future] ([T]). If the value is null,
+  /// it will return the value returned by [defaultGetter].
+  FutureOr<T> orElseGeAsync(FutureOr<T> Function() defaultGetter) =>
+      then((value) => value ?? defaultGetter());
+}
+
 /// An async loop, similar to a `for` loop block.
 ///
 /// - [i] the `for` cursor.
