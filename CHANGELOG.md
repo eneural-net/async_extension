@@ -1,3 +1,7 @@
+## 1.2.4
+
+- New `FutureOrIterableNullableExtension` and `FutureIterableNullableExtension`.
+
 ## 1.2.3
 
 - New `FutureNullableExtension` and `FutureOrNullableExtension`:

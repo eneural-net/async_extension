@@ -742,6 +742,50 @@ extension FutureIterableExtension<T> on Future<Iterable<T>> {
   Future<T?> get lastOrNullAsync => then((itr) => itr.lastOrNull);
 }
 
+extension FutureOrIterableNullableExtension<T> on FutureOr<Iterable<T>?> {
+  FutureOr<List<T>?> toListOrNullAsync({bool growable = true}) =>
+      then((itr) => itr?.toList());
+
+  FutureOr<Set<T>?> toSetOrNullAsync() => then((itr) => itr?.toSet());
+
+  FutureOr<List<T>?> get asListOrNullAsync =>
+      then((itr) => itr is List<T> ? itr : itr?.toList());
+
+  FutureOr<bool> get isEmptyOrNullAsync =>
+      then((itr) => itr == null || itr.isEmpty);
+
+  FutureOr<bool> get isNotEmptyAsync =>
+      then((itr) => itr != null && itr.isNotEmpty);
+
+  FutureOr<T?> get firstOrNullAsync =>
+      then((itr) => itr != null ? IterableExtensions(itr).firstOrNull : null);
+
+  FutureOr<T?> get lastOrNullAsync =>
+      then((itr) => itr != null ? IterableExtensions(itr).lastOrNull : null);
+}
+
+extension FutureIterableNullableExtension<T> on Future<Iterable<T>?> {
+  Future<List<T>?> toListOrNullAsync({bool growable = true}) =>
+      then((itr) => itr?.toList());
+
+  Future<Set<T>?> toSetOrNullAsync() => then((itr) => itr?.toSet());
+
+  Future<List<T>?> get asListOrNullAsync =>
+      then((itr) => itr is List<T> ? itr : itr?.toList());
+
+  Future<bool> get isEmptyOrNullAsync =>
+      then((itr) => itr == null || itr.isEmpty);
+
+  Future<bool> get isNotEmptyAsync =>
+      then((itr) => itr != null && itr.isNotEmpty);
+
+  Future<T?> get firstOrNullAsync =>
+      then((itr) => itr != null ? IterableExtensions(itr).firstOrNull : null);
+
+  Future<T?> get lastOrNullAsync =>
+      then((itr) => itr != null ? IterableExtensions(itr).lastOrNull : null);
+}
+
 extension FutureOrIntExtension on FutureOr<int> {
   /// Operator to sum `FutureOr<int>`.
   FutureOr<int> operator +(FutureOr<int> other) =>
