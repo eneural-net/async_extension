@@ -1071,6 +1071,59 @@ void main() {
     });
   });
 
+  group('ExpandoFutureExtension', () {
+    test('putIfAbsentAsync', () async {
+      var cache = Expando<Future<String>>();
+
+      var k1 = _Key(1);
+      expect(await cache[k1], isNull);
+      expect(await cache.putIfAbsentAsync(k1, () => 'a'), equals('a'));
+      expect(await cache[k1], equals('a'));
+      expect(cache[k1], isA<Future<String>>());
+
+      var k2 = _Key(2);
+      expect(await cache[k2], isNull);
+      expect(await cache.putIfAbsentAsync(k2, () => Future.value('b')),
+          equals('b'));
+      expect(await cache[k2], equals('b'));
+      expect(cache[k2], isA<Future<String>>());
+
+      expect(await cache.putIfAbsentAsync(null, () => Future.value('y')),
+          equals('y'));
+      expect(await cache.putIfAbsentAsync(null, () => 'x'), equals('x'));
+    });
+  });
+
+  group('ExpandoFutureOrExtension', () {
+    test('putIfAbsentAsync', () async {
+      var cache = Expando<FutureOr<String>>();
+
+      var k1 = _Key(1);
+      expect(cache[k1], isNull);
+      expect(await cache[k1], isNull);
+      expect(await cache.putIfAbsentAsync(k1, () => 'a'), equals('a'));
+      expect(await cache[k1], equals('a'));
+      expect(cache[k1], equals('a'));
+
+      var k2 = _Key(2);
+      expect(cache[k2], isNull);
+      expect(await cache[k2], isNull);
+      expect(await cache.putIfAbsentAsync(k2, () => Future.value('b')),
+          equals('b'));
+      expect(await cache[k2], equals('b'));
+      expect(cache[k2], equals('b'));
+
+      var k3 = _Key(3);
+      expect(cache[k3], isNull);
+      expect(cache.putIfAbsentAsync(k3, () => 'c'), equals('c'));
+      expect(cache[k3], equals('c'));
+
+      expect(await cache.putIfAbsentAsync(null, () => Future.value('y')),
+          equals('y'));
+      expect(cache.putIfAbsentAsync(null, () => 'x'), equals('x'));
+    });
+  });
+
   group('asyncTry', () {
     test('value', () async {
       expect(asyncTry<int>(() => 123), equals(123));
@@ -1590,6 +1643,23 @@ void main() {
       expect(finally2, equals([2]));
     });
   });
+}
+
+class _Key<T> {
+  final T key;
+
+  _Key(this.key);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is _Key && runtimeType == other.runtimeType && key == other.key;
+
+  @override
+  int get hashCode => key.hashCode;
+
+  @override
+  String toString() => '$key';
 }
 
 Future<T> _asFuture<T>(FutureOr<T> Function() f, {int delayMs = 1}) =>

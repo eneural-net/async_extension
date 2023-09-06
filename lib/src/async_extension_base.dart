@@ -1062,3 +1062,41 @@ class AsyncSequenceLoop {
     }
   }
 }
+
+extension ExpandoFutureExtension<T> on Expando<Future<T>> {
+  Future<T> putIfAbsentAsync(Object? o, FutureOr<T> Function() ifAbsent) {
+    if (o == null) {
+      return ifAbsent().asFuture;
+    }
+
+    var prev = this[o];
+    if (prev != null) return prev;
+
+    var ret = ifAbsent().asFuture;
+    this[o] = ret;
+    return ret;
+  }
+}
+
+extension ExpandoFutureOrExtension<T extends Object> on Expando<FutureOr<T>> {
+  FutureOr<T> putIfAbsentAsync(Object? o, FutureOr<T> Function() ifAbsent) {
+    if (o == null) {
+      return ifAbsent();
+    }
+
+    var prev = this[o];
+    if (prev != null) return prev;
+
+    var ret = ifAbsent();
+
+    if (ret is Future<T>) {
+      return this[o] = ret.then((r) {
+        this[o] = r;
+        return r;
+      });
+    } else {
+      this[o] = ret;
+      return ret;
+    }
+  }
+}

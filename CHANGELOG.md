@@ -1,3 +1,8 @@
+## 1.2.5
+
+- New `ExpandoFutureExtension` and `ExpandoFutureOrExtension`:
+  - `putIfAbsentAsync`
+
 ## 1.2.4
 
 - New `FutureOrIterableNullableExtension` and `FutureIterableNullableExtension`.
