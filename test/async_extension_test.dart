@@ -899,6 +899,21 @@ void main() {
           equals([20, 40, null]));
     });
 
+    test('All Futures + null', () async {
+      var l = <Future<num>?>[
+        Future<num>.value(10 * 2),
+        Future<num>.value(20 * 2),
+        null
+      ];
+
+      expect(l.selectFuturesNullable().length, 2);
+
+      expect(l.asFuturesNullable.length, equals(2));
+      expect(await l.waitFuturesNullable(), equals([20, 40]));
+      expect(await l.asFuturesNullable.resolveAll(), equals([20, 40]));
+      expect(await l.asFuturesNullable.waitFuturesNullable(), equals([20, 40]));
+    });
+
     test('Not All Resolved ; Not All Future', () async {
       var l = [_futureOrMultiply(10, 2), _futureOrMultiply(-20, 2), null];
 
