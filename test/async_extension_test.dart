@@ -884,6 +884,50 @@ void main() {
     });
   });
 
+  group('IterableFutureOrNullableExtension', () {
+    setUp(() {});
+
+    test('All Resolved', () async {
+      var l = [_futureOrMultiply(10, 2), _futureOrMultiply(20, 2), null];
+
+      expect(l.selectFuturesNullable(), isEmpty);
+
+      expect(l.asFuturesNullable.length, equals(3));
+      expect(l.waitFuturesNullable(), equals([]));
+      expect(await l.asFuturesNullable.resolveAll(), equals([20, 40, null]));
+      expect(await l.asFuturesNullable.waitFuturesNullable(),
+          equals([20, 40, null]));
+    });
+
+    test('Not All Resolved ; Not All Future', () async {
+      var l = [_futureOrMultiply(10, 2), _futureOrMultiply(-20, 2), null];
+
+      print(l);
+
+      expect(l.selectFuturesNullable().length, equals(1));
+
+      expect(await l.waitFuturesNullable(), equals([-40]));
+      expect(await l.asFuturesNullable.resolveAll(), equals([20, -40, null]));
+      expect(await l.asFuturesNullable.waitFutures(), equals([20, -40, null]));
+    });
+
+    test('All Future', () async {
+      var l = [_futureOrMultiply(-10, 2), _futureOrMultiply(-20, 2), null];
+
+      print(l);
+
+      expect(l.selectFuturesNullable().length, equals(2));
+
+      expect(await l.selectFuturesNullable().waitFuturesNullable(),
+          equals([-20, -40]));
+
+      expect(l.selectFuturesNullable().resolveAll(), isA<Future<List<int>>>());
+      expect(await l.selectFuturesNullable().resolveAll(), equals([-20, -40]));
+
+      expect(await [].asFuturesNullable.waitFuturesNullable(), equals([]));
+    });
+  });
+
   group('IterableFutureOrExtensionNullable', () {
     test('whereNotNull', () async {
       expect(await [20, null, Future.value(40)].whereNotNullSync().resolveAll(),

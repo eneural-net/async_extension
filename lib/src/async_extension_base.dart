@@ -291,6 +291,18 @@ extension IterableFutureOrNullableExtension<T> on Iterable<FutureOr<T>?> {
       return Future.wait(futures);
     }
   }
+
+  /// Returns all [FutureOr] elements as [Future].
+  List<Future<T?>> get asFuturesNullable {
+    if (this is List<Future<T>>) return this as List<Future<T>>;
+    if (this is Iterable<Future<T>>) return cast<Future<T>>().toList();
+    if (this is Iterable<Future<T>?>) {
+      return whereType<Future<T>>().toList();
+    }
+
+    return map((e) => e is Future ? e as Future<T?> : Future<T?>.value(e))
+        .toList();
+  }
 }
 
 /// Extension for `Iterable<FutureOr<T>>`.
