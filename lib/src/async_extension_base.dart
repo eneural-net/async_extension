@@ -277,16 +277,16 @@ extension IterableFutureOrExtensionNullable<T> on Iterable<FutureOr<T?>> {
 
 extension IterableFutureOrNullableExtension<T> on Iterable<FutureOr<T>?> {
   /// Filters to [Future] elements.
-  Iterable<Future<T>> whereFutureNullable() => whereType<Future<T>>();
+  Iterable<Future<T?>> whereFutureNullable() => whereType<Future<T?>>();
 
   /// Selects all elements that are a [Future] and returns a [List] of them.
-  List<Future<T>> selectFuturesNullable() => whereFutureNullable().toList();
+  List<Future<T?>> selectFuturesNullable() => whereFutureNullable().toList();
 
   /// Wait all elements that are [Future].
-  FutureOr<List<T>> waitFuturesNullable() {
+  FutureOr<List<T?>> waitFuturesNullable() {
     var futures = selectFuturesNullable();
     if (futures.isEmpty) {
-      return <T>[];
+      return <T?>[];
     } else {
       return Future.wait(futures);
     }

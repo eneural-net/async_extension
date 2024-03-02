@@ -891,6 +891,7 @@ void main() {
       var l = [_futureOrMultiply(10, 2), _futureOrMultiply(20, 2), null];
 
       expect(l.selectFuturesNullable(), isEmpty);
+      expect(l.selectFuturesNullable().resolveAll(), isA<Future<List<int?>>>());
 
       expect(l.asFuturesNullable.length, equals(3));
       expect(l.waitFuturesNullable(), equals([]));
@@ -907,6 +908,7 @@ void main() {
       ];
 
       expect(l.selectFuturesNullable().length, 2);
+      expect(l.selectFuturesNullable().resolveAll(), isA<Future<List<num?>>>());
 
       expect(l.asFuturesNullable.length, equals(2));
       expect(await l.waitFuturesNullable(), equals([20, 40]));
@@ -920,6 +922,7 @@ void main() {
       print(l);
 
       expect(l.selectFuturesNullable().length, equals(1));
+      expect(l.selectFuturesNullable().resolveAll(), isA<Future<List<int?>>>());
 
       expect(await l.waitFuturesNullable(), equals([-40]));
       expect(await l.asFuturesNullable.resolveAll(), equals([20, -40, null]));
@@ -936,7 +939,7 @@ void main() {
       expect(await l.selectFuturesNullable().waitFuturesNullable(),
           equals([-20, -40]));
 
-      expect(l.selectFuturesNullable().resolveAll(), isA<Future<List<int>>>());
+      expect(l.selectFuturesNullable().resolveAll(), isA<Future<List<int?>>>());
       expect(await l.selectFuturesNullable().resolveAll(), equals([-20, -40]));
 
       expect(await [].asFuturesNullable.waitFuturesNullable(), equals([]));

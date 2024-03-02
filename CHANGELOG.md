@@ -1,3 +1,9 @@
+## 1.2.7
+
+- `IterableFutureOrNullableExtension`:
+  - `whereFutureNullable`, `selectFuturesNullable`: return `Future<T?>` for consistency with "Nullable" suffix.
+  - `waitFuturesNullable`: return `FutureOr<List<T?>>` for consistency with "Nullable" suffix.
+
 ## 1.2.6
 
 - New `extension IterableFutureOrNullableExtension<T> on Iterable<FutureOr<T>?>`:
