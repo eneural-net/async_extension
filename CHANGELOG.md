@@ -1,3 +1,12 @@
+## 1.2.6
+
+- New `extension IterableFutureOrNullableExtension<T> on Iterable<FutureOr<T>?>`:
+  - `whereFutureNullable`, `selectFuturesNullable` and `waitFuturesNullable`.
+
+- test: ^1.25.2
+- dependency_validator: ^3.2.3
+- coverage: ^1.7.2
+
 ## 1.2.5
 
 - New `ExpandoFutureExtension` and `ExpandoFutureOrExtension`:
