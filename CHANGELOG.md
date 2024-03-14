@@ -14,6 +14,8 @@
   - `onComplete`
   - `onCompleteNotNull`
 
+- lints: ^3.0.0
+
 ## 1.2.7
 
 - `IterableFutureOrNullableExtension`:
