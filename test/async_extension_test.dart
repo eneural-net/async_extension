@@ -684,15 +684,26 @@ void main() {
       expect(errors.length, equals(1));
 
       expect(
+          await Future<int?>.microtask(() => throw StateError('')).onComplete(
+              onSuccess: (r) => success.add(r),
+              onErrorOrNull: (e, s) => errors.add(e),
+              errorLogger: logger),
+          isNull);
+
+      expect(loggedErrors.length, equals(2));
+      expect(success, equals([1, 2]));
+      expect(errors.length, equals(2));
+
+      expect(
           await Future<int?>.microtask(() => null).onComplete(
               onSuccess: (r) => success.add(r),
               onError: (e, s) => errors.add(e),
               errorLogger: logger),
           isNull);
 
-      expect(loggedErrors.length, equals(1));
+      expect(loggedErrors.length, equals(2));
       expect(success, equals([1, 2, null]));
-      expect(errors.length, equals(1));
+      expect(errors.length, equals(2));
 
       expect(
           await Future<int?>.microtask(() => null).onComplete(
@@ -701,9 +712,9 @@ void main() {
               errorLogger: logger),
           isNull);
 
-      expect(loggedErrors.length, equals(1));
+      expect(loggedErrors.length, equals(2));
       expect(success, equals([1, 2, null]));
-      expect(errors.length, equals(2));
+      expect(errors.length, equals(3));
     });
 
     test('onCompleteNotNull', () async {
