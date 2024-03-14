@@ -1,3 +1,19 @@
+## 1.2.8
+
+- New `AsyncExtensionErrorLogger` and `defaultAsyncExtensionErrorLogger`:
+
+- New `FutureOnErrorExtension`:
+  - `logError`
+  - `onErrorReturn`
+  - `nullOnError`
+
+- `FutureNonNullOnErrorExtension`:
+  - `onComplete`
+
+- `FutureNullableOnErrorExtension`:
+  - `onComplete`
+  - `onCompleteNotNull`
+
 ## 1.2.7
 
 - `IterableFutureOrNullableExtension`:
