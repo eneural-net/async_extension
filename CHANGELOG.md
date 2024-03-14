@@ -1,3 +1,8 @@
+## 1.2.9
+
+- `onErrorReturn`: added optional parameter `onError`.
+- `nullOnError`: added optional parameters `onError` and `onErrorOrNull`.
+
 ## 1.2.8
 
 - New `AsyncExtensionErrorLogger` and `defaultAsyncExtensionErrorLogger`:

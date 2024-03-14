@@ -591,26 +591,17 @@ extension FutureOnErrorExtension<T> on Future<T> {
   /// Logs the error using [errorLogger] or [defaultAsyncExtensionErrorLogger]
   /// if parameter [logError] is `true`.
   Future<T> onErrorReturn(T onErrorValue,
-      {AsyncExtensionErrorLogger? errorLogger, bool logError = true}) async {
+      {FutureOr<void> Function(Object e, StackTrace s)? onError,
+      AsyncExtensionErrorLogger? errorLogger,
+      bool logError = true}) async {
     try {
       return await this;
     } catch (e, s) {
       if (logError) errorLogger.logError(e, s);
+      if (onError != null) {
+        await onError(e, s);
+      }
       return onErrorValue;
-    }
-  }
-
-  /// Returns this [Future] value or `null` if it throws an error.
-  ///
-  /// Logs the error using [errorLogger] or [defaultAsyncExtensionErrorLogger]
-  /// if parameter [logError] is `true`.
-  Future<T?> nullOnError(
-      {AsyncExtensionErrorLogger? errorLogger, bool logError = true}) async {
-    try {
-      return await this;
-    } catch (e, s) {
-      if (logError) errorLogger.logError(e, s);
-      return null;
     }
   }
 }
@@ -633,6 +624,26 @@ extension FutureNonNullOnErrorExtension<T extends Object> on Future<T> {
     } catch (e, s) {
       if (logError) errorLogger.logError(e, s);
       await onError(e, s);
+      return null;
+    }
+  }
+
+  /// Returns this [Future] value or `null` if it throws an error.
+  ///
+  /// Logs the error using [errorLogger] or [defaultAsyncExtensionErrorLogger]
+  /// if parameter [logError] is `true`.
+  Future<T?> nullOnError(
+      {FutureOr<void> Function(Object e, StackTrace s)? onError,
+      AsyncExtensionErrorLogger? errorLogger,
+      bool logError = true}) async {
+    try {
+      var r = await this;
+      return r;
+    } catch (e, s) {
+      if (logError) errorLogger.logError(e, s);
+      if (onError != null) {
+        await onError(e, s);
+      }
       return null;
     }
   }
@@ -700,6 +711,34 @@ extension FutureNullableOnErrorExtension<T extends Object> on Future<T?> {
       if (logError) errorLogger.logError(e, s);
 
       await onErrorOrNull(e, s);
+
+      return null;
+    }
+  }
+
+  /// Returns this [Future] value or `null` if it throws an error.
+  ///
+  /// Logs the error using [errorLogger] or [defaultAsyncExtensionErrorLogger]
+  /// if parameter [logError] is `true`.
+  Future<T?> nullOnError(
+      {FutureOr<void> Function(Object e, StackTrace s)? onError,
+      FutureOr<void> Function(Object? e, StackTrace? s)? onErrorOrNull,
+      AsyncExtensionErrorLogger? errorLogger,
+      bool logError = true}) async {
+    try {
+      var r = await this;
+      if (r == null && onErrorOrNull != null) {
+        await onErrorOrNull(null, null);
+      }
+      return r;
+    } catch (e, s) {
+      if (logError) errorLogger.logError(e, s);
+
+      if (onErrorOrNull != null) {
+        await onErrorOrNull(e, s);
+      } else if (onError != null) {
+        await onError(e, s);
+      }
 
       return null;
     }

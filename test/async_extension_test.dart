@@ -573,6 +573,7 @@ void main() {
 
     test('onErrorReturn', () async {
       var loggedErrors = <(Object?, StackTrace)>[];
+      var errors = [];
 
       logger(e, s) => loggedErrors.add((e, s));
 
@@ -581,6 +582,7 @@ void main() {
               .onErrorReturn(-1, errorLogger: logger),
           equals(1));
       expect(loggedErrors, isEmpty);
+      expect(errors, isEmpty);
 
       expect(
           await Future<int>.microtask(() => throw StateError(''))
@@ -588,16 +590,39 @@ void main() {
           equals(-2));
 
       expect(loggedErrors.length, equals(1));
-    });
+      expect(errors, isEmpty);
 
-    test('onErrorReturn', () async {
+      expect(
+          await Future<int>.microtask(() => 3).onErrorReturn(-2,
+              errorLogger: logger, onError: (e, s) => errors.add(e)),
+          equals(3));
+
+      expect(loggedErrors.length, equals(1));
+      expect(errors, isEmpty);
+
+      expect(
+          await Future<int>.microtask(() => throw StateError('')).onErrorReturn(
+              -2,
+              errorLogger: logger,
+              onError: (e, s) => errors.add(e)),
+          equals(-2));
+
+      expect(loggedErrors.length, equals(2));
+      expect(errors.length, equals(1));
+    });
+  });
+
+  group('FutureNonNullOnErrorExtension', () {
+    test('nullOnError', () async {
       var loggedErrors = <(Object?, StackTrace)>[];
+      var errors = [];
 
       logger(e, s) => loggedErrors.add((e, s));
 
       expect(await Future.microtask(() => 1).nullOnError(errorLogger: logger),
           equals(1));
       expect(loggedErrors, isEmpty);
+      expect(errors, isEmpty);
 
       expect(
           await Future<int>.microtask(() => throw StateError(''))
@@ -605,10 +630,17 @@ void main() {
           isNull);
 
       expect(loggedErrors.length, equals(1));
-    });
-  });
+      expect(errors, isEmpty);
 
-  group('FutureNonNullOnErrorExtension', () {
+      expect(
+          await Future<int>.microtask(() => throw StateError('')).nullOnError(
+              errorLogger: logger, onError: (e, s) => errors.add(e)),
+          isNull);
+
+      expect(loggedErrors.length, equals(2));
+      expect(errors.length, equals(1));
+    });
+
     test('onComplete', () async {
       var loggedErrors = <(Object?, StackTrace)>[];
 
@@ -642,6 +674,52 @@ void main() {
   });
 
   group('FutureNullableOnErrorExtension', () {
+    test('nullOnError', () async {
+      var loggedErrors = <(Object?, StackTrace)>[];
+      var errors = [];
+
+      logger(e, s) => loggedErrors.add((e, s));
+
+      expect(
+          await Future<int?>.microtask(() => 1)
+              .nullOnError(errorLogger: logger),
+          equals(1));
+      expect(loggedErrors, isEmpty);
+      expect(errors, isEmpty);
+
+      expect(
+          await Future<int?>.microtask(() => throw StateError(''))
+              .nullOnError(errorLogger: logger),
+          isNull);
+
+      expect(loggedErrors.length, equals(1));
+      expect(errors, isEmpty);
+
+      expect(
+          await Future<int?>.microtask(() => throw StateError('')).nullOnError(
+              errorLogger: logger, onError: (e, s) => errors.add(e)),
+          isNull);
+
+      expect(loggedErrors.length, equals(2));
+      expect(errors.length, equals(1));
+
+      expect(
+          await Future<int?>.microtask(() => throw StateError('')).nullOnError(
+              errorLogger: logger, onErrorOrNull: (e, s) => errors.add(e)),
+          isNull);
+
+      expect(loggedErrors.length, equals(3));
+      expect(errors.length, equals(2));
+
+      expect(
+          await Future<int?>.microtask(() => null).nullOnError(
+              errorLogger: logger, onErrorOrNull: (e, s) => errors.add(e)),
+          isNull);
+
+      expect(loggedErrors.length, equals(3));
+      expect(errors.length, equals(3));
+    });
+
     test('onComplete', () async {
       var loggedErrors = <(Object?, StackTrace)>[];
 
