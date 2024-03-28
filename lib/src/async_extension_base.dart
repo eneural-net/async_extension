@@ -1159,6 +1159,28 @@ extension FutureOrNullableExtension<T extends Object> on FutureOr<T?> {
       then((value) => value ?? defaultGetter());
 }
 
+extension CompleterExtension<T> on Completer {
+  /// Calls [complete] only if ![isCompleted] and returns `true`,
+  /// otherwise just returns `false`.
+  bool completeSafe([FutureOr<T>? value]) {
+    if (!isCompleted) {
+      complete(value);
+      return true;
+    }
+    return false;
+  }
+
+  /// Calls [completeError] only if ![isCompleted] and returns `true`,
+  /// otherwise just returns `false`.
+  bool completeErrorSafe(Object error, [StackTrace? stackTrace]) {
+    if (!isCompleted) {
+      completeError(error, stackTrace);
+      return true;
+    }
+    return false;
+  }
+}
+
 /// An async loop, similar to a `for` loop block.
 ///
 /// - [i] the `for` cursor.

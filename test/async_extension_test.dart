@@ -1341,6 +1341,30 @@ void main() {
     });
   });
 
+  group('CompleterExtension', () {
+    test('completeSafe', () async {
+      var c1 = Completer<int?>();
+      expect(c1.completeSafe(10), isTrue);
+      expect(await c1.future, equals(10));
+
+      var c2 = Completer<int?>();
+      c2.complete(20);
+      expect(c2.completeSafe(21), isFalse);
+      expect(await c2.future, equals(20));
+    });
+
+    test('completeErrorSafe', () async {
+      var c1 = Completer<int?>();
+      expect(c1.completeErrorSafe('error10'), isTrue);
+      expect(() => c1.future, throwsA(equals('error10')));
+
+      var c2 = Completer<int?>();
+      c2.completeError('error20');
+      expect(c2.completeErrorSafe('error21'), isFalse);
+      expect(() => c2.future, throwsA(equals('error20')));
+    });
+  });
+
   group('MapFutureValueExtension', () {
     test('resolveAllValues', () async {
       expect(await {'a': 1, 'b': Future.value(2)}.resolveAllValues(),

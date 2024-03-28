@@ -1,3 +1,8 @@
+## 1.2.10
+
+- New `CompleterExtension`:
+  - Added `completeSafe`, `completeErrorSafe`.
+
 ## 1.2.9
 
 - `onErrorReturn`: added optional parameter `onError`.
