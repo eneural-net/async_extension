@@ -1182,6 +1182,8 @@ extension CompleterExtension<T> on Completer {
 }
 
 extension IterableAsyncExtension<T> on Iterable<T> {
+  /// Perform a `forEach` allow [FutureOr] returns, then maps all the
+  /// results in a single [List].
   FutureOr<List<R>> forEachAsync<R>(FutureOr<R> Function(T e) processor) {
     var itr = iterator;
 
