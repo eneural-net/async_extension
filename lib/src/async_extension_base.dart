@@ -909,6 +909,60 @@ extension MapFutureExtension<K, V> on Map<FutureOr<K>, FutureOr<V>> {
   }
 }
 
+extension IterableMapEntryFutureValueExtension<K, V>
+    on Iterable<MapEntry<K, FutureOr<V>>> {
+  FutureOr<Iterable<MapEntry<K, V>>> resolveAllValues() {
+    var self = this;
+    if (self is Iterable<MapEntry<K, V>> && _isNotFuture(V)) {
+      return self;
+    }
+
+    var keys = <K>[];
+    var futureValues = <FutureOr<V>>[];
+
+    for (var e in self) {
+      keys.add(e.key);
+      futureValues.add(e.value);
+    }
+
+    return futureValues.resolveAllJoined((values) {
+      var entries = List.generate(values.length, (i) {
+        var k = keys[i];
+        var v = values[i];
+        return MapEntry(k, v);
+      });
+      return entries;
+    });
+  }
+}
+
+extension IterableMapEntryFutureKeyExtension<K, V>
+    on Iterable<MapEntry<FutureOr<K>, V>> {
+  FutureOr<Iterable<MapEntry<K, V>>> resolveAllKeys() {
+    var self = this;
+    if (self is Iterable<MapEntry<K, V>> && _isNotFuture(V)) {
+      return self;
+    }
+
+    var futureKeys = <FutureOr<K>>[];
+    var values = <V>[];
+
+    for (var e in self) {
+      futureKeys.add(e.key);
+      values.add(e.value);
+    }
+
+    return futureKeys.resolveAllJoined((keys) {
+      var entries = List.generate(values.length, (i) {
+        var k = keys[i];
+        var v = values[i];
+        return MapEntry(k, v);
+      });
+      return entries;
+    });
+  }
+}
+
 extension FutureOrIterableExtension<T> on FutureOr<Iterable<T>> {
   FutureOr<List<T>> toListAsync({bool growable = true}) =>
       then((itr) => itr.toList());

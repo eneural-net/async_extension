@@ -1454,6 +1454,76 @@ void main() {
     });
   });
 
+  group('IterableMapEntryFutureValueExtension', () {
+    test('resolveAllValues (sync)', () async {
+      var l1 = <MapEntry<String, FutureOr<int>>>[
+        MapEntry('a', 1),
+        MapEntry('b', 2),
+        MapEntry('c', 3)
+      ];
+
+      expect(Map.fromEntries(await l1.resolveAllValues()),
+          equals({'a': 1, 'b': 2, 'c': 3}));
+    });
+
+    test('resolveAllValues (async)', () async {
+      var l1 = [
+        MapEntry('a', Future.value(1)),
+        MapEntry('b', Future.value(2)),
+        MapEntry('c', Future.value(3))
+      ];
+
+      expect(Map.fromEntries(await l1.resolveAllValues()),
+          equals({'a': 1, 'b': 2, 'c': 3}));
+    });
+
+    test('resolveAllValues (sync, async)', () async {
+      var l1 = [
+        MapEntry('a', 1),
+        MapEntry('b', Future.value(2)),
+        MapEntry('c', Future.value(3))
+      ];
+
+      expect(Map.fromEntries(await l1.resolveAllValues()),
+          equals({'a': 1, 'b': 2, 'c': 3}));
+    });
+  });
+
+  group('IterableMapEntryFutureKeyExtension', () {
+    test('resolveAllValues (sync)', () async {
+      var l1 = <MapEntry<FutureOr<String>, int>>[
+        MapEntry('a', 1),
+        MapEntry('b', 2),
+        MapEntry('c', 3)
+      ];
+
+      expect(Map.fromEntries(await l1.resolveAllKeys()),
+          equals({'a': 1, 'b': 2, 'c': 3}));
+    });
+
+    test('resolveAllValues (async)', () async {
+      var l1 = <MapEntry<FutureOr<String>, int>>[
+        MapEntry(Future.value('a'), 1),
+        MapEntry(Future.value('b'), 2),
+        MapEntry(Future.value('c'), 3)
+      ];
+
+      expect(Map.fromEntries(await l1.resolveAllKeys()),
+          equals({'a': 1, 'b': 2, 'c': 3}));
+    });
+
+    test('resolveAllValues (sync, async)', () async {
+      var l1 = <MapEntry<FutureOr<String>, int>>[
+        MapEntry('a', 1),
+        MapEntry(Future.value('b'), 2),
+        MapEntry(Future.value('c'), 3)
+      ];
+
+      expect(Map.fromEntries(await l1.resolveAllKeys()),
+          equals({'a': 1, 'b': 2, 'c': 3}));
+    });
+  });
+
   group('ExpandoFutureExtension', () {
     test('putIfAbsentAsync', () async {
       var cache = Expando<Future<String>>();
