@@ -1507,6 +1507,38 @@ void main() {
     });
   });
 
+  group('IterableAsyncExtension', () {
+    test('forEachAsync (empty)', () {
+      var l1 = [];
+
+      expect(l1.forEachAsync((e) => e * 10), equals([]));
+    });
+
+    test('forEachAsync (sync)', () {
+      var l1 = [1, 2, 3];
+
+      expect(l1.forEachAsync((e) => e * 10), equals([10, 20, 30]));
+    });
+
+    test('forEachAsync (async)', () async {
+      var l1 = [1, 2, 3];
+
+      expect(await l1.forEachAsync((e) => Future.value(e * 100)),
+          equals([100, 200, 300]));
+    });
+
+    test('forEachAsync (sync, async...)', () async {
+      var l1 = [1, 2, 3];
+
+      expect(
+          await l1.forEachAsync((e) {
+            if (e == 1) return 10;
+            return Future.value(e * 100);
+          }),
+          equals([10, 200, 300]));
+    });
+  });
+
   group('asyncTry', () {
     test('value', () async {
       expect(asyncTry<int>(() => 123), equals(123));

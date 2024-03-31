@@ -1,3 +1,8 @@
+## 1.2.11
+
+- New `IterableAsyncExtension`:
+  - Added `forEachAsync`.
+
 ## 1.2.10
 
 - New `CompleterExtension`:
