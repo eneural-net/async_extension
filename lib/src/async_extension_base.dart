@@ -1181,6 +1181,57 @@ extension CompleterExtension<T> on Completer {
   }
 }
 
+extension IterableAsyncExtension<T> on Iterable<T> {
+  FutureOr<List<R>> forEachAsync<R>(FutureOr<R> Function(T e) processor) {
+    var itr = iterator;
+
+    if (!itr.moveNext()) {
+      return [];
+    }
+
+    var e0 = itr.current;
+    var r0 = processor(e0);
+
+    if (r0 is Future<R>) {
+      return _forEachAIterateAsync(processor, itr, r0, null);
+    } else {
+      var results = <R>[r0];
+
+      while (itr.moveNext()) {
+        var e1 = itr.current;
+        var r1 = processor(e1);
+
+        if (r1 is Future<R>) {
+          return _forEachAIterateAsync(processor, itr, r1, results);
+        } else {
+          results.add(r1);
+        }
+      }
+
+      return results;
+    }
+  }
+
+  Future<List<R>> _forEachAIterateAsync<R>(FutureOr<R> Function(T e) processor,
+      Iterator<T> itr, Future<R> r0Async, List<R>? results) async {
+    var r0 = await r0Async;
+
+    if (results == null) {
+      results = <R>[r0];
+    } else {
+      results.add(r0);
+    }
+
+    while (itr.moveNext()) {
+      var e1 = itr.current;
+      var r1 = await processor(e1);
+      results.add(r1);
+    }
+
+    return results;
+  }
+}
+
 /// An async loop, similar to a `for` loop block.
 ///
 /// - [i] the `for` cursor.
