@@ -1490,7 +1490,7 @@ void main() {
   });
 
   group('IterableMapEntryFutureKeyExtension', () {
-    test('resolveAllValues (sync)', () async {
+    test('resolveAllKeys (sync)', () async {
       var l1 = <MapEntry<FutureOr<String>, int>>[
         MapEntry('a', 1),
         MapEntry('b', 2),
@@ -1501,7 +1501,7 @@ void main() {
           equals({'a': 1, 'b': 2, 'c': 3}));
     });
 
-    test('resolveAllValues (async)', () async {
+    test('resolveAllKeys (async)', () async {
       var l1 = <MapEntry<FutureOr<String>, int>>[
         MapEntry(Future.value('a'), 1),
         MapEntry(Future.value('b'), 2),
@@ -1512,7 +1512,7 @@ void main() {
           equals({'a': 1, 'b': 2, 'c': 3}));
     });
 
-    test('resolveAllValues (sync, async)', () async {
+    test('resolveAllKeys (sync, async)', () async {
       var l1 = <MapEntry<FutureOr<String>, int>>[
         MapEntry('a', 1),
         MapEntry(Future.value('b'), 2),
@@ -1520,6 +1520,41 @@ void main() {
       ];
 
       expect(Map.fromEntries(await l1.resolveAllKeys()),
+          equals({'a': 1, 'b': 2, 'c': 3}));
+    });
+  });
+
+  group('IterableMapEntryFutureExtension', () {
+    test('resolveAllEntries (sync)', () async {
+      var l1 = <MapEntry<FutureOr<String>, FutureOr<int>>>[
+        MapEntry('a', 1),
+        MapEntry('b', 2),
+        MapEntry('c', 3)
+      ];
+
+      expect(Map.fromEntries(await l1.resolveAllEntries()),
+          equals({'a': 1, 'b': 2, 'c': 3}));
+    });
+
+    test('resolveAllEntries (async)', () async {
+      var l1 = <MapEntry<FutureOr<String>, FutureOr<int>>>[
+        MapEntry(Future.value('a'), Future.value(1)),
+        MapEntry(Future.value('b'), Future.value(2)),
+        MapEntry(Future.value('c'), Future.value(3))
+      ];
+
+      expect(Map.fromEntries(await l1.resolveAllEntries()),
+          equals({'a': 1, 'b': 2, 'c': 3}));
+    });
+
+    test('resolveAllEntries (sync, async)', () async {
+      var l1 = <MapEntry<FutureOr<String>, FutureOr<int>>>[
+        MapEntry('a', 1),
+        MapEntry(Future.value('b'), Future.value(2)),
+        MapEntry(Future.value('c'), Future.value(3))
+      ];
+
+      expect(Map.fromEntries(await l1.resolveAllEntries()),
           equals({'a': 1, 'b': 2, 'c': 3}));
     });
   });

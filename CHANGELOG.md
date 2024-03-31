@@ -6,6 +6,9 @@
 - New `IterableMapEntryFutureKeyExtension`:
   - Added `resolveAllKeys`.
 
+- New `IterableMapEntryFutureExtension`:
+  - Added `resolveAllEntries`.
+
 ## 1.2.11
 
 - New `IterableAsyncExtension`:
