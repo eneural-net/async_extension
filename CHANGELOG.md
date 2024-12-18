@@ -1,3 +1,14 @@
+## 1.2.13
+
+- Added `asyncRetry`.
+
+- Improved `asyncTry` documentation.
+
+- lints: ^4.0.0
+- test: ^1.25.13
+- dependency_validator: ^4.1.2
+- coverage: ^1.11.1
+
 ## 1.2.12
 
 - New `IterableMapEntryFutureValueExtension`:

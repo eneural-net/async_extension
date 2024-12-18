@@ -2163,6 +2163,214 @@ void main() {
       expect(finally2, equals([2]));
     });
   });
+
+  group('asyncRetry', () {
+    test('no error', () async {
+      var errors = [];
+
+      expect(
+          await asyncRetry(() => 1000,
+              defaultValue: -1,
+              maxRetries: 2,
+              retryDelay: Duration.zero, onError: (e, s, r) {
+            errors.add(e);
+            return null;
+          }),
+          equals(1000));
+
+      expect(errors, isEmpty);
+    });
+
+    test('error 1/4', () async {
+      var errors = [];
+
+      var errorCount = 0;
+
+      expect(
+          await asyncRetry(
+              () {
+                if (errorCount == 1) return 1000;
+                throw StateError('Force error#${++errorCount}');
+              },
+              defaultValue: -1,
+              maxRetries: 3,
+              retryDelay: Duration.zero,
+              onError: (e, s, r) {
+                errors.add(e);
+                return null;
+              }),
+          equals(1000));
+
+      expect(errors.length, equals(1));
+      expect(errors.whereType<StateError>().length, equals(1));
+      expect(errors.whereType<StateError>().map((e) => e.message),
+          equals(['Force error#1']));
+    });
+
+    test('error 2/4', () async {
+      var errors = [];
+      var delays = <Duration>[];
+
+      var errorCount = 0;
+
+      expect(
+          await asyncRetry(
+              () {
+                if (errorCount == 2) return 1000;
+                throw StateError('Force error#${++errorCount}');
+              },
+              defaultValue: -1,
+              maxRetries: 3,
+              retryDelay: Duration.zero,
+              computeDelay: (r) {
+                var d = switch (r) {
+                  0 => Duration(milliseconds: 0),
+                  1 => Duration(milliseconds: 1),
+                  _ => Duration.zero,
+                };
+                delays.add(d);
+                return d;
+              },
+              onError: (e, s, r) {
+                errors.add(e);
+                return null;
+              }),
+          equals(1000));
+
+      expect(errors.length, equals(2));
+      expect(errors.whereType<StateError>().length, equals(2));
+      expect(errors.whereType<StateError>().map((e) => e.message),
+          equals(['Force error#1', 'Force error#2']));
+
+      expect(delays.length, equals(2));
+      expect(delays,
+          equals([Duration(milliseconds: 0), Duration(milliseconds: 1)]));
+    });
+
+    test('error 3/4', () async {
+      var errors = [];
+
+      var errorCount = 0;
+
+      expect(
+          await asyncRetry(
+              () {
+                if (errorCount == 3) return 1000;
+                throw StateError('Force error#${++errorCount}');
+              },
+              defaultValue: -1,
+              maxRetries: 3,
+              retryDelay: Duration.zero,
+              computeDelay: (r) => null,
+              onError: (e, s, r) {
+                errors.add(e);
+                return null;
+              }),
+          equals(1000));
+
+      expect(errors.length, equals(3));
+      expect(errors.whereType<StateError>().length, equals(3));
+      expect(errors.whereType<StateError>().map((e) => e.message),
+          equals(['Force error#1', 'Force error#2', 'Force error#3']));
+    });
+
+    test('error 4/4', () async {
+      var errors = [];
+
+      var errorCount = 0;
+
+      expect(
+          await asyncRetry(
+              () {
+                if (errorCount == 4) return 1000;
+                throw StateError('Force error#${++errorCount}');
+              },
+              defaultValue: -1,
+              maxRetries: 3,
+              retryDelay: Duration.zero,
+              onError: (e, s, r) {
+                errors.add(e);
+                return null;
+              }),
+          equals(-1));
+
+      expect(errors.length, equals(4));
+      expect(errors.whereType<StateError>().length, equals(4));
+      expect(
+          errors.whereType<StateError>().map((e) => e.message),
+          equals([
+            'Force error#1',
+            'Force error#2',
+            'Force error#3',
+            'Force error#4'
+          ]));
+    });
+
+    test('all errors', () async {
+      var errors = [];
+
+      var errorCount = 0;
+
+      expect(
+          await asyncRetry(
+              () => throw StateError('Force error#${++errorCount}'),
+              defaultValue: -1,
+              maxRetries: 2,
+              retryDelay: Duration.zero, onError: (e, s, r) {
+            errors.add(e);
+            return null;
+          }),
+          equals(-1));
+
+      expect(errors.length, equals(3));
+      expect(errors.whereType<StateError>().length, equals(3));
+      expect(errors.whereType<StateError>().map((e) => e.message),
+          equals(['Force error#1', 'Force error#2', 'Force error#3']));
+    });
+
+    test('all errors (no defaultValue)', () async {
+      var errors = [];
+
+      var errorCount = 0;
+
+      expect(
+          await asyncRetry(
+              () => throw StateError('Force error#${++errorCount}'),
+              maxRetries: 2,
+              retryDelay: Duration.zero, onError: (e, s, r) {
+            errors.add(e);
+            return null;
+          }),
+          isNull);
+
+      expect(errors.length, equals(3));
+      expect(errors.whereType<StateError>().length, equals(3));
+      expect(errors.whereType<StateError>().map((e) => e.message),
+          equals(['Force error#1', 'Force error#2', 'Force error#3']));
+    });
+
+    test('all errors (throwOnRetryExhaustion)', () async {
+      var errors = [];
+
+      var errorCount = 0;
+
+      await expectLater(
+          () => asyncRetry(
+                  () => throw StateError('Force error#${++errorCount}'),
+                  maxRetries: 2,
+                  throwOnRetryExhaustion: true,
+                  retryDelay: Duration.zero, onError: (e, s, r) {
+                errors.add(e);
+                return null;
+              }),
+          throwsStateError);
+
+      expect(errors.length, equals(3));
+      expect(errors.whereType<StateError>().length, equals(3));
+      expect(errors.whereType<StateError>().map((e) => e.message),
+          equals(['Force error#1', 'Force error#2', 'Force error#3']));
+    });
+  });
 }
 
 class _Key<T> {
