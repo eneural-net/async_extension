@@ -1,3 +1,7 @@
+## 1.2.14
+
+- Added `Function` extension: `retry` and `retryWith`.
+
 ## 1.2.13
 
 - Added `asyncRetry`.

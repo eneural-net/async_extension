@@ -2371,6 +2371,317 @@ void main() {
           equals(['Force error#1', 'Force error#2', 'Force error#3']));
     });
   });
+
+  group('retry extension', () {
+    test('f() no error', () async {
+      var errors = [];
+
+      int f() => 1000;
+
+      expect(
+          await f.retry(
+              defaultValue: -1,
+              maxRetries: 2,
+              retryDelay: Duration.zero,
+              onError: (e, s, r) {
+                errors.add(e);
+                return null;
+              }),
+          equals(1000));
+
+      expect(errors, isEmpty);
+    });
+
+    test('f() error 1/4', () async {
+      var errors = [];
+
+      var errorCount = 0;
+
+      int f() {
+        if (errorCount == 1) return 1000;
+        throw StateError('Force error#${++errorCount}');
+      }
+
+      expect(
+          await f.retry(
+              defaultValue: -1,
+              maxRetries: 3,
+              retryDelay: Duration.zero,
+              onError: (e, s, r) {
+                errors.add(e);
+                return null;
+              }),
+          equals(1000));
+
+      expect(errors.length, equals(1));
+      expect(errors.whereType<StateError>().length, equals(1));
+      expect(errors.whereType<StateError>().map((e) => e.message),
+          equals(['Force error#1']));
+    });
+
+    test('f(a) error 1/4', () async {
+      var errors = [];
+
+      var errorCount = 0;
+
+      int f(int n) {
+        if (errorCount == 1) return n * 1000;
+        throw StateError('Force error#${++errorCount}');
+      }
+
+      expect(
+          await f.retry(2,
+              defaultValue: -1,
+              maxRetries: 3,
+              retryDelay: Duration.zero, onError: (e, s, r) {
+            errors.add(e);
+            return null;
+          }),
+          equals(2000));
+
+      expect(errors.length, equals(1));
+      expect(errors.whereType<StateError>().length, equals(1));
+      expect(errors.whereType<StateError>().map((e) => e.message),
+          equals(['Force error#1']));
+    });
+
+    test('f(a,b) error 1/4', () async {
+      var errors = [];
+
+      var errorCount = 0;
+
+      int f(int n, int m) {
+        if (errorCount == 1) return n * 1000 ~/ m;
+        throw StateError('Force error#${++errorCount}');
+      }
+
+      expect(
+          await f.retry(2, 4,
+              defaultValue: -1,
+              maxRetries: 3,
+              retryDelay: Duration.zero, onError: (e, s, r) {
+            errors.add(e);
+            return null;
+          }),
+          equals(500));
+
+      expect(errors.length, equals(1));
+      expect(errors.whereType<StateError>().length, equals(1));
+      expect(errors.whereType<StateError>().map((e) => e.message),
+          equals(['Force error#1']));
+    });
+
+    test('f(a,b,c) error 1/4', () async {
+      var errors = [];
+
+      var errorCount = 0;
+
+      int f(int n, int m, int o) {
+        if (errorCount == 1) return n * 1000 ~/ m + o;
+        throw StateError('Force error#${++errorCount}');
+      }
+
+      expect(
+          await f.retry(2, 4, 1,
+              defaultValue: -1,
+              maxRetries: 3,
+              retryDelay: Duration.zero, onError: (e, s, r) {
+            errors.add(e);
+            return null;
+          }),
+          equals(501));
+
+      expect(errors.length, equals(1));
+      expect(errors.whereType<StateError>().length, equals(1));
+      expect(errors.whereType<StateError>().map((e) => e.message),
+          equals(['Force error#1']));
+    });
+
+    test('f(a,b,c,d) error 1/4', () async {
+      var errors = [];
+
+      var errorCount = 0;
+
+      int f(int n, int m, int o, int p) {
+        if (errorCount == 1) return n * 1000 ~/ m + (o * p);
+        throw StateError('Force error#${++errorCount}');
+      }
+
+      expect(
+          await f.retry(2, 4, 2, 3,
+              defaultValue: -1,
+              maxRetries: 3,
+              retryDelay: Duration.zero, onError: (e, s, r) {
+            errors.add(e);
+            return null;
+          }),
+          equals(506));
+
+      expect(errors.length, equals(1));
+      expect(errors.whereType<StateError>().length, equals(1));
+      expect(errors.whereType<StateError>().map((e) => e.message),
+          equals(['Force error#1']));
+    });
+
+    test('f(a,b,c,d,e) error 1/4', () async {
+      var errors = [];
+
+      var errorCount = 0;
+
+      int f(int n, int m, int o, int p, int q) {
+        if (errorCount == 1) return n * 1000 ~/ m + (o * p) + q;
+        throw StateError('Force error#${++errorCount}');
+      }
+
+      expect(
+          await f.retry(2, 4, 2, 3, 1,
+              defaultValue: -1,
+              maxRetries: 3,
+              retryDelay: Duration.zero, onError: (e, s, r) {
+            errors.add(e);
+            return null;
+          }),
+          equals(507));
+
+      expect(errors.length, equals(1));
+      expect(errors.whereType<StateError>().length, equals(1));
+      expect(errors.whereType<StateError>().map((e) => e.message),
+          equals(['Force error#1']));
+    });
+
+    test('f(a,b,c,d,e,f) error 1/4', () async {
+      var errors = [];
+
+      var errorCount = 0;
+
+      int f(int n, int m, int o, int p, int q, int r) {
+        if (errorCount == 1) return n * 1000 ~/ m + (o * p) - q + r;
+        throw StateError('Force error#${++errorCount}');
+      }
+
+      expect(
+          await f.retry(2, 4, 2, 3, 1, 5,
+              defaultValue: -1,
+              maxRetries: 3,
+              retryDelay: Duration.zero, onError: (e, s, r) {
+            errors.add(e);
+            return null;
+          }),
+          equals(510));
+
+      expect(errors.length, equals(1));
+      expect(errors.whereType<StateError>().length, equals(1));
+      expect(errors.whereType<StateError>().map((e) => e.message),
+          equals(['Force error#1']));
+    });
+
+    test('f(a,b,c,d,e,f,g) error 1/4', () async {
+      var errors = [];
+
+      var errorCount = 0;
+
+      int f(int n, int m, int o, int p, int q, int r, int s) {
+        if (errorCount == 1) return n * 1000 ~/ m + (o * p) - q + r - s;
+        throw StateError('Force error#${++errorCount}');
+      }
+
+      expect(
+          await f.retry(2, 4, 2, 3, 1, 5, 2,
+              defaultValue: -1,
+              maxRetries: 3,
+              retryDelay: Duration.zero, onError: (e, s, r) {
+            errors.add(e);
+            return null;
+          }),
+          equals(508));
+
+      expect(errors.length, equals(1));
+      expect(errors.whereType<StateError>().length, equals(1));
+      expect(errors.whereType<StateError>().map((e) => e.message),
+          equals(['Force error#1']));
+    });
+
+    test('f(a,b,c,d,e,f,g,h) error 1/4', () async {
+      var errors = [];
+
+      var errorCount = 0;
+
+      int f(int n, int m, int o, int p, int q, int r, int s, int t) {
+        if (errorCount == 1) return n * 1000 ~/ m + (o * p) - q + r - s + t;
+        throw StateError('Force error#${++errorCount}');
+      }
+
+      expect(
+          await f.retry(2, 4, 2, 3, 1, 5, 2, 3,
+              defaultValue: -1,
+              maxRetries: 3,
+              retryDelay: Duration.zero, onError: (e, s, r) {
+            errors.add(e);
+            return null;
+          }),
+          equals(511));
+
+      expect(errors.length, equals(1));
+      expect(errors.whereType<StateError>().length, equals(1));
+      expect(errors.whereType<StateError>().map((e) => e.message),
+          equals(['Force error#1']));
+    });
+
+    test('f(a,b,c,d,e,f,g,h,i) error 1/4', () async {
+      var errors = [];
+
+      var errorCount = 0;
+
+      int f(int n, int m, int o, int p, int q, int r, int s, int t, int u) {
+        if (errorCount == 1) return n * 1000 ~/ m + (o * p) - q + r - s + t - u;
+        throw StateError('Force error#${++errorCount}');
+      }
+
+      expect(
+          await f.retry(2, 4, 2, 3, 1, 5, 2, 3, 1,
+              defaultValue: -1,
+              maxRetries: 3,
+              retryDelay: Duration.zero, onError: (e, s, r) {
+            errors.add(e);
+            return null;
+          }),
+          equals(510));
+
+      expect(errors.length, equals(1));
+      expect(errors.whereType<StateError>().length, equals(1));
+      expect(errors.whereType<StateError>().map((e) => e.message),
+          equals(['Force error#1']));
+    });
+
+    test('f(a, b:, c:) error 1/4', () async {
+      var errors = [];
+
+      var errorCount = 0;
+
+      int f(int n, {int m = 0, int o = 0}) {
+        if (errorCount == 1) return n * 1000 ~/ m + o;
+        throw StateError('Force error#${++errorCount}');
+      }
+
+      expect(
+          await f.retryWith<int>(
+              args: [2],
+              named: {#m: 4, #o: 3},
+              defaultValue: -1,
+              maxRetries: 3,
+              retryDelay: Duration.zero,
+              onError: (e, s, r) {
+                errors.add(e);
+                return null;
+              }),
+          equals(503));
+
+      expect(errors.length, equals(1));
+      expect(errors.whereType<StateError>().length, equals(1));
+      expect(errors.whereType<StateError>().map((e) => e.message),
+          equals(['Force error#1']));
+    });
+  });
 }
 
 class _Key<T> {

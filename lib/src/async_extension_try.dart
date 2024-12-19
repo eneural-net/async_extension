@@ -396,3 +396,249 @@ FutureOr<R?>? _asyncRetryOnError<R>(
         throwOnRetryExhaustion, retryDelay, computeDelay, onError),
   );
 }
+
+typedef AsyncFunction<R> = FutureOr<R> Function();
+
+extension AsyncFunctionExtension<R> on AsyncFunction<R> {
+  /// Alias to [asyncRetry].
+  FutureOr<R?> retry(
+          {R? defaultValue,
+          bool throwOnRetryExhaustion = false,
+          int maxRetries = 3,
+          Duration? retryDelay,
+          Duration? Function(int retry)? computeDelay,
+          bool? Function(Object error, StackTrace stackTrace, int retries)?
+              onError}) =>
+      asyncRetry<R>(this,
+          defaultValue: defaultValue,
+          throwOnRetryExhaustion: throwOnRetryExhaustion,
+          maxRetries: maxRetries,
+          retryDelay: retryDelay,
+          computeDelay: computeDelay,
+          onError: onError);
+}
+
+typedef AsyncFunction1<R, A> = FutureOr<R> Function(A a);
+
+extension AsyncFunctionExtension1<R, A> on AsyncFunction1<R, A> {
+  /// Alias to [asyncRetry].
+  FutureOr<R?> retry(A a,
+          {R? defaultValue,
+          bool throwOnRetryExhaustion = false,
+          int maxRetries = 3,
+          Duration? retryDelay,
+          Duration? Function(int retry)? computeDelay,
+          bool? Function(Object error, StackTrace stackTrace, int retries)?
+              onError}) =>
+      asyncRetry<R>(() => this(a),
+          defaultValue: defaultValue,
+          throwOnRetryExhaustion: throwOnRetryExhaustion,
+          maxRetries: maxRetries,
+          retryDelay: retryDelay,
+          computeDelay: computeDelay,
+          onError: onError);
+}
+
+typedef AsyncFunction2<R, A, B> = FutureOr<R> Function(A a, B b);
+
+extension AsyncFunctionExtension2<R, A, B> on AsyncFunction2<R, A, B> {
+  /// Alias to [asyncRetry].
+  FutureOr<R?> retry(A a, B b,
+          {R? defaultValue,
+          bool throwOnRetryExhaustion = false,
+          int maxRetries = 3,
+          Duration? retryDelay,
+          Duration? Function(int retry)? computeDelay,
+          bool? Function(Object error, StackTrace stackTrace, int retries)?
+              onError}) =>
+      asyncRetry<R>(() => this(a, b),
+          defaultValue: defaultValue,
+          throwOnRetryExhaustion: throwOnRetryExhaustion,
+          maxRetries: maxRetries,
+          retryDelay: retryDelay,
+          computeDelay: computeDelay,
+          onError: onError);
+}
+
+typedef AsyncFunction3<R, A, B, C> = FutureOr<R> Function(A a, B b, C c);
+
+extension AsyncFunctionExtension3<R, A, B, C> on AsyncFunction3<R, A, B, C> {
+  /// Alias to [asyncRetry].
+  FutureOr<R?> retry(A a, B b, C c,
+          {R? defaultValue,
+          bool throwOnRetryExhaustion = false,
+          int maxRetries = 3,
+          Duration? retryDelay,
+          Duration? Function(int retry)? computeDelay,
+          bool? Function(Object error, StackTrace stackTrace, int retries)?
+              onError}) =>
+      asyncRetry<R>(() => this(a, b, c),
+          defaultValue: defaultValue,
+          throwOnRetryExhaustion: throwOnRetryExhaustion,
+          maxRetries: maxRetries,
+          retryDelay: retryDelay,
+          computeDelay: computeDelay,
+          onError: onError);
+}
+
+typedef AsyncFunction4<R, A, B, C, D> = FutureOr<R> Function(
+    A a, B b, C c, D d);
+
+extension AsyncFunctionExtension4<R, A, B, C, D>
+    on AsyncFunction4<R, A, B, C, D> {
+  /// Alias to [asyncRetry].
+  FutureOr<R?> retry(A a, B b, C c, D d,
+          {R? defaultValue,
+          bool throwOnRetryExhaustion = false,
+          int maxRetries = 3,
+          Duration? retryDelay,
+          Duration? Function(int retry)? computeDelay,
+          bool? Function(Object error, StackTrace stackTrace, int retries)?
+              onError}) =>
+      asyncRetry<R>(() => this(a, b, c, d),
+          defaultValue: defaultValue,
+          throwOnRetryExhaustion: throwOnRetryExhaustion,
+          maxRetries: maxRetries,
+          retryDelay: retryDelay,
+          computeDelay: computeDelay,
+          onError: onError);
+}
+
+typedef AsyncFunction5<R, A, B, C, D, E> = FutureOr<R> Function(
+    A a, B b, C c, D d, E e);
+
+extension AsyncFunctionExtension5<R, A, B, C, D, E>
+    on AsyncFunction5<R, A, B, C, D, E> {
+  /// Alias to [asyncRetry].
+  FutureOr<R?> retry(A a, B b, C c, D d, E e,
+          {R? defaultValue,
+          bool throwOnRetryExhaustion = false,
+          int maxRetries = 3,
+          Duration? retryDelay,
+          Duration? Function(int retry)? computeDelay,
+          bool? Function(Object error, StackTrace stackTrace, int retries)?
+              onError}) =>
+      asyncRetry<R>(() => this(a, b, c, d, e),
+          defaultValue: defaultValue,
+          throwOnRetryExhaustion: throwOnRetryExhaustion,
+          maxRetries: maxRetries,
+          retryDelay: retryDelay,
+          computeDelay: computeDelay,
+          onError: onError);
+}
+
+typedef AsyncFunction6<R, A, B, C, D, E, F> = FutureOr<R> Function(
+    A a, B b, C c, D d, E e, F f);
+
+extension AsyncFunctionExtension6<R, A, B, C, D, E, F>
+    on AsyncFunction6<R, A, B, C, D, E, F> {
+  /// Alias to [asyncRetry].
+  FutureOr<R?> retry(A a, B b, C c, D d, E e, F f,
+          {R? defaultValue,
+          bool throwOnRetryExhaustion = false,
+          int maxRetries = 3,
+          Duration? retryDelay,
+          Duration? Function(int retry)? computeDelay,
+          bool? Function(Object error, StackTrace stackTrace, int retries)?
+              onError}) =>
+      asyncRetry<R>(() => this(a, b, c, d, e, f),
+          defaultValue: defaultValue,
+          throwOnRetryExhaustion: throwOnRetryExhaustion,
+          maxRetries: maxRetries,
+          retryDelay: retryDelay,
+          computeDelay: computeDelay,
+          onError: onError);
+}
+
+typedef AsyncFunction7<R, A, B, C, D, E, F, G> = FutureOr<R> Function(
+    A a, B b, C c, D d, E e, F f, G g);
+
+extension AsyncFunctionExtension7<R, A, B, C, D, E, F, G>
+    on AsyncFunction7<R, A, B, C, D, E, F, G> {
+  /// Alias to [asyncRetry].
+  FutureOr<R?> retry(A a, B b, C c, D d, E e, F f, G g,
+          {R? defaultValue,
+          bool throwOnRetryExhaustion = false,
+          int maxRetries = 3,
+          Duration? retryDelay,
+          Duration? Function(int retry)? computeDelay,
+          bool? Function(Object error, StackTrace stackTrace, int retries)?
+              onError}) =>
+      asyncRetry<R>(() => this(a, b, c, d, e, f, g),
+          defaultValue: defaultValue,
+          throwOnRetryExhaustion: throwOnRetryExhaustion,
+          maxRetries: maxRetries,
+          retryDelay: retryDelay,
+          computeDelay: computeDelay,
+          onError: onError);
+}
+
+typedef AsyncFunction8<R, A, B, C, D, E, F, G, H> = FutureOr<R> Function(
+    A a, B b, C c, D d, E e, F f, G g, H h);
+
+extension AsyncFunctionExtension8<R, A, B, C, D, E, F, G, H>
+    on AsyncFunction8<R, A, B, C, D, E, F, G, H> {
+  /// Alias to [asyncRetry].
+  FutureOr<R?> retry(A a, B b, C c, D d, E e, F f, G g, H h,
+          {R? defaultValue,
+          bool throwOnRetryExhaustion = false,
+          int maxRetries = 3,
+          Duration? retryDelay,
+          Duration? Function(int retry)? computeDelay,
+          bool? Function(Object error, StackTrace stackTrace, int retries)?
+              onError}) =>
+      asyncRetry<R>(() => this(a, b, c, d, e, f, g, h),
+          defaultValue: defaultValue,
+          throwOnRetryExhaustion: throwOnRetryExhaustion,
+          maxRetries: maxRetries,
+          retryDelay: retryDelay,
+          computeDelay: computeDelay,
+          onError: onError);
+}
+
+typedef AsyncFunction9<R, A, B, C, D, E, F, G, H, I> = FutureOr<R> Function(
+    A a, B b, C c, D d, E e, F f, G g, H h, I i);
+
+extension AsyncFunctionExtension9<R, A, B, C, D, E, F, G, H, I>
+    on AsyncFunction9<R, A, B, C, D, E, F, G, H, I> {
+  /// Alias to [asyncRetry].
+  FutureOr<R?> retry(A a, B b, C c, D d, E e, F f, G g, H h, I i,
+          {R? defaultValue,
+          bool throwOnRetryExhaustion = false,
+          int maxRetries = 3,
+          Duration? retryDelay,
+          Duration? Function(int retry)? computeDelay,
+          bool? Function(Object error, StackTrace stackTrace, int retries)?
+              onError}) =>
+      asyncRetry<R>(() => this(a, b, c, d, e, f, g, h, i),
+          defaultValue: defaultValue,
+          throwOnRetryExhaustion: throwOnRetryExhaustion,
+          maxRetries: maxRetries,
+          retryDelay: retryDelay,
+          computeDelay: computeDelay,
+          onError: onError);
+}
+
+typedef AsyncFunctionGeneric = Function;
+
+extension AsyncFunctionExtensionG on AsyncFunctionGeneric {
+  /// Alias to [asyncRetry].
+  FutureOr<R?> retryWith<R>(
+      {List<dynamic>? args,
+      Map<Symbol, dynamic>? named,
+      R? defaultValue,
+      bool throwOnRetryExhaustion = false,
+      int maxRetries = 3,
+      Duration? retryDelay,
+      Duration? Function(int retry)? computeDelay,
+      bool? Function(Object error, StackTrace stackTrace, int retries)?
+          onError}) {
+    return asyncRetry<R>(() => Function.apply(this, args, named),
+        defaultValue: defaultValue,
+        throwOnRetryExhaustion: throwOnRetryExhaustion,
+        maxRetries: maxRetries,
+        retryDelay: retryDelay,
+        computeDelay: computeDelay,
+        onError: onError);
+  }
+}
