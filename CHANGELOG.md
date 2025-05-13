@@ -1,3 +1,13 @@
+## 1.2.15
+
+- `FutureOrExtension`:
+  - `then`: Use `onError` for synchronous calls as well.
+    Previously, it was only used when `this` was a `Future`.
+
+- test: ^1.26.0
+- dependency_validator: ^4.1.3
+- coverage: ^1.13.1
+
 ## 1.2.14
 
 - Added `Function` extension: `retry` and `retryWith`.

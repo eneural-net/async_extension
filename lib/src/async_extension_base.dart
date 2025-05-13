@@ -157,7 +157,15 @@ extension FutureOrExtension<T> on FutureOr<T> {
     if (self is Future<T>) {
       return self.then(onValue, onError: onError);
     } else {
-      return onValue(self);
+      if (onError != null) {
+        try {
+          return onValue(self);
+        } catch (e, s) {
+          return onError(e, s);
+        }
+      } else {
+        return onValue(self);
+      }
     }
   }
 
