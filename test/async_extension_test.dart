@@ -91,6 +91,25 @@ void main() {
       expect(call2.tryCall(onError: (e, s) => -100), equals(-100));
       expect(call2.asFutureOr.tryCall(onError: (e, s) => -100), equals(-100));
     });
+
+    test('tryCallThen', () async {
+      var call1 = (() => 100);
+      expect(call1.tryCallThen((v) => v * 10, onError: (e, s) => -100),
+          equals(1000));
+
+      expect(
+          call1.asFutureOr.tryCallThen((v) => v * 10, onError: (e, s) => -100),
+          equals(1000));
+
+      var call2 =
+          (() => DateTime.now().year > 2000 ? throw StateError("Error") : 100);
+
+      expect(call2.tryCallThen((v) => v * 10, onError: (e, s) => -100),
+          equals(-100));
+      expect(
+          call2.asFutureOr.tryCallThen((v) => v * 10, onError: (e, s) => -100),
+          equals(-100));
+    });
   });
 
   group('FunctionArg1Extension', () {

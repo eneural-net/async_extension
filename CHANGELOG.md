@@ -1,7 +1,7 @@
 ## 1.2.15
 
 - New `FunctionArgs0Extension`, `FunctionArgs1Extension`, `FunctionArgs2Extension`:
-  - Added `tryCall` and `asFutureOr`.
+  - Added `tryCall`, `tryCallThen` and `asFutureOr`.
 
 - test: ^1.26.0
 - dependency_validator: ^4.1.3
