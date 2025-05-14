@@ -113,6 +113,20 @@ void main() {
       expect(
           call2.asFutureOr.tryCallThen((v) => v * 10, onError: (e, s) => -100),
           equals(-100));
+
+      ///////
+
+      expect(
+          call1.tryCallThen((v) => v > 0 ? throw StateError("Error") : v * 10,
+              onError: (e, s) => -1000),
+          equals(-1000));
+
+      expect(
+          await call1.tryCallThen(
+              (v) => Future.microtask(
+                  () => v > 0 ? throw StateError("Error") : v * 10),
+              onError: (e, s) => -1000),
+          equals(-1000));
     });
   });
 
@@ -154,6 +168,22 @@ void main() {
           call2.asFutureOr
               .tryCallThen(3, (v) => v * 10, onError: (e, s) => -100),
           equals(-100));
+
+      ///////
+
+      expect(
+          call1.tryCallThen(
+              2, (v) => v > 0 ? throw StateError("Error") : v * 10,
+              onError: (e, s) => -1000),
+          equals(-1000));
+
+      expect(
+          await call1.tryCallThen(
+              2,
+              (v) => Future.microtask(
+                  () => v > 0 ? throw StateError("Error") : v * 10),
+              onError: (e, s) => -1000),
+          equals(-1000));
     });
   });
 
@@ -196,6 +226,23 @@ void main() {
           call2.asFutureOr
               .tryCallThen(2, 3, (v) => v * 10, onError: (e, s) => -100),
           equals(-100));
+
+      ///////
+
+      expect(
+          call1.tryCallThen(
+              2, 3, (v) => v > 0 ? throw StateError("Error") : v * 10,
+              onError: (e, s) => -1000),
+          equals(-1000));
+
+      expect(
+          await call1.tryCallThen(
+              2,
+              3,
+              (v) => Future.microtask(
+                  () => v > 0 ? throw StateError("Error") : v * 10),
+              onError: (e, s) => -1000),
+          equals(-1000));
     });
   });
 
