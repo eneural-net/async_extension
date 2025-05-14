@@ -92,22 +92,22 @@ extension FutureOrFunctionArgs1Extension<R, A>
   FutureOr<R> tryCall(A a, {Function? onError}) {
     var f = this;
 
-    if (onError != null) {
-      if (f is Future<_FArgs1<R, A>>) {
-        return f.then((f) => f(a), onError: onError);
-      } else {
-        try {
-          return f(a);
-        } catch (e, s) {
-          return onError(e, s);
-        }
-      }
+    if (f is Future<_FArgs1<R, A>>) {
+      return f.then((f) => f.tryCall(a, onError: onError), onError: onError);
     } else {
-      if (f is Future<_FArgs1<R, A>>) {
-        return f.then((f) => f(a));
-      } else {
-        return f(a);
-      }
+      return f.tryCall(a, onError: onError);
+    }
+  }
+
+  FutureOr<R2> tryCallThen<R2>(A a, FutureOr<R2> Function(R value) onValue,
+      {FutureOr<R> Function(R value)? then, Function? onError}) {
+    var f = this;
+
+    if (f is Future<_FArgs1<R, A>>) {
+      return f.then((f) => f.tryCallThen(a, onValue, onError: onError),
+          onError: onError);
+    } else {
+      return f.tryCallThen(a, onValue, onError: onError);
     }
   }
 }
@@ -128,6 +128,31 @@ extension FunctionArgs1Extension<R, A> on FutureOr<R> Function(A a) {
       return f(a);
     }
   }
+
+  FutureOr<R2> tryCallThen<R2>(A a, FutureOr<R2> Function(R value) onValue,
+      {FutureOr<R> Function(R value)? then, Function? onError}) {
+    var f = this;
+
+    if (onError != null) {
+      try {
+        var r = f(a);
+        if (r is Future<R>) {
+          return r.then(onValue, onError: onError);
+        } else {
+          return onValue(r);
+        }
+      } catch (e, s) {
+        return onError(e, s);
+      }
+    } else {
+      var r = f(a);
+      if (r is Future<R>) {
+        return r.then(onValue, onError: onError);
+      } else {
+        return onValue(r);
+      }
+    }
+  }
 }
 
 typedef _FArgs2<R, A, B> = FutureOr<R> Function(A a, B b);
@@ -137,22 +162,22 @@ extension FutureOrFunctionArgs2Extension<R, A, B>
   FutureOr<R> tryCall(A a, B b, {Function? onError}) {
     var f = this;
 
-    if (onError != null) {
-      if (f is Future<_FArgs2<R, A, B>>) {
-        return f.then((f) => f(a, b), onError: onError);
-      } else {
-        try {
-          return f(a, b);
-        } catch (e, s) {
-          return onError(e, s);
-        }
-      }
+    if (f is Future<_FArgs2<R, A, B>>) {
+      return f.then((f) => f.tryCall(a, b, onError: onError), onError: onError);
     } else {
-      if (f is Future<_FArgs2<R, A, B>>) {
-        return f.then((f) => f(a, b));
-      } else {
-        return f(a, b);
-      }
+      return f.tryCall(a, b, onError: onError);
+    }
+  }
+
+  FutureOr<R2> tryCallThen<R2>(A a, B b, FutureOr<R2> Function(R value) onValue,
+      {FutureOr<R> Function(R value)? then, Function? onError}) {
+    var f = this;
+
+    if (f is Future<_FArgs2<R, A, B>>) {
+      return f.then((f) => f.tryCallThen(a, b, onValue, onError: onError),
+          onError: onError);
+    } else {
+      return f.tryCallThen(a, b, onValue, onError: onError);
     }
   }
 }
@@ -171,6 +196,31 @@ extension FunctionArgs2Extension<R, A, B> on FutureOr<R> Function(A a, B b) {
       }
     } else {
       return f(a, b);
+    }
+  }
+
+  FutureOr<R2> tryCallThen<R2>(A a, B b, FutureOr<R2> Function(R value) onValue,
+      {FutureOr<R> Function(R value)? then, Function? onError}) {
+    var f = this;
+
+    if (onError != null) {
+      try {
+        var r = f(a, b);
+        if (r is Future<R>) {
+          return r.then(onValue, onError: onError);
+        } else {
+          return onValue(r);
+        }
+      } catch (e, s) {
+        return onError(e, s);
+      }
+    } else {
+      var r = f(a, b);
+      if (r is Future<R>) {
+        return r.then(onValue, onError: onError);
+      } else {
+        return onValue(r);
+      }
     }
   }
 }
