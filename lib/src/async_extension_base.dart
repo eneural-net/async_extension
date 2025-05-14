@@ -15,6 +15,141 @@ bool _isNotFuture(Type type) {
 
 Type _typeGetter<T>() => T;
 
+typedef _FArgs0<R> = FutureOr<R> Function();
+
+extension FutureOrFunctionArgs0Extension<R>
+    on FutureOr<FutureOr<R> Function()> {
+  FutureOr<R> tryCall({Function? onError}) {
+    var f = this;
+
+    if (onError != null) {
+      if (f is Future<_FArgs0<R>>) {
+        return f.then((f) => f(), onError: onError);
+      } else {
+        try {
+          return f();
+        } catch (e, s) {
+          return onError(e, s);
+        }
+      }
+    } else {
+      if (f is Future<_FArgs0<R>>) {
+        return f.then((f) => f());
+      } else {
+        return f();
+      }
+    }
+  }
+}
+
+extension FunctionArgs0Extension<R> on FutureOr<R> Function() {
+  FutureOr<FutureOr<R> Function()> get asFutureOr => this;
+
+  FutureOr<R> tryCall({Function? onError}) {
+    var f = this;
+
+    if (onError != null) {
+      try {
+        return f();
+      } catch (e, s) {
+        return onError(e, s);
+      }
+    } else {
+      return f();
+    }
+  }
+}
+
+typedef _FArgs1<R, A> = FutureOr<R> Function(A a);
+
+extension FutureOrFunctionArgs1Extension<R, A>
+    on FutureOr<FutureOr<R> Function(A a)> {
+  FutureOr<R> tryCall(A a, {Function? onError}) {
+    var f = this;
+
+    if (onError != null) {
+      if (f is Future<_FArgs1<R, A>>) {
+        return f.then((f) => f(a), onError: onError);
+      } else {
+        try {
+          return f(a);
+        } catch (e, s) {
+          return onError(e, s);
+        }
+      }
+    } else {
+      if (f is Future<_FArgs1<R, A>>) {
+        return f.then((f) => f(a));
+      } else {
+        return f(a);
+      }
+    }
+  }
+}
+
+extension FunctionArgs1Extension<R, A> on FutureOr<R> Function(A a) {
+  FutureOr<FutureOr<R> Function(A a)> get asFutureOr => this;
+
+  FutureOr<R> tryCall(A a, {Function? onError}) {
+    var f = this;
+
+    if (onError != null) {
+      try {
+        return f(a);
+      } catch (e, s) {
+        return onError(e, s);
+      }
+    } else {
+      return f(a);
+    }
+  }
+}
+
+typedef _FArgs2<R, A, B> = FutureOr<R> Function(A a, B b);
+
+extension FutureOrFunctionArgs2Extension<R, A, B>
+    on FutureOr<FutureOr<R> Function(A a, B b)> {
+  FutureOr<R> tryCall(A a, B b, {Function? onError}) {
+    var f = this;
+
+    if (onError != null) {
+      if (f is Future<_FArgs2<R, A, B>>) {
+        return f.then((f) => f(a, b), onError: onError);
+      } else {
+        try {
+          return f(a, b);
+        } catch (e, s) {
+          return onError(e, s);
+        }
+      }
+    } else {
+      if (f is Future<_FArgs2<R, A, B>>) {
+        return f.then((f) => f(a, b));
+      } else {
+        return f(a, b);
+      }
+    }
+  }
+}
+
+extension FunctionArgs2Extension<R, A, B> on FutureOr<R> Function(A a, B b) {
+  FutureOr<FutureOr<R> Function(A a, B b)> get asFutureOr => this;
+
+  FutureOr<R> tryCall(A a, B b, {Function? onError}) {
+    var f = this;
+
+    if (onError != null) {
+      try {
+        return f(a, b);
+      } catch (e, s) {
+        return onError(e, s);
+      }
+    } else {
+      return f(a, b);
+    }
+  }
+}
+
 /// Extension for [FutureOr].
 extension FutureOrExtension<T> on FutureOr<T> {
   /// Returns the type of [T].
@@ -157,15 +292,7 @@ extension FutureOrExtension<T> on FutureOr<T> {
     if (self is Future<T>) {
       return self.then(onValue, onError: onError);
     } else {
-      if (onError != null) {
-        try {
-          return onValue(self);
-        } catch (e, s) {
-          return onError(e, s);
-        }
-      } else {
-        return onValue(self);
-      }
+      return onValue(self);
     }
   }
 

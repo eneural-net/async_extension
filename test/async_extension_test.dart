@@ -78,6 +78,51 @@ void main() {
     });
   });
 
+  group('FunctionArgs0Extension', () {
+    test('tryCall', () async {
+      var call1 = (() => 100);
+      expect(call1.tryCall(onError: (e, s) => -100), equals(100));
+
+      expect(call1.asFutureOr.tryCall(onError: (e, s) => -100), equals(100));
+
+      var call2 =
+          (() => DateTime.now().year > 2000 ? throw StateError("Error") : 100);
+
+      expect(call2.tryCall(onError: (e, s) => -100), equals(-100));
+      expect(call2.asFutureOr.tryCall(onError: (e, s) => -100), equals(-100));
+    });
+  });
+
+  group('FunctionArg1Extension', () {
+    test('tryCall', () async {
+      var call1 = ((int n) => n * 10);
+
+      expect(call1.tryCall(2, onError: (e, s) => -100), equals(20));
+
+      expect(call1.asFutureOr.tryCall(2, onError: (e, s) => -100), equals(20));
+
+      var call2 = ((int n) =>
+          DateTime.now().year > 2000 ? throw StateError("Error") : n * 10);
+      expect(call2.tryCall(3, onError: (e, s) => -100), equals(-100));
+
+      expect(
+          call2.asFutureOr.tryCall(3, onError: (e, s) => -100), equals(-100));
+    });
+  });
+
+  group('FunctionArg2Extension', () {
+    test('tryCall', () async {
+      var call1 = ((int n, int m) => n * m);
+      expect(
+          call1.asFutureOr.tryCall(2, 3, onError: (e, s) => -100), equals(6));
+
+      var call2 = ((int n, int m) =>
+          DateTime.now().year > 2000 ? throw StateError("Error") : n * m);
+      expect(call2.asFutureOr.tryCall(2, 3, onError: (e, s) => -100),
+          equals(-100));
+    });
+  });
+
   group('FutureOrExtension', () {
     setUp(() {});
 

@@ -1,8 +1,7 @@
 ## 1.2.15
 
-- `FutureOrExtension`:
-  - `then`: Use `onError` for synchronous calls as well.
-    Previously, it was only used when `this` was a `Future`.
+- New `FunctionArgs0Extension`, `FunctionArgs1Extension`, `FunctionArgs2Extension`:
+  - Added `tryCall` and `asFutureOr`.
 
 - test: ^1.26.0
 - dependency_validator: ^4.1.3
