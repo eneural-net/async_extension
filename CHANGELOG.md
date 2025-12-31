@@ -8,6 +8,8 @@
   - Updated `test` dependency from ^1.26.0 to ^1.26.3.
   - Updated `coverage` dependency from ^1.13.1 to ^1.15.0.
 
+- Update GitHub Actions to use checkout@v6 and codecov-action@v5.
+
 ## 1.2.15
 
 - New `FunctionArgs0Extension`, `FunctionArgs1Extension`, `FunctionArgs2Extension`:
