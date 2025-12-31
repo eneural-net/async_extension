@@ -1,5 +1,11 @@
 import 'dart:async';
 
+/// Signature for a computation executed by [ComputeOnce].
+///
+/// The callback may return a value synchronously or a [Future] that completes
+/// with the value [V] or an error.
+typedef ComputeOnceCall<V> = FutureOr<V> Function();
+
 /// Lazily computes a value at most once and caches either the result or error.
 ///
 /// The computation may be synchronous or asynchronous. Subsequent calls return
@@ -7,12 +13,16 @@ import 'dart:async';
 ///
 /// If [resolve] is true, the computation is started eagerly.
 class ComputeOnce<V> {
-  final FutureOr<V> Function() _call;
+  /// The computation callback.
+  ///
+  /// This is cleared after a successful or failed [resolve]/[resolveAsync] to
+  /// release references and prevent the computation from being invoked again.
+  ComputeOnceCall<V>? _call;
 
   /// Creates a [ComputeOnce] wrapping [_call].
   ///
   /// If [resolve] is true, starts resolving immediately.
-  ComputeOnce(this._call, {bool resolve = true}) {
+  ComputeOnce(ComputeOnceCall<V> call, {bool resolve = true}) : _call = call {
     if (resolve) {
       resolveAsync();
     }
@@ -62,7 +72,8 @@ class ComputeOnce<V> {
 
     final FutureOr<V> call;
     try {
-      call = _call();
+      var computer = _call ?? (throw StateError("Null `_call`"));
+      call = computer();
 
       if (call is Future<V>) {
         future = _future = call;
@@ -73,22 +84,26 @@ class ComputeOnce<V> {
             if (identical(future, _future)) {
               _future = null;
             }
+            _call = null;
           },
           onError: (e, s) {
             _result = (value: null, error: e, stackTrace: s);
             if (identical(future, _future)) {
               _future = null;
             }
+            _call = null;
           },
         );
 
         return future;
       } else {
         _result = (value: call, error: null, stackTrace: null);
+        _call = null;
         return call;
       }
     } catch (e, s) {
       _result = (value: null, error: e, stackTrace: s);
+      _call = null;
       rethrow;
     }
   }
@@ -113,7 +128,8 @@ class ComputeOnce<V> {
     var future = _future;
     if (future != null) return future;
 
-    future = _future = Future(_call);
+    var computer = _call ?? (throw StateError("Null `_call`"));
+    future = _future = Future(computer);
 
     future.then(
       (value) {
@@ -121,12 +137,14 @@ class ComputeOnce<V> {
         if (identical(future, _future)) {
           _future = null;
         }
+        _call = null;
       },
       onError: (e, s) {
         _result = (value: null, error: e, stackTrace: s);
         if (identical(future, _future)) {
           _future = null;
         }
+        _call = null;
       },
     );
 

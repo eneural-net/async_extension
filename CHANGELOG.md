@@ -1,3 +1,9 @@
+## 1.2.17
+
+- `ComputeOnce`:
+  - Added typedef `ComputeOnceCall<V>` for the computation callback signature.
+  - Changed `_call` field type to nullable `ComputeOnceCall<V>?` and clear it after computation completes to release references and prevent re-invocation.
+
 ## 1.2.16
 
 - `async_extension`:
