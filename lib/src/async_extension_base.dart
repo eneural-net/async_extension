@@ -796,6 +796,33 @@ extension FutureExtension<T> on Future<T> {
       });
     }
   }
+
+  /// Invokes a callback when this [Future] resolves, either with a value
+  /// or with an error, and maps the outcome to a new result.
+  ///
+  /// The [onResolve] callback is always executed:
+  /// - On success, it receives the resolved value and `null` error/stackTrace
+  /// - On failure, it receives `null` value along with the error and stackTrace
+  ///
+  /// Unlike [then], errors are **not automatically rethrown**. The value
+  /// returned by [onResolve] becomes the result of the returned [Future].
+  ///
+  /// **Note:** [onResolve] is responsible for deciding how failures are handled.
+  /// It may:
+  /// - Return a fallback value
+  /// - Throw a new error
+  /// - Rethrow the received `error`
+  ///
+  /// This method is useful for handling success and failure uniformly
+  /// while producing a transformed result.
+  Future<R> whenResolved<R>(
+      FutureOr<R> Function(T? value, Object? error, StackTrace? stackTrace)
+          onResolve) {
+    return then(
+      (v) => onResolve(v, null, null),
+      onError: (e, s) => onResolve(null, e, s),
+    );
+  }
 }
 
 typedef AsyncExtensionErrorLogger = void Function(Object? e, StackTrace? s)?;

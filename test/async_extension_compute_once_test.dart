@@ -155,5 +155,87 @@ void main() {
       expect(result, 6);
       expect(c.value, 3);
     });
+
+    test('whenComplete is called on successful resolution', () async {
+      var completed = false;
+
+      final c = ComputeOnce<int>(() => 10, resolve: false);
+
+      final result = await c.whenComplete(() {
+        completed = true;
+      });
+
+      expect(result, 10);
+      expect(completed, isTrue);
+      expect(c.isResolved, isTrue);
+      expect(c.hasError, isFalse);
+    });
+
+    test('whenComplete is called on failed resolution', () async {
+      var completed = false;
+      final error = StateError('fail');
+
+      final c = ComputeOnce<int>(() {
+        throw error;
+      }, resolve: false);
+
+      await expectLater(
+        c.whenComplete(() {
+          completed = true;
+        }),
+        throwsA(same(error)),
+      );
+
+      expect(completed, isTrue);
+      expect(c.isResolved, isTrue);
+      expect(c.hasError, isTrue);
+    });
+
+    test('whenResolved receives value on success', () async {
+      final c = ComputeOnce<int>(() => 7, resolve: false);
+
+      final result = await c.whenResolved<String>((value, error, stack) {
+        expect(error, isNull);
+        expect(stack, isNull);
+        return 'v=$value';
+      });
+
+      expect(result, 'v=7');
+      expect(c.value, 7);
+    });
+
+    test('whenResolved receives error on failure and maps result', () async {
+      final error = ArgumentError('bad');
+
+      final c = ComputeOnce<int>(() {
+        throw error;
+      }, resolve: false);
+
+      final result = await c.whenResolved<String>((value, err, stack) {
+        expect(value, isNull);
+        expect(err, same(error));
+        expect(stack, isNotNull);
+        return 'handled';
+      });
+
+      expect(result, 'handled');
+      expect(c.isResolved, isTrue);
+      expect(c.hasError, isTrue);
+    });
+
+    test('whenResolved can rethrow received error', () async {
+      final error = StateError('boom');
+
+      final c = ComputeOnce<int>(() {
+        throw error;
+      }, resolve: false);
+
+      await expectLater(
+        c.whenResolved((value, err, stack) {
+          throw err!;
+        }),
+        throwsA(same(error)),
+      );
+    });
   });
 }

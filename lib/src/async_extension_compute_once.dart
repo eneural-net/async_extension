@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'async_extension_base.dart';
+
 /// Signature for a computation executed by [ComputeOnce].
 ///
 /// The callback may return a value synchronously or a [Future] that completes
@@ -157,4 +159,30 @@ class ComputeOnce<V> {
   Future<R> then<R>(FutureOr<R> Function(V value) onValue,
           {Function? onError}) =>
       resolveAsync().then(onValue, onError: onError);
+
+  /// Registers a callback to be executed when resolution completes,
+  /// regardless of success or failure.
+  ///
+  /// Equivalent to calling [resolveAsync] and then invoking
+  /// [Future.whenComplete] on the resulting [Future].
+  Future<V> whenComplete(FutureOr<void> Function() action) =>
+      resolveAsync().whenComplete(action);
+
+  /// Invokes a callback when this value resolves, either successfully
+  /// or with an error, and maps the outcome to a new result.
+  ///
+  /// The [onResolve] callback is always executed:
+  /// - On success, it receives the resolved value and `null` error/stackTrace
+  /// - On failure, it receives `null` value along with the error and stackTrace
+  ///
+  /// Errors are not automatically rethrown. The [onResolve] callback
+  /// determines how failures are handled by choosing to return a value,
+  /// throw a new error, or rethrow the received [error].
+  ///
+  /// This method delegates to [resolveAsync] and then applies
+  /// [Future.whenResolved] on the resulting [Future].
+  Future<R> whenResolved<R>(
+          FutureOr<R> Function(V? value, Object? error, StackTrace? stackTrace)
+              onResolve) =>
+      resolveAsync().whenResolved(onResolve);
 }

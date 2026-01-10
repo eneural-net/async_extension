@@ -1,3 +1,12 @@
+## 1.2.18
+
+- `FutureExtension`:
+  - Added method `whenResolved` to invoke a callback on future resolution (success or error) and map the outcome to a new result without automatically rethrowing errors.
+
+- `ComputeOnce`:
+  - Added method `whenComplete` to register a callback executed when resolution completes, regardless of success or failure.
+  - Added method `whenResolved` to invoke a callback on resolution (success or error) and map the outcome to a new result, delegating to `resolveAsync` and `Future.whenResolved`.
+
 ## 1.2.17
 
 - `ComputeOnce`:
