@@ -370,6 +370,88 @@ void main() {
     expect(c.hasError, isTrue);
   });
 
+  test('resolve with delay+throwError=false uses async onError handler',
+      () async {
+    final error = ArgumentError('fail');
+
+    final c = ComputeOnce<int>(() async {
+      await Future.delayed(Duration(milliseconds: 100));
+      throw error;
+    }, resolve: false);
+
+    final v1Async = c.resolve(
+      throwError: false,
+      onError: (e, s) async {
+        expect(e, same(error));
+        expect(s, isNotNull);
+        return 123;
+      },
+    );
+
+    final v2Async = c.resolve(
+      throwError: false,
+      onError: (e, s) async {
+        expect(e, same(error));
+        expect(s, isNotNull);
+        return 456;
+      },
+    );
+
+    final v3Async = c.resolve(throwError: false, onErrorValue: 789);
+
+    final v1 = await v1Async;
+    final v2 = await v2Async;
+    final v3 = await v3Async;
+
+    expect(c.hasError, isTrue);
+    expect(c.error?.error, same(error));
+
+    expect(v1, 123);
+    expect(v2, 456);
+    expect(v3, 789);
+  });
+
+  test('resolveAsync with delay+throwError=false uses async onError handler',
+      () async {
+    final error = ArgumentError('fail');
+
+    final c = ComputeOnce<int>(() async {
+      await Future.delayed(Duration(milliseconds: 100));
+      throw error;
+    }, resolve: false);
+
+    final v1Async = c.resolveAsync(
+      throwError: false,
+      onError: (e, s) async {
+        expect(e, same(error));
+        expect(s, isNotNull);
+        return 123;
+      },
+    );
+
+    final v2Async = c.resolveAsync(
+      throwError: false,
+      onError: (e, s) async {
+        expect(e, same(error));
+        expect(s, isNotNull);
+        return 456;
+      },
+    );
+
+    final v3Async = c.resolveAsync(throwError: false, onErrorValue: 789);
+
+    final v1 = await v1Async;
+    final v2 = await v2Async;
+    final v3 = await v3Async;
+
+    expect(c.hasError, isTrue);
+    expect(c.error?.error, same(error));
+
+    expect(v1, 123);
+    expect(v2, 456);
+    expect(v3, 789);
+  });
+
   test('onCompute is called exactly once on success', () async {
     final c = _MyComputeOnce<int>(() async => 5, resolve: false);
 
