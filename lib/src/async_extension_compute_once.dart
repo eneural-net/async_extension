@@ -24,10 +24,24 @@ class ComputeOnce<V> {
   /// Creates a [ComputeOnce] wrapping [_call].
   ///
   /// If [resolve] is true, starts resolving immediately.
-  ComputeOnce(ComputeOnceCall<V> call, {bool resolve = true}) : _call = call {
+  ComputeOnce(ComputeOnceCall<V> call, {bool resolve = true})
+      : _call = _resolveCall(call) {
     if (resolve) {
       resolveAsync();
     }
+  }
+
+  /// Widens callbacks that return `Future<Never>`.
+  ///
+  /// A `Future<Never>` cannot produce a `V`, which breaks `onError` and
+  /// `onErrorValue`. This wraps the call so it is treated as
+  /// `FutureOr<V> Function()` while preserving behavior.
+  static ComputeOnceCall<V> _resolveCall<V>(ComputeOnceCall<V> call) {
+    if (call is Future<Never> Function()) {
+      Future<V> callCast() => call().then<V>((v) => v as V);
+      return callCast;
+    }
+    return call;
   }
 
   /// Returns the cached value if already resolved, otherwise `null`.
@@ -53,24 +67,65 @@ class ComputeOnce<V> {
   /// Whether the computation has completed (with value or error).
   bool get isResolved => _result != null;
 
+  /// Whether the computation is currently in progress and not yet resolved.
+  bool get isResolving => _result == null && _future != null;
+
   Future<V>? _future;
 
-  /// Resolves the computation and returns the value (as [V]) or a [Future].
+  /// Resolves the computation and returns its value ([V]) or a [Future<V>].
   ///
-  /// If already resolved, returns the cached value or rethrows the cached error.
-  /// If a resolution is in progress, returns the same Future.
-  FutureOr<V> resolve() {
+  /// - If already resolved, returns the cached value or handles/rethrows
+  ///   the cached error.
+  /// - If a resolution is in progress, returns the same in-flight [Future].
+  /// - When the computation completes (success or failure), [onCompute]
+  ///   is invoked with the resulting value or error.
+  ///
+  /// Parameters:
+  /// - [throwError]:
+  ///   When `true` (default), any error is rethrown with its original
+  ///   [StackTrace]. When `false`, errors are handled by [onError] or
+  ///   [onErrorValue].
+  ///
+  /// - [onError]:
+  ///   Optional error handler invoked when an error occurs and
+  ///   [throwError] is `false`. Receives the error object and its
+  ///   [StackTrace]. Its return value is used as the resolved value.
+  ///
+  /// - [onErrorValue]:
+  ///   Fallback value (default null) returned when an error occurs,
+  ///   [throwError] is `false`, and [onError] is not provided.
+  FutureOr<V> resolve({
+    bool throwError = true,
+    FutureOr<V> Function(Object error, StackTrace stackTrace)? onError,
+    V? onErrorValue,
+  }) {
     var result = _result;
     if (result != null) {
       var error = result.error;
       if (error != null) {
-        Error.throwWithStackTrace(error, result.stackTrace!);
+        var stackTrace = result.stackTrace!;
+        if (throwError) {
+          Error.throwWithStackTrace(error, stackTrace);
+        } else if (onError != null) {
+          return onError(error, stackTrace);
+        } else {
+          return onErrorValue as V;
+        }
       }
       return result.value as V;
     }
 
     var future = _future;
-    if (future != null) return future;
+    if (future != null) {
+      if (!throwError) {
+        if (onError != null) {
+          return future.catchError(onError);
+        } else {
+          return future.catchError((e, s) => onErrorValue as V);
+        }
+      }
+      return future;
+    }
 
     final FutureOr<V> call;
     try {
@@ -87,6 +142,7 @@ class ComputeOnce<V> {
               _future = null;
             }
             _call = null;
+            onCompute(value, null, null);
           },
           onError: (e, s) {
             _result = (value: null, error: e, stackTrace: s);
@@ -94,41 +150,98 @@ class ComputeOnce<V> {
               _future = null;
             }
             _call = null;
+            onCompute(null, e, s);
           },
         );
 
+        if (!throwError) {
+          if (onError != null) {
+            return future.catchError(onError);
+          } else {
+            return future.catchError((e, s) => onErrorValue as V);
+          }
+        }
         return future;
       } else {
         _result = (value: call, error: null, stackTrace: null);
         _call = null;
+        onCompute(value, null, null);
         return call;
       }
     } catch (e, s) {
       _result = (value: null, error: e, stackTrace: s);
       _call = null;
-      rethrow;
+      onCompute(null, e, s);
+
+      if (!throwError) {
+        if (onError != null) {
+          return onError(e, s);
+        } else {
+          return onErrorValue as V;
+        }
+      } else {
+        rethrow;
+      }
     }
   }
 
   /// Resolves the computation asynchronously.
   ///
-  /// Always returns a [Future] that completes with the value (as [V]) or error.
+  /// Always returns a [Future<V>] that completes with the resolved value
+  /// or completes with an error.
   ///
-  /// If a resolution is in progress, returns the same Future.
-  /// If already resolved, returns an already completed Future.
-  Future<V> resolveAsync() {
+  /// - If a resolution is in progress, returns the same in-flight [Future].
+  /// - If already resolved, returns an already completed [Future].
+  /// - When the computation completes (success or failure), [onCompute]
+  ///   is invoked with the resulting value or error.
+  ///
+  /// Parameters:
+  /// - [throwError]:
+  ///   When `true` (default), the returned [Future] completes with the
+  ///   original error and [StackTrace]. When `false`, errors are handled
+  ///   by [onError] or [onErrorValue].
+  ///
+  /// - [onError]:
+  ///   Optional asynchronous error handler used only when [throwError]
+  ///   is `false`. Receives the error object and its [StackTrace] and must
+  ///   return a [Future<V>] whose value becomes the resolution result.
+  ///
+  /// - [onErrorValue]:
+  ///   Fallback value (default null) used to complete the returned [Future]
+  ///   when an error occurs, [throwError] is `false`, and [onError] is not
+  ///   provided.
+  Future<V> resolveAsync({
+    bool throwError = true,
+    Future<V> Function(Object error, StackTrace stackTrace)? onError,
+    V? onErrorValue,
+  }) {
     var result = _result;
     if (result != null) {
       var error = result.error;
       if (error != null) {
-        var stackTrace = result.stackTrace;
-        return Future.error(error, stackTrace);
+        var stackTrace = result.stackTrace!;
+        if (throwError) {
+          return Future.error(error, stackTrace);
+        } else if (onError != null) {
+          return onError(error, stackTrace);
+        } else {
+          return Future.value(onErrorValue ?? (null as V));
+        }
       }
       return Future.value(result.value as V);
     }
 
     var future = _future;
-    if (future != null) return future;
+    if (future != null) {
+      if (!throwError) {
+        if (onError != null) {
+          return future.catchError(onError);
+        } else {
+          return future.catchError((e, s) => onErrorValue as V);
+        }
+      }
+      return future;
+    }
 
     var computer = _call ?? (throw StateError("Null `_call`"));
     future = _future = Future(computer);
@@ -140,6 +253,7 @@ class ComputeOnce<V> {
           _future = null;
         }
         _call = null;
+        onCompute(value, null, null);
       },
       onError: (e, s) {
         _result = (value: null, error: e, stackTrace: s);
@@ -147,11 +261,25 @@ class ComputeOnce<V> {
           _future = null;
         }
         _call = null;
+        onCompute(null, e, s);
       },
     );
 
+    if (!throwError) {
+      if (onError != null) {
+        return future.catchError(onError);
+      } else {
+        return future.catchError((e, s) => onErrorValue as V);
+      }
+    }
     return future;
   }
+
+  /// Callback invoked when the computation completes.
+  ///
+  /// Exactly one of [value] or [error] will be non-null.
+  /// If [error] is non-null, [stackTrace] contains the associated stack trace.
+  void onCompute(V? value, Object? error, StackTrace? stackTrace) {}
 
   /// Chains a callback to the resolved value.
   ///
@@ -185,4 +313,57 @@ class ComputeOnce<V> {
           FutureOr<R> Function(V? value, Object? error, StackTrace? stackTrace)
               onResolve) =>
       resolveAsync().whenResolved(onResolve);
+
+  /// The class name of this compute implementation.
+  ///
+  /// Intended to be overridden by subclasses to return their own class name.
+  String get className => 'ComputeOnce';
+
+  @override
+  String toString() {
+    if (isResolved) {
+      if (hasError) {
+        return '$className<$V>[error: ${_result?.error}]\n'
+            '${_result?.stackTrace}';
+      } else {
+        return '$className<$V><${_result?.value}>';
+      }
+    } else if (isResolving) {
+      return '$className<$V>[resolving...]';
+    } else {
+      return '$className<$V>@$_call';
+    }
+  }
+}
+
+/// A [ComputeOnce] that records when the computation is resolved.
+///
+/// The [resolvedAt] timestamp is set when the computation completes,
+/// regardless of success or failure.
+class TimedComputeOnce<V> extends ComputeOnce<V> {
+  TimedComputeOnce(super.call, {super.resolve});
+
+  DateTime? _resolvedAt;
+
+  /// The moment the computation was resolved, or `null` if not yet resolved.
+  DateTime? get resolvedAt => _resolvedAt;
+
+  /// Returns the time elapsed since the computation was resolved.
+  ///
+  /// If the computation has not yet been resolved, returns [Duration.zero].
+  /// The optional [now] parameter allows using a custom reference time.
+  Duration elapsedTime([DateTime? now]) {
+    var resolvedAt = this.resolvedAt;
+    if (resolvedAt == null) return Duration.zero;
+    now ??= DateTime.now();
+    return now.difference(resolvedAt);
+  }
+
+  @override
+  String get className => 'TimedComputeOnce';
+
+  @override
+  void onCompute(V? value, Object? error, StackTrace? stackTrace) {
+    _resolvedAt = DateTime.now();
+  }
 }

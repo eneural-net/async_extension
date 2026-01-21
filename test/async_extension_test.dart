@@ -147,6 +147,23 @@ void main() {
           call2.asFutureOr.tryCall(3, onError: (e, s) => -100), equals(-100));
     });
 
+    test('tryCall (async)', () async {
+      var call1 = ((int n) async => n * 10);
+
+      expect(await call1.tryCall(2, onError: (e, s) => -100), equals(20));
+
+      expect(await call1.asFutureOr.tryCall(2, onError: (e, s) => -100),
+          equals(20));
+
+      var call2 = ((int n) async =>
+          DateTime.now().year > 2000 ? throw StateError("Error") : n * 10);
+
+      expect(await call2.tryCall(3, onError: (e, s) => -100), equals(-100));
+
+      expect(await call2.asFutureOr.tryCall(3, onError: (e, s) => -100),
+          equals(-100));
+    });
+
     test('tryCallThen', () async {
       var call1 = ((int n) => n * 10);
 
@@ -203,6 +220,23 @@ void main() {
           equals(-100));
 
       expect(call2.tryCall(2, 3, onError: (e, s) => -100), equals(-100));
+    });
+
+    test('tryCall (async)', () async {
+      var call1 = ((int n, int m) async => n * m);
+
+      expect(await call1.tryCall(2, 3, onError: (e, s) => -100), equals(6));
+
+      expect(await call1.asFutureOr.tryCall(2, 3, onError: (e, s) => -100),
+          equals(6));
+
+      var call2 = ((int n, int m) async =>
+          DateTime.now().year > 2000 ? throw StateError("Error") : n * m);
+
+      expect(await call2.asFutureOr.tryCall(2, 3, onError: (e, s) => -100),
+          equals(-100));
+
+      expect(await call2.tryCall(2, 3, onError: (e, s) => -100), equals(-100));
     });
 
     test('tryCallThen', () async {
@@ -2848,6 +2882,114 @@ void main() {
       expect(errors.whereType<StateError>().length, equals(1));
       expect(errors.whereType<StateError>().map((e) => e.message),
           equals(['Force error#1']));
+    });
+  });
+
+  group('FutureOr.tryCall / tryCallThen', () {
+    test('sync success', () {
+      FutureOr<int> f() => 10;
+      expect(f.tryCall(), 10);
+    });
+
+    test('async success', () async {
+      FutureOr<int> f() async => 10;
+      expect(await f.tryCall(), 10);
+    });
+
+    test('sync error handled', () {
+      FutureOr<int> f() => throw StateError('x');
+      final r = f.tryCall(onError: (e, _) => 42);
+      expect(r, 42);
+    });
+
+    test('async error handled', () async {
+      FutureOr<int> f() async => throw StateError('x');
+      final r = await f.tryCall(onError: (e, _) => 42);
+      expect(r, 42);
+    });
+
+    test('then maps sync value', () {
+      FutureOr<int> f() => 5;
+      final r = f.tryCallThen((v) => v * 2);
+      expect(r, 10);
+    });
+
+    test('then maps async value', () async {
+      FutureOr<int> f() async => 5;
+      final r = await f.tryCallThen((v) => v * 2);
+      expect(r, 10);
+    });
+  });
+
+  group('FutureOr.resolve / resolveBoth', () {
+    test('resolve sync value', () {
+      FutureOr<int> v = 3;
+      expect(v.resolve(), 3);
+    });
+
+    test('resolve async value', () async {
+      FutureOr<int> v = Future.value(3);
+      expect(await v.resolve(), 3);
+    });
+
+    test('resolveBoth sync+async', () async {
+      FutureOr<int> a = 2;
+      FutureOr<int> b = Future.value(3);
+      final r = await a.resolveBoth(b, (x, y) => x + y);
+      expect(r, 5);
+    });
+  });
+
+  group('Iterable<FutureOr<T>> helpers', () {
+    test('resolveAll sync', () {
+      final it = <FutureOr<int>>[1, 2, 3];
+      expect(it.resolveAll(), [1, 2, 3]);
+    });
+
+    test('resolveAll async', () async {
+      final it = <FutureOr<int>>[
+        1,
+        Future.value(2),
+        Future.value(3),
+      ];
+      expect(await it.resolveAll(), [1, 2, 3]);
+    });
+
+    test('resolveAllMapped', () async {
+      final it = <FutureOr<int>>[
+        Future.value(2),
+        3,
+      ];
+      final r = await it.resolveAllMapped((v) => v * 10);
+      expect(r, [20, 30]);
+    });
+  });
+
+  group('Operators on FutureOr<num>', () {
+    test('sync + async', () async {
+      FutureOr<int> a = 2;
+      FutureOr<int> b = Future.value(3);
+      expect(await (a + b), 5);
+    });
+
+    test('async * async', () async {
+      FutureOr<int> a = Future.value(4);
+      FutureOr<int> b = Future.value(5);
+      expect(await (a * b), 20);
+    });
+  });
+
+  group('Error helpers', () {
+    test('Future.onErrorReturn', () async {
+      final f = Future<int>.error(StateError('x'));
+      final r = await f.onErrorReturn(99);
+      expect(r, 99);
+    });
+
+    test('Future.nullOnError', () async {
+      final f = Future<int>.error(StateError('x'));
+      final r = await f.nullOnError();
+      expect(r, isNull);
     });
   });
 }

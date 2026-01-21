@@ -53,7 +53,12 @@ extension FunctionArgs0Extension<R> on FutureOr<R> Function() {
 
     if (onError != null) {
       try {
-        return f();
+        var r = f();
+        if (r is Future<R>) {
+          return r.catchError(onError);
+        } else {
+          return r;
+        }
       } catch (e, s) {
         return onError(e, s);
       }
@@ -132,7 +137,12 @@ extension FunctionArgs1Extension<R, A> on FutureOr<R> Function(A a) {
 
     if (onError != null) {
       try {
-        return f(a);
+        var r = f(a);
+        if (r is Future<R>) {
+          return r.catchError(onError);
+        } else {
+          return r;
+        }
       } catch (e, s) {
         return onError(e, s);
       }
@@ -211,7 +221,12 @@ extension FunctionArgs2Extension<R, A, B> on FutureOr<R> Function(A a, B b) {
 
     if (onError != null) {
       try {
-        return f(a, b);
+        var r = f(a, b);
+        if (r is Future<R>) {
+          return r.catchError(onError);
+        } else {
+          return r;
+        }
       } catch (e, s) {
         return onError(e, s);
       }
