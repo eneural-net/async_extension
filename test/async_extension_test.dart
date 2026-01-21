@@ -147,6 +147,23 @@ void main() {
           call2.asFutureOr.tryCall(3, onError: (e, s) => -100), equals(-100));
     });
 
+    test('tryCall (async)', () async {
+      var call1 = ((int n) async => n * 10);
+
+      expect(await call1.tryCall(2, onError: (e, s) => -100), equals(20));
+
+      expect(await call1.asFutureOr.tryCall(2, onError: (e, s) => -100),
+          equals(20));
+
+      var call2 = ((int n) async =>
+          DateTime.now().year > 2000 ? throw StateError("Error") : n * 10);
+
+      expect(await call2.tryCall(3, onError: (e, s) => -100), equals(-100));
+
+      expect(await call2.asFutureOr.tryCall(3, onError: (e, s) => -100),
+          equals(-100));
+    });
+
     test('tryCallThen', () async {
       var call1 = ((int n) => n * 10);
 
@@ -203,6 +220,23 @@ void main() {
           equals(-100));
 
       expect(call2.tryCall(2, 3, onError: (e, s) => -100), equals(-100));
+    });
+
+    test('tryCall (async)', () async {
+      var call1 = ((int n, int m) async => n * m);
+
+      expect(await call1.tryCall(2, 3, onError: (e, s) => -100), equals(6));
+
+      expect(await call1.asFutureOr.tryCall(2, 3, onError: (e, s) => -100),
+          equals(6));
+
+      var call2 = ((int n, int m) async =>
+          DateTime.now().year > 2000 ? throw StateError("Error") : n * m);
+
+      expect(await call2.asFutureOr.tryCall(2, 3, onError: (e, s) => -100),
+          equals(-100));
+
+      expect(await call2.tryCall(2, 3, onError: (e, s) => -100), equals(-100));
     });
 
     test('tryCallThen', () async {
