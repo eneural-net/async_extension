@@ -4,6 +4,9 @@
   - `tryCall`: updated to catch errors from synchronous or asynchronous results and apply `onError` via `Future.catchError` if the result is a `Future`.
   
 - `ComputeOnce<V>`:
+  - Constructor:
+    - Added static helper `_resolveCall` to widen callbacks returning `Future<Never>` to `FutureOr<V>`.
+    - Wrap `_call` with `_resolveCall` to fix `Future<Never>` callbacks.
   - Added `isResolving` getter to indicate if computation is in progress.
   - Enhanced `resolve` method:
     - Added parameters `throwError`, `onError`, and `onErrorValue` to control error handling behavior.

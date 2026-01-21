@@ -24,10 +24,24 @@ class ComputeOnce<V> {
   /// Creates a [ComputeOnce] wrapping [_call].
   ///
   /// If [resolve] is true, starts resolving immediately.
-  ComputeOnce(ComputeOnceCall<V> call, {bool resolve = true}) : _call = call {
+  ComputeOnce(ComputeOnceCall<V> call, {bool resolve = true})
+      : _call = _resolveCall(call) {
     if (resolve) {
       resolveAsync();
     }
+  }
+
+  /// Widens callbacks that return `Future<Never>`.
+  ///
+  /// A `Future<Never>` cannot produce a `V`, which breaks `onError` and
+  /// `onErrorValue`. This wraps the call so it is treated as
+  /// `FutureOr<V> Function()` while preserving behavior.
+  static ComputeOnceCall<V> _resolveCall<V>(ComputeOnceCall<V> call) {
+    if (call is Future<Never> Function()) {
+      Future<V> callCast() => call().then<V>((v) => v as V);
+      return callCast;
+    }
+    return call;
   }
 
   /// Returns the cached value if already resolved, otherwise `null`.
@@ -104,7 +118,11 @@ class ComputeOnce<V> {
     var future = _future;
     if (future != null) {
       if (!throwError) {
-        return future.catchError(onError ?? (_) => onErrorValue);
+        if (onError != null) {
+          return future.catchError(onError);
+        } else {
+          return future.catchError((e, s) => onErrorValue as V);
+        }
       }
       return future;
     }
@@ -137,7 +155,11 @@ class ComputeOnce<V> {
         );
 
         if (!throwError) {
-          return future.catchError(onError ?? (_) => onErrorValue);
+          if (onError != null) {
+            return future.catchError(onError);
+          } else {
+            return future.catchError((e, s) => onErrorValue as V);
+          }
         }
         return future;
       } else {
@@ -212,7 +234,11 @@ class ComputeOnce<V> {
     var future = _future;
     if (future != null) {
       if (!throwError) {
-        return future.catchError(onError ?? (_) => onErrorValue);
+        if (onError != null) {
+          return future.catchError(onError);
+        } else {
+          return future.catchError((e, s) => onErrorValue as V);
+        }
       }
       return future;
     }
@@ -240,7 +266,11 @@ class ComputeOnce<V> {
     );
 
     if (!throwError) {
-      return future.catchError(onError ?? (_) => onErrorValue);
+      if (onError != null) {
+        return future.catchError(onError);
+      } else {
+        return future.catchError((e, s) => onErrorValue as V);
+      }
     }
     return future;
   }

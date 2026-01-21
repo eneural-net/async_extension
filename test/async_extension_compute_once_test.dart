@@ -293,6 +293,44 @@ void main() {
     expect(c.hasError, isTrue);
   });
 
+  test('resolve with throwError=false returns fallback value on async error',
+      () async {
+    final error = StateError('fail');
+
+    final c = ComputeOnce<int>(() async {
+      throw error;
+    }, resolve: false);
+
+    final v = await c.resolve(
+      throwError: false,
+      onErrorValue: 99,
+    );
+
+    expect(v, 99);
+    expect(c.isResolved, isTrue);
+    expect(c.hasError, isTrue);
+  });
+
+  test('resolve with throwError=false uses onError callback', () async {
+    final error = ArgumentError('bad');
+
+    final c = ComputeOnce<int>(() async {
+      throw error;
+    }, resolve: false);
+
+    final v = await c.resolve(
+      throwError: false,
+      onError: (e, s) {
+        expect(e, same(error));
+        expect(s, isNotNull);
+        return 42;
+      },
+    );
+
+    expect(v, 42);
+    expect(c.hasError, isTrue);
+  });
+
   test('resolveAsync with throwError=false returns fallback on async error',
       () async {
     final error = StateError('boom');
