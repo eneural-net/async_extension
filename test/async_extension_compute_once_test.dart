@@ -409,6 +409,21 @@ void main() {
     expect(v1, 123);
     expect(v2, 456);
     expect(v3, 789);
+
+    final v4 = await c.resolve(
+      throwError: false,
+      onError: (e, s) async {
+        expect(e, same(error));
+        expect(s, isNotNull);
+        return -123;
+      },
+    );
+
+    expect(v4, -123);
+
+    final v5 = await c.resolve(throwError: false, onErrorValue: -456);
+
+    expect(v5, -456);
   });
 
   test('resolveAsync with delay+throwError=false uses async onError handler',
@@ -450,6 +465,21 @@ void main() {
     expect(v1, 123);
     expect(v2, 456);
     expect(v3, 789);
+
+    final v4 = await c.resolveAsync(
+      throwError: false,
+      onError: (e, s) async {
+        expect(e, same(error));
+        expect(s, isNotNull);
+        return -123;
+      },
+    );
+
+    expect(v4, -123);
+
+    final v5 = await c.resolveAsync(throwError: false, onErrorValue: -456);
+
+    expect(v5, -456);
   });
 
   test('onCompute is called exactly once on success', () async {
@@ -483,6 +513,8 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 10));
       return 1;
     }, resolve: false);
+
+    expect(c1.toString(), contains('@'));
 
     final f = c1.resolveAsync();
     expect(c1.toString(), contains('resolving'));
