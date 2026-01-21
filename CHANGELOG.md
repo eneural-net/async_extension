@@ -1,3 +1,26 @@
+## 1.2.19
+
+- `FunctionArgs0Extension`, `FunctionArgs1Extension`, `FunctionArgs2Extension`:
+  - `tryCall`: updated to catch errors from synchronous or asynchronous results and apply `onError` via `Future.catchError` if the result is a `Future`.
+  
+- `ComputeOnce<V>`:
+  - Added `isResolving` getter to indicate if computation is in progress.
+  - Enhanced `resolve` method:
+    - Added parameters `throwError`, `onError`, and `onErrorValue` to control error handling behavior.
+    - Supports returning fallback values or invoking error handlers instead of always throwing.
+    - Calls `onCompute` callback on completion with value or error.
+  - Enhanced `resolveAsync` method:
+    - Added parameters `throwError`, `onError`, and `onErrorValue` for asynchronous error handling.
+    - Calls `onCompute` callback on completion.
+  - Added `onCompute` callback method invoked once computation completes.
+  - Added `className` getter and improved `toString` to reflect current state (resolving, resolved with value, or error).
+  
+- Added `TimedComputeOnce<V>` subclass:
+  - Records the timestamp when computation resolves (success or failure).
+  - Provides `resolvedAt` timestamp and `elapsedTime` since resolution.
+  - Overrides `onCompute` to set resolution time.
+  - Overrides `className` for identification.
+
 ## 1.2.18
 
 - `FutureExtension`:
