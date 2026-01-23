@@ -195,7 +195,7 @@ class ComputeOnce<V> {
         _result = (value: value, error: null, stackTrace: null);
         _call = null;
         onCompute(value, null, null);
-        return call;
+        return value;
       }
     } catch (e, s) {
       return resolveError(e, s);
