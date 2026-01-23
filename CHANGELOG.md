@@ -1,3 +1,39 @@
+## 1.2.20
+
+- `ComputeOnce`:
+  - Renamed `ComputeOnceCall` to `ComputeCall`.
+  - Added `PosComputeCall` callback invoked after computation completes, receiving success or error results.
+  - Added `posCompute` field to invoke post-computation callback.
+  - Updated `resolve` and `resolveAsync` to apply `posCompute` on success or error.
+
+- `TimedComputeOnce`:
+  - Added support for `posCompute` callback.
+
+- Added `ComputeOnceCache`:
+  - Caches `TimedComputeOnce` instances by key.
+  - Supports retention duration for cached entries with automatic eviction.
+  - Provides `get` method to retrieve or create cached computations.
+
+- Added `ComputeOnceCachedIDs`:
+  - Extends `ComputeOnceCache` for batched computations by ID sets.
+  - Supports ID ordering, hashing, and deduplication.
+  - Shares in-flight computations for overlapping ID sets.
+  - Provides `getByIDs` to get computations for subsets of IDs.
+  - Provides `computeIDs` to compute and merge results for requested IDs, preserving order.
+
+- Added `ComputeIDs`:
+  - Represents an ordered, comparable, and hashable set of IDs.
+  - Supports binary search, intersection, equality, and hashing.
+
+- Added extensions:
+  - `IterableComputeOnceEtension` for resolving multiple `ComputeOnce` instances.
+  - `MapComputeIDsEtension` for resolving maps of `TimedComputeOnce` keyed by `ComputeIDs`.
+  - `ListIdValuePairExtension` for binary searching `(ID, value)` pairs sorted by ID.
+
+- Typedefs:
+  - `ComputeCallIDs` for batched ID computations.
+  - `ComputeIDCompare` and `ComputeIDHash` for ID comparison and hashing.
+
 ## 1.2.19
 
 - `FunctionArgs0Extension`, `FunctionArgs1Extension`, `FunctionArgs2Extension`:
