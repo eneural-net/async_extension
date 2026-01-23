@@ -552,6 +552,780 @@ void main() {
       expect(c2.resolvedAt, isNotNull);
     });
   });
+
+  group('ComputeOnce posCompute', () {
+    test('resolve(): sync posCompute is applied synchronously', () async {
+      final c = ComputeOnce<int>(
+        () => 1,
+        posCompute: (v, e, s) => (v ?? 0) + 10,
+      );
+
+      // resolve may return a value or a Future; normalize with Future.value(...)
+      final result = await Future.value(c.resolve());
+      expect(result, equals(11));
+
+      // subsequent resolves should return cached result (transformed)
+      final result2 = await Future.value(c.resolve());
+      expect(result2, equals(11));
+    });
+
+    test('resolve(): async posCompute is applied synchronously', () async {
+      final c = ComputeOnce<int>(
+        () => 1,
+        posCompute: (v, e, s) async => (v ?? 0) + 10,
+        resolve: false,
+      );
+
+      // resolve may return a value or a Future; normalize with Future.value(...)
+      final resultAsync = Future.value(c.resolve());
+
+      // subsequent resolves should return cached result (transformed)
+      final result2Async = Future.value(c.resolve());
+
+      var result = await resultAsync;
+      var result2 = await result2Async;
+      expect(result, equals(11));
+      expect(result2, equals(11));
+    });
+
+    test('resolve(): async posCompute is applied assynchronously', () async {
+      final c = ComputeOnce<int>(
+        () async => Future.delayed(Duration(milliseconds: 60), () => 1),
+        posCompute: (v, e, s) async => (v ?? 0) + 10,
+        resolve: false,
+      );
+
+      // resolve may return a value or a Future; normalize with Future.value(...)
+      final resultAsync = Future.value(c.resolve());
+
+      // subsequent resolves should return cached result (transformed)
+      final result2Async = Future.value(c.resolve());
+
+      var result = await resultAsync;
+      var result2 = await result2Async;
+      expect(result, equals(11));
+      expect(result2, equals(11));
+    });
+
+    test('resolveAsync(): sync posCompute is applied asynchronously', () async {
+      final c = ComputeOnce<int>(
+        () => 2,
+        posCompute: (v, e, s) => (v ?? 0) * 10,
+      );
+
+      // resolveAsync always returns a Future
+      final result = await c.resolveAsync();
+      expect(result, equals(20));
+
+      // subsequent resolves should return cached (transformed) result
+      final result2 = await c.resolveAsync();
+      expect(result2, equals(20));
+    });
+
+    test('resolveAsync(): async posCompute is applied asynchronously',
+        () async {
+      final c = ComputeOnce<int>(
+        () async => 2,
+        posCompute: (v, e, s) async => (v ?? 0) * 10,
+      );
+
+      // resolveAsync always returns a Future
+      final result = await c.resolveAsync();
+      expect(result, equals(20));
+
+      // subsequent resolves should return cached (transformed) result
+      final result2 = await c.resolveAsync();
+      expect(result2, equals(20));
+    });
+  });
+
+  group('ComputeOnceCache retention', () {
+    test('entry is removed after retentionDuration elapses', () async {
+      final cache = ComputeOnceCache<String, int>(
+          retentionDuration: Duration(milliseconds: 20));
+
+      // create a computation that resolves immediately
+      final comp = cache.get('key', () async => 42, resolve: true);
+
+      // ensure it resolves
+      final res = await comp.resolveAsync();
+      expect(res, equals(42));
+
+      // while inside retention window the cache should contain the entry
+      final snapshot1 = cache.calls();
+      expect(snapshot1.containsKey('key'), isTrue);
+
+      // wait longer than retentionDuration
+      await Future.delayed(Duration(milliseconds: 60));
+
+      final snapshot2 = cache.calls();
+      expect(snapshot2.containsKey('key'), isFalse);
+    });
+
+    test('immediate eviction when retentionDuration is zero', () async {
+      final cache =
+          ComputeOnceCache<String, int>(retentionDuration: Duration.zero);
+
+      final comp = cache.get('k2', () => Future.value(7), resolve: true);
+      final res = await comp.resolveAsync();
+      expect(res, equals(7));
+
+      // immediate eviction: no retained entry after resolve
+      final snapshot = cache.calls();
+      expect(snapshot.containsKey('k2'), isFalse);
+    });
+  });
+
+  group('ComputeIDs utilities', () {
+    test('sorts with custom comparator and binarySearchIndex works', () {
+      int cmp(String a, String b) => a.toLowerCase().compareTo(b.toLowerCase());
+
+      final ids = ComputeIDs<String>(['b', 'A', 'c'], compare: cmp);
+
+      // internal ordering should be case-preserving but sorted by comparator
+      expect(ids.ids.length, equals(3));
+      expect(
+          ids.ids[0], anyOf(equals('A'), equals('a'))); // 'A' should be first
+
+      // binary search by different-case key should find correct index
+      final idx = ids.binarySearchIndex('B');
+      expect(idx, greaterThanOrEqualTo(0));
+      expect(ids[idx].toLowerCase(), equals('b'));
+    });
+
+    test('intersection returns (index, id) pairs respecting comparator', () {
+      int cmp(String a, String b) => a.toLowerCase().compareTo(b.toLowerCase());
+
+      final ids = ComputeIDs<String>(['a', 'b', 'c', 'd'], compare: cmp);
+      final inter = ids.intersection(['C', 'x', 'b']);
+      // should find 'C' -> 'c' and 'b'
+      final foundIds = inter.map((t) => t.$2.toLowerCase()).toList()..sort();
+      expect(foundIds, equals(['b', 'c']));
+    });
+
+    test('equality and hashCode for same ordered set', () {
+      int cmp(String a, String b) => a.toLowerCase().compareTo(b.toLowerCase());
+
+      final a = ComputeIDs<String>(['A', 'b', 'c'], compare: cmp);
+      final b = ComputeIDs<String>(['A', 'b', 'c'], compare: cmp);
+
+      expect(a, equals(b));
+      expect(a.hashCode, equals(b.hashCode));
+    });
+  });
+
+  group('IterableComputeOnceExtension', () {
+    test(
+        'computeAll and computeAllAsync resolve multiple ComputeOnce instances',
+        () async {
+      final c1 = ComputeOnce<int>(() => 1);
+      final c2 = ComputeOnce<int>(() async => 2);
+
+      final res = await [c1, c2].computeAllAsync();
+      expect(res, equals([1, 2]));
+
+      // computeAll (sync-or-async path) should also work
+      final res2 = await Future.value([c1, c2].computeAll());
+      expect(res2, equals([1, 2]));
+    });
+  });
+
+  group('ComputeOnceCachedIDs - batching and sharing', () {
+    test('overlapping requests share in-flight computation when fully covered',
+        () async {
+      final cache = ComputeOnceCachedIDs<String, int>();
+      var calls = 0;
+
+      Future<List<int>> call(List<String> ids) async {
+        calls++;
+        // simulate work
+        await Future.delayed(const Duration(milliseconds: 60));
+        return ids.map((e) => int.parse(e)).toList();
+      }
+
+      // Start a big request that includes '2' and '3'
+      final f1 = cache.computeIDs(['1', '2', '3'], call, resolve: true);
+
+      // Give the first request a small head start so it becomes in-flight
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+
+      // Second request asks for a subset ('2','3') that should be entirely
+      // covered by the first in-flight computation -> no extra call expected.
+      final f2 = cache.computeIDs(['2', '3'], call, resolve: true);
+
+      final r1 = await f1;
+      final r2 = await f2;
+
+      // The underlying call should have executed only once (the second reused it)
+      expect(calls, equals(1));
+
+      // Validate results: both must contain the requested pairs, ordered by request
+      expect(r1.map((p) => (p.$1, p.$2)).toList(),
+          equals([('1', 1), ('2', 2), ('3', 3)]));
+      expect(
+          r2.map((p) => (p.$1, p.$2)).toList(), equals([('2', 2), ('3', 3)]));
+    });
+
+    test('partial overlap triggers only missing-id computation', () async {
+      final cache = ComputeOnceCachedIDs<String, int>();
+      var calls = <List<String>>[];
+
+      Future<List<int>> call(List<String> ids) async {
+        calls.add(ids.toList());
+        await Future.delayed(const Duration(milliseconds: 10));
+        return ids.map((e) => int.parse(e) * 10).toList();
+      }
+
+      // First request will compute for ['1','2']
+      final p1 = cache.computeIDs(['1', '2'], call, resolve: true);
+
+      // Start overlapping request shortly after that requests ['2','3']
+      await Future<void>.delayed(const Duration(milliseconds: 3));
+      final p2 = cache.computeIDs(['2', '3'], call, resolve: true);
+
+      final r1 = await p1;
+      final r2 = await p2;
+
+      // We expect two underlying calls:
+      //  - one for ['1','2'] (first request)
+      //  - one for ['3'] (to cover missing id from second request)
+      // order of calls recorded might be ['1','2'] then ['3']
+      expect(calls.length, equals(2));
+      expect(calls.any((ids) => ids.length == 1 && ids.first == '3'), isTrue);
+
+      // Validate values: p1 are tens, p2 mixes reused values for '2' and new for '3'
+      expect(r1.map((p) => p.$2).toList(), equals([10, 20]));
+      // r2 should contain values for '2' and '3' in that order
+      expect(r2.map((p) => p.$2).toList(), equals([20, 30]));
+    });
+
+    test('empty ids short-circuits and does not call compute function',
+        () async {
+      final cache = ComputeOnceCachedIDs<String, int>();
+      var calls = 0;
+
+      Future<List<int>> call(List<String> ids) async {
+        calls++;
+        // should not be called for empty ids in ideal behavior
+        return ids.map((e) => int.parse(e)).toList();
+      }
+
+      final result = await cache.computeIDs([], call, resolve: true);
+      expect(result, isEmpty);
+      expect(calls, equals(0));
+    });
+
+    test('duplicate ids in input are preserved in output order', () async {
+      final cache = ComputeOnceCachedIDs<String, int>();
+      var callsCount = 0;
+
+      Future<List<int>> call(List<String> ids) async {
+        callsCount++;
+        // return numeric value for each id in same order
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+        return ids.map((e) => int.parse(e)).toList();
+      }
+
+      // input contains duplicate '1'
+      final result =
+          await cache.computeIDs(['1', '1', '2'], call, resolve: true);
+
+      // Expect single underlying call
+      expect(callsCount, equals(1));
+
+      // result values should preserve duplicates: [1,1,2]
+      final values = result.map((p) => p.$2).toList();
+      expect(values, equals([1, 1, 2]));
+    });
+  });
+
+  group('posCompute behavior (success and async error)', () {
+    test('posCompute (sync) transforms successful batched results', () async {
+      final cache = ComputeOnceCachedIDs<String, int>();
+
+      Future<List<int>> call(List<String> ids) async {
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+        return ids.map((e) => int.parse(e)).toList();
+      }
+
+      // posCompute will add 100 to every value in the produced list.
+      FutureOr<List<int>> post(List<int>? value, Object? error, StackTrace? s) {
+        if (value == null) return [];
+        return value.map((v) => v + 100).toList();
+      }
+
+      final res = await cache.computeIDs(
+        ['1', '2'],
+        call,
+        posCompute: post,
+        resolve: true,
+      );
+
+      expect(res.map((p) => p.$2).toList(), equals([101, 102]));
+    });
+
+    test('posCompute invoked on async error and can provide fallback',
+        () async {
+      final cache = ComputeOnceCachedIDs<String, int>();
+
+      Future<List<int>> call(List<String> ids) async {
+        // Always fail asynchronously so that posCompute onError path is executed
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+        throw StateError('boom');
+      }
+
+      // posCompute sees null value and an error; returns a fallback list of -1s
+      FutureOr<List<int>> onError(
+          List<int>? value, Object? error, StackTrace? s) {
+        // Provide fallback values for requested ids (length must match expected behavior)
+        // We'll map each requested id to -1 (the caller expects a value for each requested id)
+        return List<int>.filled(2, -1);
+      }
+
+      final res = await cache.computeIDs(
+        ['x', 'y'],
+        call,
+        posCompute: onError,
+        resolve: true,
+      );
+
+      expect(res.map((p) => p.$2).toList(), equals([-1, -1]));
+    });
+  });
+
+  group('custom comparator integration', () {
+    test('case-insensitive comparator allows sharing across different cases',
+        () async {
+      int cmp(String a, String b) => a.toLowerCase().compareTo(b.toLowerCase());
+
+      final cache = ComputeOnceCachedIDs<String, int>(compare: cmp);
+
+      var calls = 0;
+      Future<List<int>> call(List<String> ids) async {
+        calls++;
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+        return ids.map((e) => e.length).toList();
+      }
+
+      // Start a request with mixed-case ids
+      final p1 = cache.computeIDs(['Ab', 'cD'], call, resolve: true);
+
+      await Future<void>.delayed(const Duration(milliseconds: 3));
+
+      // Second request uses same ids using different cases; with case-insensitive comparator
+      // the in-flight computation should be reused and no extra compute should run.
+      final p2 = cache.computeIDs(['ab', 'CD'], call, resolve: true);
+
+      final r1 = await p1;
+      final r2 = await p2;
+
+      expect(calls, equals(1));
+
+      // lengths returned for 'Ab' and 'cD' are both 2
+      expect(r1.map((p) => p.$2).toList(), equals([2, 2]));
+      expect(r2.map((p) => p.$2).toList(), equals([2, 2]));
+    });
+  });
+
+  group('ComputeOnceCache & TimedComputeOnce (retention / resolvedAt)', () {
+    test(
+        'TimedComputeOnce sets resolvedAt and ComputeOnceCache retention works',
+        () async {
+      final cache = ComputeOnceCache<String, int>(
+          retentionDuration: Duration(milliseconds: 40));
+
+      final key = 'keep-me';
+      final comp = cache.get(key, () async => 123, resolve: true);
+
+      // Wait for resolution
+      final v = await comp.resolveAsync();
+      expect(v, equals(123));
+
+      // The instance is a TimedComputeOnce: resolvedAt should be set
+      expect(comp.resolvedAt, isNotNull);
+
+      // While in retention window the cache should contain the entry
+      final snapshot1 = cache.calls();
+      expect(snapshot1.containsKey(key), isTrue);
+
+      // After waiting past retentionDuration the key must be evicted automatically
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      final snapshot2 = cache.calls();
+      expect(snapshot2.containsKey(key), isFalse);
+    });
+
+    test('immediate eviction when retentionDuration is zero', () async {
+      final cache =
+          ComputeOnceCache<String, int>(retentionDuration: Duration.zero);
+
+      final comp = cache.get('k2', () => Future.value(7), resolve: true);
+      final res = await comp.resolveAsync();
+      expect(res, equals(7));
+
+      // immediate eviction: no retained entry after resolve
+      final snapshot = cache.calls();
+      expect(snapshot.containsKey('k2'), isFalse);
+    });
+  });
+
+  group('ComputeOnceCachedIDs - more batching edge cases', () {
+    test(
+        'computation for empty ids returns empty list and does not call compute',
+        () async {
+      final cache = ComputeOnceCachedIDs<String, int>();
+
+      var calls = 0;
+      Future<List<int>> call(List<String> ids) async {
+        calls++;
+        return ids.map((e) => int.parse(e)).toList();
+      }
+
+      final res = await cache.computeIDs([], call, resolve: true);
+      expect(res, isEmpty);
+      expect(calls, equals(0));
+    });
+
+    test('duplicate ids in a single input are preserved as duplicate outputs',
+        () async {
+      final cache = ComputeOnceCachedIDs<String, int>();
+
+      var calls = 0;
+      Future<List<int>> call(List<String> ids) async {
+        calls++;
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+        return ids.map((e) => int.parse(e)).toList();
+      }
+
+      final res = await cache.computeIDs(['1', '1', '2'], call, resolve: true);
+
+      // single underlying call
+      expect(calls, equals(1));
+
+      // duplicates preserved
+      expect(res.length, equals(3));
+      expect(res.map((p) => p.$2).toList(), equals([1, 1, 2]));
+    });
+
+    test('computeIDs returns only found values (missing results are filtered)',
+        () async {
+      final cache = ComputeOnceCachedIDs<String, int>();
+
+      // call that intentionally returns fewer values than requested (simulates missing)
+      Future<List<int>> call(List<String> ids) async {
+        // return only the first value
+        if (ids.isEmpty) return [];
+        return [int.parse(ids.first)];
+      }
+
+      final res = await cache.computeIDs(['1', '2'], call, resolve: true);
+
+      // The implementation currently filters by what it can find; expect only the found pair(s)
+      expect(res, isNotEmpty);
+      expect(res.length, equals(1));
+      expect(res.first.$1, equals('1'));
+      expect(res.first.$2, equals(1));
+    });
+
+    test('posCompute (sync) receives success and can transform the list',
+        () async {
+      final cache = ComputeOnceCachedIDs<String, int>();
+
+      Future<List<int>> call(List<String> ids) async {
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+        return ids.map((e) => int.parse(e)).toList();
+      }
+
+      FutureOr<List<int>> pos(List<int>? value, Object? error, StackTrace? s) {
+        // add 1000 to each element to signal transformation
+        return value!.map((v) => v + 1000).toList();
+      }
+
+      final res = await cache
+          .computeIDs(['3', '4'], call, posCompute: pos, resolve: true);
+
+      expect(res.map((p) => p.$2).toList(), equals([1003, 1004]));
+    });
+
+    test('posCompute invoked on error can return fallback values', () async {
+      final cache = ComputeOnceCachedIDs<String, int>();
+
+      Future<List<int>> call(List<String> ids) async {
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+        throw StateError('failed');
+      }
+
+      FutureOr<List<int>> pos(List<int>? value, Object? error, StackTrace? s) {
+        // return a fallback list with -1 per requested id
+        return List<int>.filled(2, -1);
+      }
+
+      final res = await cache
+          .computeIDs(['x', 'y'], call, posCompute: pos, resolve: true);
+
+      expect(res.map((p) => p.$2).toList(), equals([-1, -1]));
+    });
+
+    test('custom comparator: sharing occurs across case variants', () async {
+      int cmp(String a, String b) => a.toLowerCase().compareTo(b.toLowerCase());
+
+      final cache = ComputeOnceCachedIDs<String, int>(compare: cmp);
+
+      var calls = 0;
+      Future<List<int>> call(List<String> ids) async {
+        calls++;
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+        return ids.map((e) => e.length).toList();
+      }
+
+      final p1 = cache.computeIDs(['Ab', 'Cd'], call, resolve: true);
+      await Future<void>.delayed(const Duration(milliseconds: 3));
+      final p2 = cache.computeIDs(['ab', 'cD'], call, resolve: true);
+
+      final r1 = await p1;
+      final r2 = await p2;
+
+      // Only one underlying call because comparator treats variants equal
+      expect(calls, equals(1));
+      expect(r1.map((p) => p.$2).toList(), equals([2, 2]));
+      expect(r2.map((p) => p.$2).toList(), equals([2, 2]));
+    });
+  });
+
+  group('ComputeIDs behavior', () {
+    test('ComputeIDs constructor sorts and deduplicate', () {
+      final ids = ComputeIDs<int>([3, 1, 2, 1]);
+
+      expect(ids.ids, equals([1, 2, 3]));
+      expect(ids.length, equals(3));
+    });
+
+    test('equalsIDs compares element-by-element; unsorted input differs', () {
+      final ids = ComputeIDs<int>([1, 2, 3]);
+
+      // equalsIDs expects same order; provide unsorted list to show it's false
+      expect(ids.equalsIDs([3, 2, 1]), isFalse);
+
+      // exact same order -> true
+      expect(ids.equalsIDs([1, 2, 3]), isTrue);
+    });
+  });
+
+  group('ComputeOnce error handling and onErrorValue casting', () {
+    test(
+        'resolve with synchronous thrown error and onErrorValue null throws StateError',
+        () {
+      final c = ComputeOnce<int>(() {
+        throw StateError('boom');
+      }, resolve: false);
+
+      // throwError == false and onErrorValue == null should trigger _castErrorValue
+      expect(
+        () => c.resolve(throwError: false, onErrorValue: null),
+        throwsA(isA<StateError>()),
+      );
+    });
+
+    test('resolve catches async error and uses onError fallback', () async {
+      final c = ComputeOnce<int>(() async {
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+        throw ArgumentError('async fail');
+      }, resolve: false);
+
+      final res = await c.resolve(
+        throwError: false,
+        onError: (e, s) {
+          // convert any error to 1234
+          return 1234;
+        },
+      );
+
+      expect(res, equals(1234));
+      expect(c.isResolved, isTrue);
+    });
+  });
+
+  group('MapComputeIDsExtension (computeAll / computeAllAsync)', () {
+    test('computeAll resolves synchronous TimedComputeOnce values', () async {
+      // Build a map with two keys and synchronous TimedComputeOnce values.
+      final k1 = ComputeIDs<int>([1]);
+      final k2 = ComputeIDs<int>([2]);
+
+      final m = <ComputeIDs<int>, TimedComputeOnce<int>>{
+        k1: TimedComputeOnce<int>(() => 10, resolve: false),
+        k2: TimedComputeOnce<int>(() => 20, resolve: false),
+      };
+
+      final res = await m.computeAll(); // may return FutureOr<Map<...>>
+      expect(res[k1], equals(10));
+      expect(res[k2], equals(20));
+    });
+
+    test('computeAllAsync resolves asynchronous TimedComputeOnce values',
+        () async {
+      final k1 = ComputeIDs<String>(['a']);
+      final k2 = ComputeIDs<String>(['b']);
+
+      final m = <ComputeIDs<String>, TimedComputeOnce<int>>{
+        k1: TimedComputeOnce<int>(() async {
+          await Future<void>.delayed(const Duration(milliseconds: 5));
+          return 5;
+        }, resolve: false),
+        k2: TimedComputeOnce<int>(() async {
+          await Future<void>.delayed(const Duration(milliseconds: 5));
+          return 6;
+        }, resolve: false),
+      };
+
+      final res = await m.computeAllAsync();
+      expect(res[k1], equals(5));
+      expect(res[k2], equals(6));
+    });
+  });
+
+  group('ListIdValuePairExtension binary search helpers', () {
+    test('binarySearchIndex finds index in list of (id, value) pairs', () {
+      final list = <(int, String)>[
+        (1, 'a'),
+        (3, 'c'),
+        (5, 'e'),
+        (7, 'g'),
+      ];
+
+      final idx = list.binarySearchIndex(5);
+      expect(idx, equals(2));
+    });
+
+    test('binarySearch returns pair when present and null when absent', () {
+      final list = <(int, String)>[
+        (2, 'b'),
+        (4, 'd'),
+        (6, 'f'),
+      ];
+
+      final found = list.binarySearch(4);
+      expect(found, isNotNull);
+      expect(found!.$1, equals(4));
+      expect(found.$2, equals('d'));
+
+      final missing = list.binarySearch(3);
+      expect(missing, isNull);
+    });
+  });
+
+  group('ComputeIDs hashing and equals', () {
+    test('custom hash function affects hashCode deterministically', () {
+      int hashFn(int x) => x * 31;
+      final a = ComputeIDs<int>([1, 2, 3], hash: hashFn);
+      final b = ComputeIDs<int>([1, 2, 3], hash: hashFn);
+
+      expect(a, equals(b));
+      expect(a.hashCode, equals(b.hashCode));
+    });
+
+    test('different order or different elements produce different equality',
+        () {
+      final a = ComputeIDs<int>([1, 2, 3]);
+      final b = ComputeIDs<int>(
+          [3, 2, 1]); // constructor sorts; equal only if same order after sort
+      // After construction both are sorted to [1,2,3] -> they are equal
+      expect(a, equals(b));
+      // However equalsIDs with unsorted external list differs
+      expect(a.equalsIDs([3, 2, 1]), isFalse);
+    });
+  });
+
+  group('ComputeOnce - direct behaviors and edge cases', () {
+    test(
+        'sync compute + async posCompute transforms value (posCompute returns Future)',
+        () async {
+      final c = ComputeOnce<int>(
+        () => 5,
+        posCompute: (v, e, s) async {
+          // async transform
+          await Future<void>.delayed(const Duration(milliseconds: 5));
+          return (v ?? 0) + 10;
+        },
+        resolve: false,
+      );
+
+      // resolveAsync will await any async post-processing
+      final res = await c.resolveAsync();
+      expect(res, equals(15));
+
+      // cached result should reflect transformed value
+      expect(c.value, equals(15));
+      expect(c.isResolved, isTrue);
+      expect(c.hasError, isFalse);
+    });
+
+    test('sync compute + posCompute throws -> cached as error and rethrows',
+        () async {
+      final err = StateError('pos failed');
+      final c = ComputeOnce<int>(
+        () => 2,
+        posCompute: (v, e, s) {
+          throw err;
+        },
+        resolve: false,
+      );
+
+      // posCompute throws; resolution should rethrow the posCompute error
+      await expectLater(c.resolveAsync(), throwsA(same(err)));
+
+      // subsequent resolves should throw the same cached error
+      expect(() => c.resolve(), throwsA(same(err)));
+      expect(c.hasError, isTrue);
+      expect(c.error!.error, same(err));
+    });
+
+    test('sync compute throws and resolve with onErrorValue returns fallback',
+        () {
+      final c = ComputeOnce<int>(() {
+        throw ArgumentError('boom');
+      }, resolve: false);
+
+      // throwError false and onErrorValue provided -> return fallback and cache error
+      final res = c.resolve(throwError: false, onErrorValue: 99);
+      expect(res, equals(99));
+      expect(c.hasError, isTrue);
+      expect(c.value, isNull);
+    });
+
+    test(
+        'async compute throws and resolveAsync with onErrorValue returns fallback',
+        () async {
+      final c = ComputeOnce<int>(() async {
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+        throw ArgumentError('async boom');
+      }, resolve: false);
+
+      final res = await c.resolveAsync(throwError: false, onErrorValue: 77);
+      expect(res, equals(77));
+      expect(c.hasError, isTrue);
+    });
+
+    test('async compute throws but posCompute onError returns fallback (async)',
+        () async {
+      final c = ComputeOnce<int>(
+        () async {
+          await Future<void>.delayed(const Duration(milliseconds: 5));
+          throw StateError('compute fail');
+        },
+        posCompute: (v, e, s) async {
+          // produce a fallback asynchronously when an error occurs
+          return 555;
+        },
+        resolve: false,
+      );
+
+      // posCompute handles the error and returns fallback value
+      final res = await c.resolveAsync();
+      expect(res, equals(555));
+      expect(c.isResolved, isTrue);
+      // Note: since posCompute returned a value, the final cached value should be that value
+      expect(c.value, equals(555));
+    });
+  });
 }
 
 class _MyComputeOnce<V> extends ComputeOnce<V> {
