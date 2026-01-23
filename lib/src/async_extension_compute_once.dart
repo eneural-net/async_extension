@@ -122,7 +122,7 @@ class ComputeOnce<V> {
         } else if (onError != null) {
           return onError(error, stackTrace);
         } else {
-          return onErrorValue as V;
+          return _castErrorValue(onErrorValue);
         }
       }
       return result.value as V;
@@ -134,7 +134,7 @@ class ComputeOnce<V> {
         if (onError != null) {
           return future.catchError(onError);
         } else {
-          return future.catchError((e, s) => onErrorValue as V);
+          return future.catchError((e, s) => _castErrorValue(onErrorValue));
         }
       }
       return future;
@@ -149,7 +149,7 @@ class ComputeOnce<V> {
         if (onError != null) {
           return onError(e, s);
         } else {
-          return onErrorValue as V;
+          return _castErrorValue(onErrorValue);
         }
       } else {
         Error.throwWithStackTrace(e, s);
@@ -254,7 +254,7 @@ class ComputeOnce<V> {
         if (onError != null) {
           return future.catchError(onError);
         } else {
-          return future.catchError((e, s) => onErrorValue as V);
+          return future.catchError((e, s) => _castErrorValue(onErrorValue));
         }
       }
       return future;
@@ -273,6 +273,22 @@ class ComputeOnce<V> {
     }
 
     return _resolveFuture(future, throwError, onError, onErrorValue);
+  }
+
+  V _castErrorValue(V? onErrorValue) {
+    try {
+      return onErrorValue as V;
+    } catch (e) {
+      var msg = "Can't cast `onErrorValue` to `$V`: $onErrorValue";
+      if (onErrorValue == null) {
+        throw StateError(
+            "$this [throwError: false, `onError`: null ; `onErrorValue`: null]> $msg");
+      } else {
+        throw StateError(
+            "$this [throwError: false, `onError`: null ; `onErrorValue`: `$onErrorValue`]> $msg");
+      }
+    }
+  }
 
   Future<V> _resolveFuture(
       Future<V> future,
