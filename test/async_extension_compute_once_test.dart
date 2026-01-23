@@ -571,16 +571,20 @@ void main() {
 
     test('resolve(): async posCompute is applied synchronously', () async {
       final c = ComputeOnce<int>(
-        () async => 1,
+        () async => Future.delayed(Duration(milliseconds: 60), () => 1),
         posCompute: (v, e, s) async => (v ?? 0) + 10,
+        resolve: false,
       );
 
       // resolve may return a value or a Future; normalize with Future.value(...)
-      final result = await Future.value(c.resolve());
-      expect(result, equals(11));
+      final resultAsync = Future.value(c.resolve());
 
       // subsequent resolves should return cached result (transformed)
-      final result2 = await Future.value(c.resolve());
+      final result2Async = Future.value(c.resolve());
+
+      var result = await resultAsync;
+      var result2 = await result2Async;
+      expect(result, equals(11));
       expect(result2, equals(11));
     });
 
