@@ -571,6 +571,25 @@ void main() {
 
     test('resolve(): async posCompute is applied synchronously', () async {
       final c = ComputeOnce<int>(
+        () => 1,
+        posCompute: (v, e, s) async => (v ?? 0) + 10,
+        resolve: false,
+      );
+
+      // resolve may return a value or a Future; normalize with Future.value(...)
+      final resultAsync = Future.value(c.resolve());
+
+      // subsequent resolves should return cached result (transformed)
+      final result2Async = Future.value(c.resolve());
+
+      var result = await resultAsync;
+      var result2 = await result2Async;
+      expect(result, equals(11));
+      expect(result2, equals(11));
+    });
+
+    test('resolve(): async posCompute is applied assynchronously', () async {
+      final c = ComputeOnce<int>(
         () async => Future.delayed(Duration(milliseconds: 60), () => 1),
         posCompute: (v, e, s) async => (v ?? 0) + 10,
         resolve: false,
