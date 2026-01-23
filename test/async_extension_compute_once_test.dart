@@ -554,7 +554,7 @@ void main() {
   });
 
   group('ComputeOnce posCompute', () {
-    test('sync posCompute is applied synchronously', () async {
+    test('resolve(): sync posCompute is applied synchronously', () async {
       final c = ComputeOnce<int>(
         () => 1,
         posCompute: (v, e, s) => (v ?? 0) + 10,
@@ -569,7 +569,38 @@ void main() {
       expect(result2, equals(11));
     });
 
-    test('async posCompute is applied asynchronously', () async {
+    test('resolve(): async posCompute is applied synchronously', () async {
+      final c = ComputeOnce<int>(
+        () async => 1,
+        posCompute: (v, e, s) async => (v ?? 0) + 10,
+      );
+
+      // resolve may return a value or a Future; normalize with Future.value(...)
+      final result = await Future.value(c.resolve());
+      expect(result, equals(11));
+
+      // subsequent resolves should return cached result (transformed)
+      final result2 = await Future.value(c.resolve());
+      expect(result2, equals(11));
+    });
+
+    test('resolveAsync(): sync posCompute is applied asynchronously', () async {
+      final c = ComputeOnce<int>(
+        () => 2,
+        posCompute: (v, e, s) => (v ?? 0) * 10,
+      );
+
+      // resolveAsync always returns a Future
+      final result = await c.resolveAsync();
+      expect(result, equals(20));
+
+      // subsequent resolves should return cached (transformed) result
+      final result2 = await c.resolveAsync();
+      expect(result2, equals(20));
+    });
+
+    test('resolveAsync(): async posCompute is applied asynchronously',
+        () async {
       final c = ComputeOnce<int>(
         () async => 2,
         posCompute: (v, e, s) async => (v ?? 0) * 10,
