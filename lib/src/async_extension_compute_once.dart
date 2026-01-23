@@ -605,7 +605,8 @@ class ComputeOnceCachedIDs<D extends Object, V>
         var intersectionIDs = computedIDs.intersection(ids);
         if (intersectionIDs.isEmpty) return <(D, V)>[];
 
-        if (intersectionIDs.length == computedIDs.length) {
+        if (intersectionIDs.length == computedIDs.length &&
+            computedIDs.length == computedValues.length) {
           var values = List.generate(computedIDs.length, (i) {
             var id = computedIDs[i];
             var v = computedValues[i];
@@ -708,9 +709,10 @@ class ComputeIDs<D extends Object> {
   /// Optional hash function used for hashCode computation.
   final ComputeIDHash<D>? hash;
 
-  /// Creates a sorted ID collection.
+  /// Creates a sorted and deduplicated ID collection.
   ///
-  /// IDs are copied from [ids] and sorted using [compare].
+  /// IDs are copied from [ids], sorted using [compare], and duplicates
+  /// are removed according to the comparator.
   ComputeIDs(List<D> ids, {ComputeIDCompare<D>? compare, this.hash})
       : _ids = ids.toList(),
         compare = _Comparer.resolveCompare(compare) {
@@ -792,6 +794,20 @@ class ComputeIDs<D extends Object> {
   ///
   /// [values] must be aligned with this collection's internal ordering.
   List<(D, V)> getValuesByIndexes<V>(Iterable<int> indexes, List<V> values) {
+    if (values.length < length) {
+      return indexes
+          .map((i) {
+            var id = _ids[i];
+            if (i < values.length) {
+              return (id, values[i]);
+            } else {
+              return null;
+            }
+          })
+          .nonNulls
+          .toList();
+    }
+
     return indexes.map((i) {
       var id = _ids[i];
       return (id, values[i]);

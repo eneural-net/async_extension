@@ -872,6 +872,189 @@ void main() {
       expect(r2.map((p) => p.$2).toList(), equals([2, 2]));
     });
   });
+
+  group('ComputeOnceCache & TimedComputeOnce (retention / resolvedAt)', () {
+    test(
+        'TimedComputeOnce sets resolvedAt and ComputeOnceCache retention works',
+        () async {
+      final cache = ComputeOnceCache<String, int>(
+          retentionDuration: Duration(milliseconds: 40));
+
+      final key = 'keep-me';
+      final comp = cache.get(key, () async => 123, resolve: true);
+
+      // Wait for resolution
+      final v = await comp.resolveAsync();
+      expect(v, equals(123));
+
+      // The instance is a TimedComputeOnce: resolvedAt should be set
+      expect(comp.resolvedAt, isNotNull);
+
+      // While in retention window the cache should contain the entry
+      final snapshot1 = cache.calls();
+      expect(snapshot1.containsKey(key), isTrue);
+
+      // After waiting past retentionDuration the key must be evicted automatically
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      final snapshot2 = cache.calls();
+      expect(snapshot2.containsKey(key), isFalse);
+    });
+
+    test('immediate eviction when retentionDuration is zero', () async {
+      final cache =
+          ComputeOnceCache<String, int>(retentionDuration: Duration.zero);
+
+      final comp = cache.get('k2', () => Future.value(7), resolve: true);
+      final res = await comp.resolveAsync();
+      expect(res, equals(7));
+
+      // immediate eviction: no retained entry after resolve
+      final snapshot = cache.calls();
+      expect(snapshot.containsKey('k2'), isFalse);
+    });
+  });
+
+  group('ComputeOnceCachedIDs - more batching edge cases', () {
+    test(
+        'computation for empty ids returns empty list and does not call compute',
+        () async {
+      final cache = ComputeOnceCachedIDs<String, int>();
+
+      var calls = 0;
+      Future<List<int>> call(List<String> ids) async {
+        calls++;
+        return ids.map((e) => int.parse(e)).toList();
+      }
+
+      final res = await cache.computeIDs([], call, resolve: true);
+      expect(res, isEmpty);
+      expect(calls, equals(0));
+    });
+
+    test('duplicate ids in a single input are preserved as duplicate outputs',
+        () async {
+      final cache = ComputeOnceCachedIDs<String, int>();
+
+      var calls = 0;
+      Future<List<int>> call(List<String> ids) async {
+        calls++;
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+        return ids.map((e) => int.parse(e)).toList();
+      }
+
+      final res = await cache.computeIDs(['1', '1', '2'], call, resolve: true);
+
+      // single underlying call
+      expect(calls, equals(1));
+
+      // duplicates preserved
+      expect(res.length, equals(3));
+      expect(res.map((p) => p.$2).toList(), equals([1, 1, 2]));
+    });
+
+    test('computeIDs returns only found values (missing results are filtered)',
+        () async {
+      final cache = ComputeOnceCachedIDs<String, int>();
+
+      // call that intentionally returns fewer values than requested (simulates missing)
+      Future<List<int>> call(List<String> ids) async {
+        // return only the first value
+        if (ids.isEmpty) return [];
+        return [int.parse(ids.first)];
+      }
+
+      final res = await cache.computeIDs(['1', '2'], call, resolve: true);
+
+      // The implementation currently filters by what it can find; expect only the found pair(s)
+      expect(res, isNotEmpty);
+      expect(res.length, equals(1));
+      expect(res.first.$1, equals('1'));
+      expect(res.first.$2, equals(1));
+    });
+
+    test('posCompute (sync) receives success and can transform the list',
+        () async {
+      final cache = ComputeOnceCachedIDs<String, int>();
+
+      Future<List<int>> call(List<String> ids) async {
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+        return ids.map((e) => int.parse(e)).toList();
+      }
+
+      FutureOr<List<int>> pos(List<int>? value, Object? error, StackTrace? s) {
+        // add 1000 to each element to signal transformation
+        return value!.map((v) => v + 1000).toList();
+      }
+
+      final res = await cache
+          .computeIDs(['3', '4'], call, posCompute: pos, resolve: true);
+
+      expect(res.map((p) => p.$2).toList(), equals([1003, 1004]));
+    });
+
+    test('posCompute invoked on error can return fallback values', () async {
+      final cache = ComputeOnceCachedIDs<String, int>();
+
+      Future<List<int>> call(List<String> ids) async {
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+        throw StateError('failed');
+      }
+
+      FutureOr<List<int>> pos(List<int>? value, Object? error, StackTrace? s) {
+        // return a fallback list with -1 per requested id
+        return List<int>.filled(2, -1);
+      }
+
+      final res = await cache
+          .computeIDs(['x', 'y'], call, posCompute: pos, resolve: true);
+
+      expect(res.map((p) => p.$2).toList(), equals([-1, -1]));
+    });
+
+    test('custom comparator: sharing occurs across case variants', () async {
+      int cmp(String a, String b) => a.toLowerCase().compareTo(b.toLowerCase());
+
+      final cache = ComputeOnceCachedIDs<String, int>(compare: cmp);
+
+      var calls = 0;
+      Future<List<int>> call(List<String> ids) async {
+        calls++;
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+        return ids.map((e) => e.length).toList();
+      }
+
+      final p1 = cache.computeIDs(['Ab', 'Cd'], call, resolve: true);
+      await Future<void>.delayed(const Duration(milliseconds: 3));
+      final p2 = cache.computeIDs(['ab', 'cD'], call, resolve: true);
+
+      final r1 = await p1;
+      final r2 = await p2;
+
+      // Only one underlying call because comparator treats variants equal
+      expect(calls, equals(1));
+      expect(r1.map((p) => p.$2).toList(), equals([2, 2]));
+      expect(r2.map((p) => p.$2).toList(), equals([2, 2]));
+    });
+  });
+
+  group('ComputeIDs behavior', () {
+    test('ComputeIDs constructor sorts and deduplicate', () {
+      final ids = ComputeIDs<int>([3, 1, 2, 1]);
+
+      expect(ids.ids, equals([1, 2, 3]));
+      expect(ids.length, equals(3));
+    });
+
+    test('equalsIDs compares element-by-element; unsorted input differs', () {
+      final ids = ComputeIDs<int>([1, 2, 3]);
+
+      // equalsIDs expects same order; provide unsorted list to show it's false
+      expect(ids.equalsIDs([3, 2, 1]), isFalse);
+
+      // exact same order -> true
+      expect(ids.equalsIDs([1, 2, 3]), isTrue);
+    });
+  });
 }
 
 class _MyComputeOnce<V> extends ComputeOnce<V> {
