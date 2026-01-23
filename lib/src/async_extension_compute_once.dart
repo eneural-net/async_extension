@@ -548,11 +548,6 @@ class ComputeOnceCachedIDs<D extends Object, V>
 
     var idsNotCalling = ids.toList();
 
-    if (idsNotCalling.isEmpty) {
-      var computers = Map.fromEntries(calling);
-      return computers;
-    }
-
     idsNotCalling.sort((a, b) => compare(a, b));
 
     for (var callIDs in callingIDs) {
@@ -562,6 +557,11 @@ class ComputeOnceCachedIDs<D extends Object, V>
           idsNotCalling.removeAt(idx);
         }
       }
+    }
+
+    if (idsNotCalling.isEmpty) {
+      var computers = Map.fromEntries(calling);
+      return computers;
     }
 
     final idsNotCallingKey =
