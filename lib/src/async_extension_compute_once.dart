@@ -715,6 +715,14 @@ class ComputeIDs<D extends Object> {
       : _ids = ids.toList(),
         compare = _Comparer.resolveCompare(compare) {
     _ids.sort(compare);
+
+    final cmp = this.compare ?? _Comparer._defaultCompare;
+    // Deduplicate (requires sorted list):
+    for (var i = _ids.length - 1; i > 0; --i) {
+      if (cmp(_ids[i], _ids[i - 1]) == 0) {
+        _ids.removeAt(i);
+      }
+    }
   }
 
   /// Number of IDs.
