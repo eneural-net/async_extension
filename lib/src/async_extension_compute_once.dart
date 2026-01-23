@@ -839,7 +839,7 @@ class ComputeIDs<D extends Object> {
   int get hashCode => _hashCode ??= _Comparer.computeHashcode(_ids, hash);
 
   @override
-  String toString() => 'ComputeIDs$_ids';
+  String toString() => 'ComputeIDs(${_ids.length})$_ids';
 }
 
 abstract class _Comparer {
