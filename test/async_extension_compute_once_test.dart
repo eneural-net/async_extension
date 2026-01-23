@@ -1055,6 +1055,130 @@ void main() {
       expect(ids.equalsIDs([1, 2, 3]), isTrue);
     });
   });
+
+  group('ComputeOnce error handling and onErrorValue casting', () {
+    test(
+        'resolve with synchronous thrown error and onErrorValue null throws StateError',
+        () {
+      final c = ComputeOnce<int>(() {
+        throw StateError('boom');
+      }, resolve: false);
+
+      // throwError == false and onErrorValue == null should trigger _castErrorValue
+      expect(
+        () => c.resolve(throwError: false, onErrorValue: null),
+        throwsA(isA<StateError>()),
+      );
+    });
+
+    test('resolve catches async error and uses onError fallback', () async {
+      final c = ComputeOnce<int>(() async {
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+        throw ArgumentError('async fail');
+      }, resolve: false);
+
+      final res = await c.resolve(
+        throwError: false,
+        onError: (e, s) {
+          // convert any error to 1234
+          return 1234;
+        },
+      );
+
+      expect(res, equals(1234));
+      expect(c.isResolved, isTrue);
+    });
+  });
+
+  group('MapComputeIDsExtension (computeAll / computeAllAsync)', () {
+    test('computeAll resolves synchronous TimedComputeOnce values', () async {
+      // Build a map with two keys and synchronous TimedComputeOnce values.
+      final k1 = ComputeIDs<int>([1]);
+      final k2 = ComputeIDs<int>([2]);
+
+      final m = <ComputeIDs<int>, TimedComputeOnce<int>>{
+        k1: TimedComputeOnce<int>(() => 10, resolve: false),
+        k2: TimedComputeOnce<int>(() => 20, resolve: false),
+      };
+
+      final res = await m.computeAll(); // may return FutureOr<Map<...>>
+      expect(res[k1], equals(10));
+      expect(res[k2], equals(20));
+    });
+
+    test('computeAllAsync resolves asynchronous TimedComputeOnce values',
+        () async {
+      final k1 = ComputeIDs<String>(['a']);
+      final k2 = ComputeIDs<String>(['b']);
+
+      final m = <ComputeIDs<String>, TimedComputeOnce<int>>{
+        k1: TimedComputeOnce<int>(() async {
+          await Future<void>.delayed(const Duration(milliseconds: 5));
+          return 5;
+        }, resolve: false),
+        k2: TimedComputeOnce<int>(() async {
+          await Future<void>.delayed(const Duration(milliseconds: 5));
+          return 6;
+        }, resolve: false),
+      };
+
+      final res = await m.computeAllAsync();
+      expect(res[k1], equals(5));
+      expect(res[k2], equals(6));
+    });
+  });
+
+  group('ListIdValuePairExtension binary search helpers', () {
+    test('binarySearchIndex finds index in list of (id, value) pairs', () {
+      final list = <(int, String)>[
+        (1, 'a'),
+        (3, 'c'),
+        (5, 'e'),
+        (7, 'g'),
+      ];
+
+      final idx = list.binarySearchIndex(5);
+      expect(idx, equals(2));
+    });
+
+    test('binarySearch returns pair when present and null when absent', () {
+      final list = <(int, String)>[
+        (2, 'b'),
+        (4, 'd'),
+        (6, 'f'),
+      ];
+
+      final found = list.binarySearch(4);
+      expect(found, isNotNull);
+      expect(found!.$1, equals(4));
+      expect(found.$2, equals('d'));
+
+      final missing = list.binarySearch(3);
+      expect(missing, isNull);
+    });
+  });
+
+  group('ComputeIDs hashing and equals', () {
+    test('custom hash function affects hashCode deterministically', () {
+      int hashFn(int x) => x * 31;
+      final a = ComputeIDs<int>([1, 2, 3], hash: hashFn);
+      final b = ComputeIDs<int>([1, 2, 3], hash: hashFn);
+
+      expect(a, equals(b));
+      expect(a.hashCode, equals(b.hashCode));
+    });
+
+    test('different order or different elements produce different equality',
+        () {
+      final a = ComputeIDs<int>([1, 2, 3]);
+      final b = ComputeIDs<int>(
+          [3, 2, 1]); // constructor sorts; equal only if same order after sort
+      // After construction both are sorted to [1,2,3] -> they are equal
+      expect(a, equals(b));
+      // However equalsIDs with unsorted external list differs
+      expect(a.equalsIDs([3, 2, 1]), isFalse);
+    });
+  });
 }
 
 class _MyComputeOnce<V> extends ComputeOnce<V> {
