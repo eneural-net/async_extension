@@ -675,6 +675,203 @@ void main() {
       expect(res2, equals([1, 2]));
     });
   });
+
+  group('ComputeOnceCachedIDs - batching and sharing', () {
+    test('overlapping requests share in-flight computation when fully covered',
+        () async {
+      final cache = ComputeOnceCachedIDs<String, int>();
+      var calls = 0;
+
+      Future<List<int>> call(List<String> ids) async {
+        calls++;
+        // simulate work
+        await Future.delayed(const Duration(milliseconds: 60));
+        return ids.map((e) => int.parse(e)).toList();
+      }
+
+      // Start a big request that includes '2' and '3'
+      final f1 = cache.computeIDs(['1', '2', '3'], call, resolve: true);
+
+      // Give the first request a small head start so it becomes in-flight
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+
+      // Second request asks for a subset ('2','3') that should be entirely
+      // covered by the first in-flight computation -> no extra call expected.
+      final f2 = cache.computeIDs(['2', '3'], call, resolve: true);
+
+      final r1 = await f1;
+      final r2 = await f2;
+
+      // The underlying call should have executed only once (the second reused it)
+      expect(calls, equals(1));
+
+      // Validate results: both must contain the requested pairs, ordered by request
+      expect(r1.map((p) => (p.$1, p.$2)).toList(),
+          equals([('1', 1), ('2', 2), ('3', 3)]));
+      expect(
+          r2.map((p) => (p.$1, p.$2)).toList(), equals([('2', 2), ('3', 3)]));
+    });
+
+    test('partial overlap triggers only missing-id computation', () async {
+      final cache = ComputeOnceCachedIDs<String, int>();
+      var calls = <List<String>>[];
+
+      Future<List<int>> call(List<String> ids) async {
+        calls.add(ids.toList());
+        await Future.delayed(const Duration(milliseconds: 10));
+        return ids.map((e) => int.parse(e) * 10).toList();
+      }
+
+      // First request will compute for ['1','2']
+      final p1 = cache.computeIDs(['1', '2'], call, resolve: true);
+
+      // Start overlapping request shortly after that requests ['2','3']
+      await Future<void>.delayed(const Duration(milliseconds: 3));
+      final p2 = cache.computeIDs(['2', '3'], call, resolve: true);
+
+      final r1 = await p1;
+      final r2 = await p2;
+
+      // We expect two underlying calls:
+      //  - one for ['1','2'] (first request)
+      //  - one for ['3'] (to cover missing id from second request)
+      // order of calls recorded might be ['1','2'] then ['3']
+      expect(calls.length, equals(2));
+      expect(calls.any((ids) => ids.length == 1 && ids.first == '3'), isTrue);
+
+      // Validate values: p1 are tens, p2 mixes reused values for '2' and new for '3'
+      expect(r1.map((p) => p.$2).toList(), equals([10, 20]));
+      // r2 should contain values for '2' and '3' in that order
+      expect(r2.map((p) => p.$2).toList(), equals([20, 30]));
+    });
+
+    test('empty ids short-circuits and does not call compute function',
+        () async {
+      final cache = ComputeOnceCachedIDs<String, int>();
+      var calls = 0;
+
+      Future<List<int>> call(List<String> ids) async {
+        calls++;
+        // should not be called for empty ids in ideal behavior
+        return ids.map((e) => int.parse(e)).toList();
+      }
+
+      final result = await cache.computeIDs([], call, resolve: true);
+      expect(result, isEmpty);
+      expect(calls, equals(0));
+    });
+
+    test('duplicate ids in input are preserved in output order', () async {
+      final cache = ComputeOnceCachedIDs<String, int>();
+      var callsCount = 0;
+
+      Future<List<int>> call(List<String> ids) async {
+        callsCount++;
+        // return numeric value for each id in same order
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+        return ids.map((e) => int.parse(e)).toList();
+      }
+
+      // input contains duplicate '1'
+      final result =
+          await cache.computeIDs(['1', '1', '2'], call, resolve: true);
+
+      // Expect single underlying call
+      expect(callsCount, equals(1));
+
+      // result values should preserve duplicates: [1,1,2]
+      final values = result.map((p) => p.$2).toList();
+      expect(values, equals([1, 1, 2]));
+    });
+  });
+
+  group('posCompute behavior (success and async error)', () {
+    test('posCompute (sync) transforms successful batched results', () async {
+      final cache = ComputeOnceCachedIDs<String, int>();
+
+      Future<List<int>> call(List<String> ids) async {
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+        return ids.map((e) => int.parse(e)).toList();
+      }
+
+      // posCompute will add 100 to every value in the produced list.
+      FutureOr<List<int>> post(List<int>? value, Object? error, StackTrace? s) {
+        if (value == null) return [];
+        return value.map((v) => v + 100).toList();
+      }
+
+      final res = await cache.computeIDs(
+        ['1', '2'],
+        call,
+        posCompute: post,
+        resolve: true,
+      );
+
+      expect(res.map((p) => p.$2).toList(), equals([101, 102]));
+    });
+
+    test('posCompute invoked on async error and can provide fallback',
+        () async {
+      final cache = ComputeOnceCachedIDs<String, int>();
+
+      Future<List<int>> call(List<String> ids) async {
+        // Always fail asynchronously so that posCompute onError path is executed
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+        throw StateError('boom');
+      }
+
+      // posCompute sees null value and an error; returns a fallback list of -1s
+      FutureOr<List<int>> onError(
+          List<int>? value, Object? error, StackTrace? s) {
+        // Provide fallback values for requested ids (length must match expected behavior)
+        // We'll map each requested id to -1 (the caller expects a value for each requested id)
+        return List<int>.filled(2, -1);
+      }
+
+      final res = await cache.computeIDs(
+        ['x', 'y'],
+        call,
+        posCompute: onError,
+        resolve: true,
+      );
+
+      expect(res.map((p) => p.$2).toList(), equals([-1, -1]));
+    });
+  });
+
+  group('custom comparator integration', () {
+    test('case-insensitive comparator allows sharing across different cases',
+        () async {
+      int cmp(String a, String b) => a.toLowerCase().compareTo(b.toLowerCase());
+
+      final cache = ComputeOnceCachedIDs<String, int>(compare: cmp);
+
+      var calls = 0;
+      Future<List<int>> call(List<String> ids) async {
+        calls++;
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+        return ids.map((e) => e.length).toList();
+      }
+
+      // Start a request with mixed-case ids
+      final p1 = cache.computeIDs(['Ab', 'cD'], call, resolve: true);
+
+      await Future<void>.delayed(const Duration(milliseconds: 3));
+
+      // Second request uses same ids using different cases; with case-insensitive comparator
+      // the in-flight computation should be reused and no extra compute should run.
+      final p2 = cache.computeIDs(['ab', 'CD'], call, resolve: true);
+
+      final r1 = await p1;
+      final r2 = await p2;
+
+      expect(calls, equals(1));
+
+      // lengths returned for 'Ab' and 'cD' are both 2
+      expect(r1.map((p) => p.$2).toList(), equals([2, 2]));
+      expect(r2.map((p) => p.$2).toList(), equals([2, 2]));
+    });
+  });
 }
 
 class _MyComputeOnce<V> extends ComputeOnce<V> {
