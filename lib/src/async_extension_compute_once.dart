@@ -542,10 +542,23 @@ class ComputeOnceCachedIDs<D extends Object, V>
 
     var callingIDs = calling.map((c) => c.key.ids);
 
+    final compare = this.compare ?? _Comparer._defaultCompare;
+
     var idsNotCalling = ids.toList();
+
+    if (idsNotCalling.isEmpty) {
+      var computers = Map.fromEntries(calling);
+      return computers;
+    }
+
+    idsNotCalling.sort((a, b) => compare(a, b));
+
     for (var callIDs in callingIDs) {
       for (var id in callIDs) {
-        idsNotCalling.remove(id);
+        var idx = _Comparer.binarySearchIndex(idsNotCalling, id, compare);
+        if (idx >= 0) {
+          idsNotCalling.removeAt(idx);
+        }
       }
     }
 
