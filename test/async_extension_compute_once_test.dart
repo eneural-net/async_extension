@@ -552,6 +552,129 @@ void main() {
       expect(c2.resolvedAt, isNotNull);
     });
   });
+
+  group('ComputeOnce posCompute', () {
+    test('sync posCompute is applied synchronously', () async {
+      final c = ComputeOnce<int>(
+        () => 1,
+        posCompute: (v, e, s) => (v ?? 0) + 10,
+      );
+
+      // resolve may return a value or a Future; normalize with Future.value(...)
+      final result = await Future.value(c.resolve());
+      expect(result, equals(11));
+
+      // subsequent resolves should return cached result (transformed)
+      final result2 = await Future.value(c.resolve());
+      expect(result2, equals(11));
+    });
+
+    test('async posCompute is applied asynchronously', () async {
+      final c = ComputeOnce<int>(
+        () async => 2,
+        posCompute: (v, e, s) async => (v ?? 0) * 10,
+      );
+
+      // resolveAsync always returns a Future
+      final result = await c.resolveAsync();
+      expect(result, equals(20));
+
+      // subsequent resolves should return cached (transformed) result
+      final result2 = await c.resolveAsync();
+      expect(result2, equals(20));
+    });
+  });
+
+  group('ComputeOnceCache retention', () {
+    test('entry is removed after retentionDuration elapses', () async {
+      final cache = ComputeOnceCache<String, int>(
+          retentionDuration: Duration(milliseconds: 20));
+
+      // create a computation that resolves immediately
+      final comp = cache.get('key', () async => 42, resolve: true);
+
+      // ensure it resolves
+      final res = await comp.resolveAsync();
+      expect(res, equals(42));
+
+      // while inside retention window the cache should contain the entry
+      final snapshot1 = cache.calls();
+      expect(snapshot1.containsKey('key'), isTrue);
+
+      // wait longer than retentionDuration
+      await Future.delayed(Duration(milliseconds: 60));
+
+      final snapshot2 = cache.calls();
+      expect(snapshot2.containsKey('key'), isFalse);
+    });
+
+    test('immediate eviction when retentionDuration is zero', () async {
+      final cache =
+          ComputeOnceCache<String, int>(retentionDuration: Duration.zero);
+
+      final comp = cache.get('k2', () => Future.value(7), resolve: true);
+      final res = await comp.resolveAsync();
+      expect(res, equals(7));
+
+      // immediate eviction: no retained entry after resolve
+      final snapshot = cache.calls();
+      expect(snapshot.containsKey('k2'), isFalse);
+    });
+  });
+
+  group('ComputeIDs utilities', () {
+    test('sorts with custom comparator and binarySearchIndex works', () {
+      int cmp(String a, String b) => a.toLowerCase().compareTo(b.toLowerCase());
+
+      final ids = ComputeIDs<String>(['b', 'A', 'c'], compare: cmp);
+
+      // internal ordering should be case-preserving but sorted by comparator
+      expect(ids.ids.length, equals(3));
+      expect(
+          ids.ids[0], anyOf(equals('A'), equals('a'))); // 'A' should be first
+
+      // binary search by different-case key should find correct index
+      final idx = ids.binarySearchIndex('B');
+      expect(idx, greaterThanOrEqualTo(0));
+      expect(ids[idx].toLowerCase(), equals('b'));
+    });
+
+    test('intersection returns (index, id) pairs respecting comparator', () {
+      int cmp(String a, String b) => a.toLowerCase().compareTo(b.toLowerCase());
+
+      final ids = ComputeIDs<String>(['a', 'b', 'c', 'd'], compare: cmp);
+      final inter = ids.intersection(['C', 'x', 'b']);
+      // should find 'C' -> 'c' and 'b'
+      final foundIds = inter.map((t) => t.$2.toLowerCase()).toList()..sort();
+      expect(foundIds, equals(['b', 'c']));
+    });
+
+    test('equality and hashCode for same ordered set', () {
+      int cmp(String a, String b) => a.toLowerCase().compareTo(b.toLowerCase());
+
+      final a = ComputeIDs<String>(['A', 'b', 'c'], compare: cmp);
+      final b = ComputeIDs<String>(['A', 'b', 'c'], compare: cmp);
+
+      expect(a, equals(b));
+      expect(a.hashCode, equals(b.hashCode));
+    });
+  });
+
+  group('IterableComputeOnceExtension', () {
+    test(
+        'computeAll and computeAllAsync resolve multiple ComputeOnce instances',
+        () async {
+      final c1 = ComputeOnce<int>(() => 1);
+      final c2 = ComputeOnce<int>(() async => 2);
+
+      final res = await [c1, c2].computeAllAsync();
+      expect(res, equals([1, 2]));
+
+      // computeAll (sync-or-async path) should also work
+      final res2 = await Future.value([c1, c2].computeAll());
+      expect(res2, equals([1, 2]));
+    });
+  });
 }
 
 class _MyComputeOnce<V> extends ComputeOnce<V> {
