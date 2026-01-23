@@ -12,8 +12,8 @@ typedef ComputeCall<V> = FutureOr<V> Function();
 ///
 /// [value] is non-null on success.
 /// [error] and [stackTrace] are non-null on failure.
-typedef PosComputeCall<V> = V Function(
-    V? value, Object? error, StackTrace? stackTrace)?;
+typedef PosComputeCall<V> = FutureOr<V> Function(
+    V? value, Object? error, StackTrace? stackTrace);
 
 /// Lazily computes a value at most once and caches either the result or error.
 ///
@@ -174,39 +174,19 @@ class ComputeOnce<V> {
           });
         }
 
-        future.then(
-          (value) {
-            _result = (value: value, error: null, stackTrace: null);
-            if (identical(future, _future)) {
-              _future = null;
-            }
-            _call = null;
-            onCompute(value, null, null);
-          },
-          onError: (e, s) {
-            _result = (value: null, error: e, stackTrace: s);
-            if (identical(future, _future)) {
-              _future = null;
-            }
-            _call = null;
-            onCompute(null, e, s);
-          },
-        );
-
-        if (!throwError) {
-          if (onError != null) {
-            return future.catchError(onError);
-          } else {
-            return future.catchError((e, s) => onErrorValue as V);
-          }
-        }
-
-        return future;
+        return _resolveFuture(future, throwError, onError, onErrorValue);
       } else {
         var value = call;
         if (posCompute != null) {
           try {
-            value = posCompute(value, null, null);
+            var value2 = posCompute(value, null, null);
+
+            if (value2 is Future<V>) {
+              future = _future = value2;
+              return _resolveFuture(future, throwError, onError, onErrorValue);
+            } else {
+              value = value2;
+            }
           } catch (e, s) {
             return resolveError(e, s);
           }
@@ -292,6 +272,13 @@ class ComputeOnce<V> {
       });
     }
 
+    return _resolveFuture(future, throwError, onError, onErrorValue);
+
+  Future<V> _resolveFuture(
+      Future<V> future,
+      bool throwError,
+      FutureOr<V> Function(Object error, StackTrace stackTrace)? onError,
+      V? onErrorValue) {
     future.then(
       (value) {
         _result = (value: value, error: null, stackTrace: null);
