@@ -586,7 +586,7 @@ class ComputeOnceCachedIDs<D extends Object, V>
         var intersectionIDs = computedIDs.intersection(ids);
         if (intersectionIDs.isEmpty) return <(D, V)>[];
 
-        if (intersectionIDs.length == ids.length) {
+        if (intersectionIDs.length == computedIDs.length) {
           var values = List.generate(computedIDs.length, (i) {
             var id = computedIDs[i];
             var v = computedValues[i];
