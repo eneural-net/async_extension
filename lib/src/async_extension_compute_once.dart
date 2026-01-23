@@ -318,7 +318,7 @@ class ComputeOnce<V> {
       if (onError != null) {
         return future.catchError(onError);
       } else {
-        return future.catchError((e, s) => onErrorValue as V);
+        return future.catchError((e, s) => _castErrorValue(onErrorValue));
       }
     }
     return future;
