@@ -177,6 +177,7 @@ class ComputeOnce<V> {
         return _resolveFuture(future, throwError, onError, onErrorValue);
       } else {
         var value = call;
+
         if (posCompute != null) {
           try {
             var value2 = posCompute(value, null, null);
@@ -321,6 +322,7 @@ class ComputeOnce<V> {
         return future.catchError((e, s) => _castErrorValue(onErrorValue));
       }
     }
+
     return future;
   }
 
