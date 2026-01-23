@@ -1233,6 +1233,99 @@ void main() {
       expect(a.equalsIDs([3, 2, 1]), isFalse);
     });
   });
+
+  group('ComputeOnce - direct behaviors and edge cases', () {
+    test(
+        'sync compute + async posCompute transforms value (posCompute returns Future)',
+        () async {
+      final c = ComputeOnce<int>(
+        () => 5,
+        posCompute: (v, e, s) async {
+          // async transform
+          await Future<void>.delayed(const Duration(milliseconds: 5));
+          return (v ?? 0) + 10;
+        },
+        resolve: false,
+      );
+
+      // resolveAsync will await any async post-processing
+      final res = await c.resolveAsync();
+      expect(res, equals(15));
+
+      // cached result should reflect transformed value
+      expect(c.value, equals(15));
+      expect(c.isResolved, isTrue);
+      expect(c.hasError, isFalse);
+    });
+
+    test('sync compute + posCompute throws -> cached as error and rethrows',
+        () async {
+      final err = StateError('pos failed');
+      final c = ComputeOnce<int>(
+        () => 2,
+        posCompute: (v, e, s) {
+          throw err;
+        },
+        resolve: false,
+      );
+
+      // posCompute throws; resolution should rethrow the posCompute error
+      await expectLater(c.resolveAsync(), throwsA(same(err)));
+
+      // subsequent resolves should throw the same cached error
+      expect(() => c.resolve(), throwsA(same(err)));
+      expect(c.hasError, isTrue);
+      expect(c.error!.error, same(err));
+    });
+
+    test('sync compute throws and resolve with onErrorValue returns fallback',
+        () {
+      final c = ComputeOnce<int>(() {
+        throw ArgumentError('boom');
+      }, resolve: false);
+
+      // throwError false and onErrorValue provided -> return fallback and cache error
+      final res = c.resolve(throwError: false, onErrorValue: 99);
+      expect(res, equals(99));
+      expect(c.hasError, isTrue);
+      expect(c.value, isNull);
+    });
+
+    test(
+        'async compute throws and resolveAsync with onErrorValue returns fallback',
+        () async {
+      final c = ComputeOnce<int>(() async {
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+        throw ArgumentError('async boom');
+      }, resolve: false);
+
+      final res = await c.resolveAsync(throwError: false, onErrorValue: 77);
+      expect(res, equals(77));
+      expect(c.hasError, isTrue);
+    });
+
+    test('async compute throws but posCompute onError returns fallback (async)',
+        () async {
+      final c = ComputeOnce<int>(
+        () async {
+          await Future<void>.delayed(const Duration(milliseconds: 5));
+          throw StateError('compute fail');
+        },
+        posCompute: (v, e, s) async {
+          // produce a fallback asynchronously when an error occurs
+          return 555;
+        },
+        resolve: false,
+      );
+
+      // posCompute handles the error and returns fallback value
+      final res = await c.resolveAsync();
+      expect(res, equals(555));
+      expect(c.isResolved, isTrue);
+      // Note: since posCompute returned a value, the final cached value should be that value
+      expect(c.value, equals(555));
+    });
+  });
 }
 
 class _MyComputeOnce<V> extends ComputeOnce<V> {
