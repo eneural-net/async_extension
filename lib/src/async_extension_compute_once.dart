@@ -565,11 +565,15 @@ class ComputeOnceCachedIDs<D extends Object, V>
     final idsNotCallingKey =
         ComputeIDs(idsNotCalling, compare: compare, hash: hash);
 
-    var computer = get(idsNotCallingKey, () => call(idsNotCallingKey.ids),
-        resolve: resolve);
+    var newComputer = get(
+      idsNotCallingKey,
+      () => call(idsNotCallingKey.ids),
+      posCompute: posCompute,
+      resolve: resolve,
+    );
 
     var computers = Map.fromEntries([
-      MapEntry(idsNotCallingKey, computer),
+      MapEntry(idsNotCallingKey, newComputer),
       ...calling,
     ]);
 
