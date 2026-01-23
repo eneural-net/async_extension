@@ -899,7 +899,7 @@ abstract class _Comparer {
 }
 
 /// Utilities to resolve multiple [ComputeOnce] instances.
-extension IterableComputeOnceEtension<V> on Iterable<ComputeOnce<V>> {
+extension IterableComputeOnceExtension<V> on Iterable<ComputeOnce<V>> {
   /// Resolves all computations and returns their results in iteration order.
   ///
   /// If [throwError] is true, the first error is propagated.
@@ -933,7 +933,7 @@ extension IterableComputeOnceEtension<V> on Iterable<ComputeOnce<V>> {
 
 /// Utilities to resolve all [TimedComputeOnce] values in a map keyed by
 /// [ComputeIDs].
-extension MapComputeIDsEtension<D extends Object, V>
+extension MapComputeIDsExtension<D extends Object, V>
     on Map<ComputeIDs<D>, TimedComputeOnce<V>> {
   /// Resolves all computations and returns a map with the same keys.
   ///

@@ -26,8 +26,8 @@
   - Supports binary search, intersection, equality, and hashing.
 
 - Added extensions:
-  - `IterableComputeOnceEtension` for resolving multiple `ComputeOnce` instances.
-  - `MapComputeIDsEtension` for resolving maps of `TimedComputeOnce` keyed by `ComputeIDs`.
+  - `IterableComputeOnceExtension` for resolving multiple `ComputeOnce` instances.
+  - `MapComputeIDsExtension` for resolving maps of `TimedComputeOnce` keyed by `ComputeIDs`.
   - `ListIdValuePairExtension` for binary searching `(ID, value)` pairs sorted by ID.
 
 - Typedefs:
