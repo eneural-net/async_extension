@@ -482,6 +482,9 @@ class ComputeOnceCache<K extends Object, V> {
   /// Returns a snapshot of current cached computations.
   Map<K, TimedComputeOnce<V>> calls() => Map.from(_calls);
 
+  /// Returns the number of cached computations currently stored.
+  int get callsLength => _calls.length;
+
   /// Clears the cache and cancels all retention timers.
   void clear() {
     for (final t in _timers.values) {
@@ -507,7 +510,7 @@ typedef ComputeCallIDs<D extends Object, V> = FutureOr<List<V>> Function(
 class ComputeOnceCachedIDs<D extends Object, V>
     extends ComputeOnceCache<ComputeIDs<D>, List<V>> {
   /// Optional comparator used to order IDs and results.
-  final ComputeIDCompare<D>? compare;
+  final ComputeIDCompare<D> compare;
 
   /// Optional hash function used for IDs.
   final ComputeIDHash<D>? hash;
@@ -518,7 +521,8 @@ class ComputeOnceCachedIDs<D extends Object, V>
   /// [hash] defines how IDs are grouped internally.
   ComputeOnceCachedIDs(
       {super.retentionDuration, ComputeIDCompare<D>? compare, this.hash})
-      : compare = _Comparer.resolveCompare(compare);
+      : compare =
+            _Comparer.resolveCompare<D>(compare) ?? _Comparer._defaultCompare;
 
   /// Returns computations for the given [ids], reusing any overlapping
   /// in-flight computations.
@@ -544,11 +548,11 @@ class ComputeOnceCachedIDs<D extends Object, V>
 
     var callingIDs = calling.map((c) => c.key.ids);
 
-    final compare = this.compare ?? _Comparer._defaultCompare;
+    final compare = this.compare;
 
     var idsNotCalling = ids.toList();
 
-    idsNotCalling.sort((a, b) => compare(a, b));
+    idsNotCalling.sort(compare);
 
     for (var callIDs in callingIDs) {
       for (var id in callIDs) {
@@ -565,7 +569,7 @@ class ComputeOnceCachedIDs<D extends Object, V>
     }
 
     final idsNotCallingKey =
-        ComputeIDs(idsNotCalling, compare: compare, hash: hash);
+        ComputeIDs<D>(idsNotCalling, compare: compare, hash: hash);
 
     var newComputer = get(
       idsNotCallingKey,
@@ -602,11 +606,13 @@ class ComputeOnceCachedIDs<D extends Object, V>
         var computedIDs = e.key;
         var computedValues = e.value;
 
+        // Not sorted:
         var intersectionIDs = computedIDs.intersection(ids);
         if (intersectionIDs.isEmpty) return <(D, V)>[];
 
         if (intersectionIDs.length == computedIDs.length &&
             computedIDs.length == computedValues.length) {
+          // Sorted:
           var values = List.generate(computedIDs.length, (i) {
             var id = computedIDs[i];
             var v = computedValues[i];
@@ -615,6 +621,7 @@ class ComputeOnceCachedIDs<D extends Object, V>
           return values;
         }
 
+        // Sorted:
         var intersectionValues = computedIDs.getValuesByIndexes(
           intersectionIDs.map((e) => e.$1),
           computedValues,
@@ -627,7 +634,7 @@ class ComputeOnceCachedIDs<D extends Object, V>
         return [];
       }
 
-      final cmp = compare ?? _Comparer._defaultCompare;
+      final compare = this.compare;
 
       List<(D, V)> allComputedValues;
 
@@ -638,7 +645,7 @@ class ComputeOnceCachedIDs<D extends Object, V>
         allComputedValues = allComputations.expand((l) => l).toList();
         // Ensure sorted:
         if (allComputedValues.length > 1) {
-          allComputedValues.sort((a, b) => cmp(a.$1, b.$1));
+          allComputedValues.sort((a, b) => compare(a.$1, b.$1));
         }
       }
 
@@ -650,7 +657,7 @@ class ComputeOnceCachedIDs<D extends Object, V>
       }
 
       var idsValues = ids
-          .map((id) => allComputedValues.binarySearch(id, cmp))
+          .map((id) => allComputedValues.binarySearch(id, compare))
           .nonNulls
           .toList();
 
@@ -668,19 +675,18 @@ extension ListIdValuePairExtension<D extends Object, V> on List<(D, V)> {
   ///
   /// Uses binary search and runs in `O(log n)`.
   /// The list must be sorted by ID using [compare].
-  int binarySearchIndex(D id, [ComputeIDCompare<D>? compare]) {
+  int binarySearchIndex(D id, ComputeIDCompare<D> compare) {
     if (isEmpty) return -1;
-    compare ??= _Comparer._defaultCompare;
     var v0 = first.$2;
     return _Comparer.binarySearchIndex<(D, V)>(
-        this, (id, v0), (a, b) => compare!(a.$1, b.$1));
+        this, (id, v0), (a, b) => compare(a.$1, b.$1));
   }
 
   /// Returns the `(ID, value)` pair for [id], or `null` if not found.
   ///
   /// Uses binary search and runs in `O(log n)`.
   /// The list must be sorted by ID using [compare].
-  (D, V)? binarySearch(D id, [ComputeIDCompare<D>? compare]) {
+  (D, V)? binarySearch(D id, ComputeIDCompare<D> compare) {
     var idx = binarySearchIndex(id, compare);
     if (idx < 0) return null;
     return this[idx];
@@ -704,7 +710,7 @@ class ComputeIDs<D extends Object> {
   List<D> get ids => List.unmodifiable(_ids);
 
   /// Comparator used to order and compare IDs.
-  final ComputeIDCompare<D>? compare;
+  final ComputeIDCompare<D> compare;
 
   /// Optional hash function used for hashCode computation.
   final ComputeIDHash<D>? hash;
@@ -715,16 +721,34 @@ class ComputeIDs<D extends Object> {
   /// are removed according to the comparator.
   ComputeIDs(List<D> ids, {ComputeIDCompare<D>? compare, this.hash})
       : _ids = ids.toList(),
-        compare = _Comparer.resolveCompare(compare) {
+        compare =
+            _Comparer.resolveCompare<D>(compare) ?? _Comparer._defaultCompare {
+    final compare = this.compare;
+
     _ids.sort(compare);
 
-    final cmp = this.compare ?? _Comparer._defaultCompare;
+    assert(checkIDsSorted());
+
     // Deduplicate (requires sorted list):
     for (var i = _ids.length - 1; i > 0; --i) {
-      if (cmp(_ids[i], _ids[i - 1]) == 0) {
+      if (compare(_ids[i], _ids[i - 1]) == 0) {
         _ids.removeAt(i);
       }
     }
+  }
+
+  bool checkIDsSorted() {
+    final compare = this.compare;
+
+    final length = _ids.length;
+    for (var i = 1; i < length; ++i) {
+      var prev = _ids[i - 1];
+      var o = _ids[i];
+      var cmp = compare(prev, o);
+      if (cmp > 0) return false;
+    }
+
+    return true;
   }
 
   /// Number of IDs.
@@ -741,49 +765,26 @@ class ComputeIDs<D extends Object> {
 
   /// Returns true if any of the provided [ids] exist in this collection.
   bool containsAny(List<D> ids) {
-    final compare = this.compare;
-
-    if (compare != null) {
-      for (var id in ids) {
-        var idx = binarySearchIndex(id);
-        if (idx >= 0) return true;
-      }
-    } else {
-      for (var id1 in _ids) {
-        for (var id2 in ids) {
-          if (id1 == id2) return true;
-        }
-      }
+    for (var id in ids) {
+      var idx = binarySearchIndex(id);
+      if (idx >= 0) return true;
     }
 
     return false;
   }
 
-  /// Returns the intersection between this collection and [ids].
+  /// Returns the intersection between this collection and [ids],
+  /// preserving the order of the input [ids].
   ///
   /// Each entry is a pair of `(index, id)` where `index` refers to this
   /// collection's internal ordering.
   List<(int, D)> intersection(List<D> ids) {
     var l = <(int, D)>[];
 
-    final compare = this.compare;
-
-    if (compare != null) {
-      for (var id in ids) {
-        var idx = binarySearchIndex(id);
-        if (idx >= 0) {
-          l.add((idx, id));
-        }
-      }
-    } else {
-      final length = _ids.length;
-      for (var i = 0; i < length; ++i) {
-        var id1 = _ids[i];
-        for (var id2 in ids) {
-          if (id1 == id2) {
-            l.add((i, id2));
-          }
-        }
+    for (var id in ids) {
+      var idx = binarySearchIndex(id);
+      if (idx >= 0) {
+        l.add((idx, id));
       }
     }
 
@@ -792,13 +793,15 @@ class ComputeIDs<D extends Object> {
 
   /// Returns `(ID, value)` pairs for the given [indexes].
   ///
-  /// [values] must be aligned with this collection's internal ordering.
+  /// [values] must be aligned with this collection's [ids] internal ordering.
   List<(D, V)> getValuesByIndexes<V>(Iterable<int> indexes, List<V> values) {
-    if (values.length < length) {
-      return indexes
+    List<(D, V)> valuesByIndexes;
+
+    if (values.length < _ids.length) {
+      valuesByIndexes = indexes
           .map((i) {
-            var id = _ids[i];
             if (i < values.length) {
+              var id = _ids[i];
               return (id, values[i]);
             } else {
               return null;
@@ -806,12 +809,17 @@ class ComputeIDs<D extends Object> {
           })
           .nonNulls
           .toList();
+    } else {
+      valuesByIndexes = indexes.map((i) {
+        var id = _ids[i];
+        return (id, values[i]);
+      }).toList();
     }
 
-    return indexes.map((i) {
-      var id = _ids[i];
-      return (id, values[i]);
-    }).toList();
+    // Ensure sorted by ID:
+    valuesByIndexes.sort((a, b) => compare(a.$1, b.$1));
+
+    return valuesByIndexes;
   }
 
   /// Returns true if [ids] are equal to this collection's IDs.
@@ -825,18 +833,10 @@ class ComputeIDs<D extends Object> {
 
     final compare = this.compare;
 
-    if (compare != null) {
-      for (var i = 0; i < length; ++i) {
-        var id1 = _ids[i];
-        var id2 = ids[i];
-        if (compare(id1, id2) != 0) return false;
-      }
-    } else {
-      for (var i = 0; i < length; ++i) {
-        var id1 = _ids[i];
-        var id2 = ids[i];
-        if (id1 != id2) return false;
-      }
+    for (var i = 0; i < length; ++i) {
+      var id1 = _ids[i];
+      var id2 = ids[i];
+      if (compare(id1, id2) != 0) return false;
     }
 
     return true;
@@ -891,16 +891,14 @@ abstract class _Comparer {
         'No comparator provided and elements are not Comparable: ${a.runtimeType} <=> ${b.runtimeType}');
   }
 
-  static int binarySearchIndex<D extends Object>(List<D> ids, D value,
-      [ComputeIDCompare<D>? compare]) {
-    final cmp = compare ?? _defaultCompare;
-
+  static int binarySearchIndex<D extends Object>(
+      List<D> ids, D value, ComputeIDCompare<D> compare) {
     int low = 0;
     int high = ids.length - 1;
 
     while (low <= high) {
       final mid = (low + high) >> 1;
-      final c = cmp(ids[mid], value);
+      final c = compare(ids[mid], value);
 
       if (c < 0) {
         low = mid + 1;
