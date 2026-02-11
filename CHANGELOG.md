@@ -1,3 +1,29 @@
+## 1.2.21
+
+- `ComputeOnceCache`:
+  - Added `callsLength` getter to return the number of cached computations.
+
+- `ComputeOnceCachedIDs`:
+  - Made `compare` field non-nullable and always initialized with a comparator (defaulting to `_Comparer._defaultCompare`).
+  - Updated internal logic to consistently use non-null `compare`.
+  - Improved sorting and deduplication logic in `ComputeIDs` constructor.
+  - Enhanced `computeIDs` and `getByIDs` methods to correctly merge and order results by IDs.
+  - Added detailed handling to preserve order and sorting of IDs and results.
+
+- `ComputeIDs`:
+  - Made `compare` field non-nullable and always initialized.
+  - Added `checkIDsSorted` method to verify internal ID ordering.
+  - Simplified and unified binary search and intersection logic to rely on non-null comparator.
+  - Improved `intersection` method to preserve input order of IDs.
+  - Improved `getValuesByIndexes` to handle cases where values list length differs from IDs length and ensure sorted output.
+  - Simplified `equalsIDs` to always use comparator.
+
+- `ListIdValuePairExtension`:
+  - Updated `binarySearchIndex` and `binarySearch` methods to require non-null comparator argument.
+
+- `_Comparer`:
+  - Updated `binarySearchIndex` to require non-null comparator argument.
+
 ## 1.2.20
 
 - `ComputeOnce`:

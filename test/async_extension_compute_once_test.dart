@@ -699,8 +699,8 @@ void main() {
       final ids = ComputeIDs<String>(['a', 'b', 'c', 'd'], compare: cmp);
       final inter = ids.intersection(['C', 'x', 'b']);
       // should find 'C' -> 'c' and 'b'
-      final foundIds = inter.map((t) => t.$2.toLowerCase()).toList()..sort();
-      expect(foundIds, equals(['b', 'c']));
+      final foundIds = inter.map((t) => t.$2.toLowerCase()).toList();
+      expect(foundIds, equals(['c', 'b']));
     });
 
     test('equality and hashCode for same ordered set', () {
@@ -1092,8 +1092,15 @@ void main() {
   });
 
   group('ComputeIDs behavior', () {
-    test('ComputeIDs constructor sorts and deduplicate', () {
+    test('ComputeIDs<int> constructor sorts and deduplicate', () {
       final ids = ComputeIDs<int>([3, 1, 2, 1]);
+
+      expect(ids.ids, equals([1, 2, 3]));
+      expect(ids.length, equals(3));
+    });
+
+    test('ComputeIDs<Object?> constructor sorts and deduplicate', () {
+      final ids = ComputeIDs<Object>([3, 1, 2, 1]);
 
       expect(ids.ids, equals([1, 2, 3]));
       expect(ids.length, equals(3));
@@ -1191,7 +1198,7 @@ void main() {
         (7, 'g'),
       ];
 
-      final idx = list.binarySearchIndex(5);
+      final idx = list.binarySearchIndex(5, (a, b) => a.compareTo(b));
       expect(idx, equals(2));
     });
 
@@ -1202,12 +1209,12 @@ void main() {
         (6, 'f'),
       ];
 
-      final found = list.binarySearch(4);
+      final found = list.binarySearch(4, (a, b) => a.compareTo(b));
       expect(found, isNotNull);
       expect(found!.$1, equals(4));
       expect(found.$2, equals('d'));
 
-      final missing = list.binarySearch(3);
+      final missing = list.binarySearch(3, (a, b) => a.compareTo(b));
       expect(missing, isNull);
     });
   });
@@ -1326,6 +1333,154 @@ void main() {
       expect(c.value, equals(555));
     });
   });
+
+  group('ComputeOnceCachedIDs overlap', () {
+    test('overlap 3/3/5', () async {
+      var computeOnceCachedIDs = ComputeOnceCachedIDs<int, _Entity>(
+          retentionDuration: Duration(seconds: 10));
+
+      var ids1 = [20, 17, 26, 23, 22];
+      var ids2 = [20, 17, 23];
+
+      var entities1 = await computeOnceCachedIDs.computeIDs(
+        ids1,
+        (ids) => Future.delayed(
+          Duration(seconds: 1),
+          () => ids.map((id) => _Entity(id, '#$id')).toList(),
+        ),
+      );
+
+      var entities2 = await computeOnceCachedIDs.computeIDs(
+        ids2,
+        (ids) => Future.delayed(
+          Duration(seconds: 1),
+          () => ids.map((id) => _Entity(id, '#$id')).toList(),
+        ),
+      );
+
+      var entities3 = await computeOnceCachedIDs.computeIDs(
+        ids2,
+        (ids) => Future.delayed(
+          Duration(seconds: 1),
+          () => ids.map((id) => _Entity(id, '#$id')).toList(),
+        ),
+      );
+
+      print(entities1);
+      print(entities2);
+      print(entities3);
+
+      expect(entities1.map((e) => e.$1), equals(ids1));
+      expect(entities2.map((e) => e.$1), equals(ids2));
+      expect(entities3.map((e) => e.$1), equals(ids2));
+
+      expect(computeOnceCachedIDs.callsLength, equals(1));
+
+      expect(
+          computeOnceCachedIDs.calls().keys.map((e) => e.ids).toList(),
+          equals([
+            [17, 20, 22, 23, 26]
+          ]));
+    });
+
+    test('overlap 2/3/5', () async {
+      var computeOnceCachedIDs = ComputeOnceCachedIDs<int, _Entity>(
+          retentionDuration: Duration(seconds: 10));
+
+      var ids1 = [20, 17, 26, 23, 22];
+      var ids2 = [20, 17, 30];
+
+      var entities1 = await computeOnceCachedIDs.computeIDs(
+        ids1,
+        (ids) => Future.delayed(
+          Duration(seconds: 1),
+          () => ids.map((id) => _Entity(id, '#$id')).toList(),
+        ),
+      );
+
+      var entities2 = await computeOnceCachedIDs.computeIDs(
+        ids2,
+        (ids) => Future.delayed(
+          Duration(seconds: 1),
+          () => ids.map((id) => _Entity(id, '#$id')).toList(),
+        ),
+      );
+
+      var entities3 = await computeOnceCachedIDs.computeIDs(
+        ids2,
+        (ids) => Future.delayed(
+          Duration(seconds: 1),
+          () => ids.map((id) => _Entity(id, '#$id')).toList(),
+        ),
+      );
+
+      print(entities1);
+      print(entities2);
+      print(entities3);
+
+      expect(entities1.map((e) => e.$1), equals(ids1));
+      expect(entities2.map((e) => e.$1), equals(ids2));
+      expect(entities3.map((e) => e.$1), equals(ids2));
+
+      expect(computeOnceCachedIDs.callsLength, equals(2));
+
+      expect(
+          computeOnceCachedIDs.calls().keys.map((e) => e.ids).toList(),
+          equals([
+            [17, 20, 22, 23, 26],
+            [30]
+          ]));
+    });
+
+    test('overlap 0/3/5', () async {
+      var computeOnceCachedIDs = ComputeOnceCachedIDs<int, _Entity>(
+          retentionDuration: Duration(seconds: 10));
+
+      var ids1 = [20, 17, 26, 23, 22];
+      var ids2 = [30, 47, 33];
+
+      var entities1 = await computeOnceCachedIDs.computeIDs(
+        ids1,
+        (ids) => Future.delayed(
+          Duration(seconds: 1),
+          () => ids.map((id) => _Entity(id, '#$id')).toList(),
+        ),
+      );
+
+      var entities2 = await computeOnceCachedIDs.computeIDs(
+        ids2,
+        (ids) => Future.delayed(
+          Duration(seconds: 1),
+          () => ids.map((id) => _Entity(id, '#$id')).toList(),
+        ),
+      );
+
+      var entities3 = await computeOnceCachedIDs.computeIDs(
+        ids2,
+        (ids) => Future.delayed(
+          Duration(seconds: 1),
+          () => ids.map((id) => _Entity(id, '#$id')).toList(),
+        ),
+      );
+
+      print(entities1);
+      print(entities2);
+      print(entities3);
+
+      expect(entities1.map((e) => e.$1), equals(ids1));
+      expect(entities2.map((e) => e.$1), equals(ids2));
+      expect(entities3.map((e) => e.$1), equals(ids2));
+
+      expect(computeOnceCachedIDs.callsLength, equals(2));
+
+      expect(
+          computeOnceCachedIDs.calls().keys.map((e) => e.ids).toList(),
+          equals([
+            [17, 20, 22, 23, 26],
+            [30, 33, 47],
+          ]));
+    });
+  });
 }
 
 class _MyComputeOnce<V> extends ComputeOnce<V> {
@@ -1337,4 +1492,22 @@ class _MyComputeOnce<V> extends ComputeOnce<V> {
   void onCompute(V? value, Object? error, StackTrace? stackTrace) {
     onComputeArgs = (value, error, stackTrace);
   }
+}
+
+class _Entity {
+  int? id;
+  String info;
+
+  _Entity(this.id, this.info);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is _Entity && runtimeType == other.runtimeType && id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
+
+  @override
+  String toString() => '_Entity{id: $id, info: $info}';
 }
