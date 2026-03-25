@@ -270,8 +270,48 @@ extension FunctionArgs2Extension<R, A, B> on FutureOr<R> Function(A a, B b) {
   }
 }
 
+bool _evalCondition(Object? o) {
+  if (o == null) {
+    return false;
+  } else if (o is bool) {
+    return o;
+  } else if (o is bool Function()) {
+    return o();
+  } else {
+    return false;
+  }
+}
+
+/// Extension for [Object] [T].
+extension ObjectExtension<T extends Object> on T {
+  /// Returns `this` if [condition] evaluates to `true`, otherwise `null`.
+  ///
+  /// [condition] can be:
+  /// - `bool`
+  /// - `bool Function()` (lazy)
+  /// - anything else → `false`
+  T? when(Object? condition) => _evalCondition(condition) ? this : null;
+}
+
 /// Extension for [FutureOr].
 extension FutureOrExtension<T> on FutureOr<T> {
+  /// Async-aware version of [ObjectExtension.when].
+  ///
+  /// Returns `this` `FutureOr<T>` if [condition] evaluates to `true`, otherwise `null`.
+  ///
+  /// [condition] can be:
+  /// - `bool`
+  /// - `bool Function()` (lazy)
+  /// - anything else → `false`
+  FutureOr<T?> whenAsync(Object? condition) {
+    final self = this;
+    if (self is Future<T>) {
+      return self.then((val) => _evalCondition(condition) ? val : null);
+    } else {
+      return _evalCondition(condition) ? self : null;
+    }
+  }
+
   /// Returns the type of [T].
   Type get genericType => T;
 

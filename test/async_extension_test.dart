@@ -280,6 +280,91 @@ void main() {
     });
   });
 
+  group('when (sync)', () {
+    test('returns value when condition is true', () {
+      expect(10.when(true), 10);
+    });
+
+    test('returns null when condition is false', () {
+      expect(10.when(false), null);
+    });
+
+    test('returns null when condition is null', () {
+      expect(10.when(null), null);
+    });
+
+    test('evaluates bool function (true)', () {
+      expect(10.when(() => true), 10);
+    });
+
+    test('evaluates bool function (false)', () {
+      expect(10.when(() => false), null);
+    });
+
+    test('returns null for invalid type', () {
+      expect(10.when('invalid'), null);
+    });
+  });
+
+  group('whenAsync with non-Future', () {
+    test('returns value when condition is true', () {
+      final result = (10 as FutureOr<int>).whenAsync(true);
+      expect(result, 10);
+    });
+
+    test('returns null when condition is false', () {
+      final result = (10 as FutureOr<int>).whenAsync(false);
+      expect(result, null);
+    });
+
+    test('evaluates function condition', () {
+      final result = (10 as FutureOr<int>).whenAsync(() => true);
+      expect(result, 10);
+    });
+  });
+
+  group('whenAsync with Future', () {
+    test('resolves value when condition is true', () async {
+      final future = Future.value(10);
+
+      final result = future.whenAsync(true) as Future<int?>;
+
+      expect(await result, 10);
+    });
+
+    test('resolves null when condition is false', () async {
+      final future = Future.value(10);
+
+      final result = future.whenAsync(false) as Future<int?>;
+
+      expect(await result, null);
+    });
+
+    test('evaluates function condition (true)', () async {
+      final future = Future.value(10);
+
+      final result = future.whenAsync(() => true) as Future<int?>;
+
+      expect(await result, 10);
+    });
+
+    test('evaluates function condition (false)', () async {
+      final future = Future.value(10);
+
+      final result = future.whenAsync(() => false) as Future<int?>;
+
+      expect(await result, null);
+    });
+
+    test('returns Future when original is Future', () {
+      final future = Future.value(10);
+
+      final result = future.whenAsync(true);
+
+      expect(result, isA<Future<int?>>());
+    });
+  });
+
   group('FutureOrExtension', () {
     setUp(() {});
 

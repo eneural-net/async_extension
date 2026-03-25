@@ -1,3 +1,10 @@
+## 1.2.22
+
+- `ObjectExtension<T>`:
+  - Added method `when` that returns `this` if a condition evaluates to `true`, otherwise `null`.
+- `FutureOrExtension<T>`:
+  - Added method `whenAsync` as an async-aware version of `when`, returning `this` or `null` based on a condition evaluation.
+
 ## 1.2.21
 
 - `ComputeOnceCache`:
