@@ -1,3 +1,35 @@
+## 1.2.24
+
+- `asyncTry`:
+  - Fixed: a synchronously throwing `onFinally` was swallowed when `onError` was set (on success the `onFinally`
+    error was passed to `onError` and the original result returned; on failure the `onError` result was returned),
+    while it propagated in every other combination (async `onFinally` failures, or no `onError`).
+    Now, as in a Dart `try/catch/finally`, an `onFinally` error always replaces the result and is never passed to
+    `onError`.
+
+- `FutureOrExtension`:
+  - Fixed `resolve` with an async `validate` callback, and `validate` on a `Future` value without `defaultValue`,
+    that threw a `TypeError` (`Future<T?>`/`Null` cast to `FutureOr<T>`) for non-nullable `T`.
+
+- `FunctionArgs0Extension`, `FunctionArgs1Extension`, `FunctionArgs2Extension`:
+  - Fixed `tryCallThen`: when the function returns a `Future`, `onError` now also handles errors from `onValue`,
+    as it already did for synchronous results.
+
+- `ComputeOnce`:
+  - Fixed `resolveAsync(throwError: false)` on a cached error without `onError`/`onErrorValue` for a non-nullable
+    `V`: it threw a `TypeError` synchronously; it now returns a failed `Future` with a `StateError`
+    (same as the in-flight path and `resolve`).
+
+- Tests:
+  - Added `async_extension_try_finally_test.dart`: the full `asyncTry` matrix (sync/async body, success/failure,
+    with/without `then`/`onError`, `onFinally` ok/throwing, sync/async).
+  - Added `async_extension_combinatorial_test.dart`: sync/async combinations of the `FutureOr` helpers,
+    `tryCall`/`tryCallThen`, iterable/map helpers, loops, `asyncRetry` edge cases and `ComputeOnce`/
+    `ComputeOnceCache`/`ComputeOnceCachedIDs` with many concurrent resolvers.
+  - Added `async_extension_integration_test.dart`: multi-step pipelines combining several helpers.
+  - Tests: 244 -> 485.
+  - Line coverage: 99.1% -> 99.3%.
+
 ## 1.2.23
 
 - sdk: ^3.13.0

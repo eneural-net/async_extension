@@ -85,7 +85,9 @@ extension FunctionArgs0Extension<R> on FutureOr<R> Function() {
       try {
         var r = f();
         if (r is Future<R>) {
-          return r.then(onValue, onError: onError);
+          // `onError` also handles errors thrown by `onValue`,
+          // as in the synchronous path:
+          return r.then(onValue).onError(onError);
         } else {
           try {
             var r2 = onValue(r);
@@ -179,7 +181,9 @@ extension FunctionArgs1Extension<R, A> on FutureOr<R> Function(A a) {
       try {
         var r = f(a);
         if (r is Future<R>) {
-          return r.then(onValue, onError: onError);
+          // `onError` also handles errors thrown by `onValue`,
+          // as in the synchronous path:
+          return r.then(onValue).onError(onError);
         } else {
           try {
             var r2 = onValue(r);
@@ -275,7 +279,9 @@ extension FunctionArgs2Extension<R, A, B> on FutureOr<R> Function(A a, B b) {
       try {
         var r = f(a, b);
         if (r is Future<R>) {
-          return r.then(onValue, onError: onError);
+          // `onError` also handles errors thrown by `onValue`,
+          // as in the synchronous path:
+          return r.then(onValue).onError(onError);
         } else {
           try {
             var r2 = onValue(r);
@@ -370,16 +376,18 @@ extension FutureOrExtension<T> on FutureOr<T> {
 
     if (self is Future<T>) {
       return self.then(
-        (value) =>
-            _validate(value, validate: validate, defaultValue: defaultValue)
-                as FutureOr<T>,
+        (value) => _validate(
+          value,
+          validate: validate,
+          defaultValue: defaultValue,
+        ).resolveMapped((v) => v as T),
       );
     } else {
       return _validate<T>(
         this as T,
         validate: validate,
         defaultValue: defaultValue,
-      ) as FutureOr<T>;
+      ).resolveMapped((v) => v as T);
     }
   }
 
@@ -457,8 +465,7 @@ extension FutureOrExtension<T> on FutureOr<T> {
     if (self is Future<T>) {
       return self.then(
         (value) =>
-            _validate(value, validate: validate, defaultValue: defaultValue)
-                as FutureOr<T>,
+            _validate(value, validate: validate, defaultValue: defaultValue),
       );
     } else {
       return _validate(self, validate: validate, defaultValue: defaultValue);

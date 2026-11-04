@@ -249,7 +249,8 @@ class ComputeOnce<V> {
         } else if (onError != null) {
           return onError(error, stackTrace);
         } else {
-          return Future.value(onErrorValue ?? (null as V));
+          // Always return a `Future`, even if `onErrorValue` can't be cast:
+          return Future<V>.sync(() => _castErrorValue(onErrorValue));
         }
       }
       return Future.value(result.value as V);
