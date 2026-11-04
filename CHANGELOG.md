@@ -1,3 +1,24 @@
+## 1.2.23
+
+- sdk: ^3.13.0
+- Removed the unnecessary library name (`library;`).
+- Applied `dart format` for the 3.13 language version.
+
+- Tests:
+  - Added `async_extension_extra_test.dart`, covering `FutureOrFunctionArgs*Extension` with a `Future` of a function,
+    `FunctionArgs*Extension` without `onError`, `ComputeOnce` `posCompute` error paths, `TimedComputeOnce`,
+    `ComputeOnceCache.remove`/`clear`, `ComputeIDs` comparators and `asyncRetry` with async failures.
+  - Line coverage: 95.3% -> 99.1%.
+
+- GitHub Actions:
+  - actions/checkout: v7
+  - codecov/codecov-action: v7
+
+- lints: ^6.1.0
+- test: ^1.33.0
+- dependency_validator: ^5.1.0
+- coverage: ^1.16.0
+
 ## 1.2.22
 
 - `ObjectExtension<T>`:
