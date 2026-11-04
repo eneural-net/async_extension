@@ -1,30 +1,43 @@
 import 'dart:async';
 
-FutureOr<R?> _complete<R>(FutureOr<R?> result, _ErrorFunction<R>? errorFunction,
-    _FinallyFunction<R>? finallyFunction) {
+FutureOr<R?> _complete<R>(
+  FutureOr<R?> result,
+  _ErrorFunction<R>? errorFunction,
+  _FinallyFunction<R>? finallyFunction,
+) {
   if (result is Future<R?>) {
-    return result.then((r) {
-      return _finally(r, finallyFunction);
-    }, onError: (e, s) {
-      return _completeError(e, s, errorFunction, finallyFunction);
-    });
+    return result.then(
+      (r) {
+        return _finally(r, finallyFunction);
+      },
+      onError: (e, s) {
+        return _completeError(e, s, errorFunction, finallyFunction);
+      },
+    );
   } else {
     return _finally(result, finallyFunction);
   }
 }
 
-FutureOr<R?> _completeError<R>(Object error, StackTrace stackTrace,
-    _ErrorFunction<R>? errorFunction, _FinallyFunction<R>? finallyFunction) {
+FutureOr<R?> _completeError<R>(
+  Object error,
+  StackTrace stackTrace,
+  _ErrorFunction<R>? errorFunction,
+  _FinallyFunction<R>? finallyFunction,
+) {
   if (errorFunction != null) {
     return errorFunction.call(error, stackTrace, finallyFunction);
   } else if (finallyFunction != null) {
     var ret = finallyFunction.call();
     if (ret is Future<R?>) {
-      return ret.then((_) {
-        throw error;
-      }, onError: (e) {
-        throw e;
-      });
+      return ret.then(
+        (_) {
+          throw error;
+        },
+        onError: (e) {
+          throw e;
+        },
+      );
     } else {
       throw error;
     }
@@ -33,8 +46,11 @@ FutureOr<R?> _completeError<R>(Object error, StackTrace stackTrace,
   }
 }
 
-FutureOr<R?> _finally<R>(R? result, _FinallyFunction<R>? finallyFunction,
-    [Object? thrownError]) {
+FutureOr<R?> _finally<R>(
+  R? result,
+  _FinallyFunction<R>? finallyFunction, [
+  Object? thrownError,
+]) {
   if (finallyFunction != null) {
     return finallyFunction.call(result, thrownError);
   } else {
@@ -54,8 +70,11 @@ class _ThenFunction<R> {
 
   bool _called = false;
 
-  FutureOr<R?> call(R? r, _ErrorFunction<R>? errorFunction,
-      _FinallyFunction<R>? finallyFunction) {
+  FutureOr<R?> call(
+    R? r,
+    _ErrorFunction<R>? errorFunction,
+    _FinallyFunction<R>? finallyFunction,
+  ) {
     if (_called) {
       return result;
     } else {
@@ -83,8 +102,11 @@ class _ErrorFunction<R> {
 
   bool _called = false;
 
-  FutureOr<R?> call(Object error, StackTrace stackTrace,
-      _FinallyFunction<R>? finallyFunction) {
+  FutureOr<R?> call(
+    Object error,
+    StackTrace stackTrace,
+    _FinallyFunction<R>? finallyFunction,
+  ) {
     if (_called) {
       return result;
     }
@@ -94,11 +116,14 @@ class _ErrorFunction<R> {
       Object? ret = _callFunction(error, stackTrace);
 
       if (ret is Future) {
-        return ret.then((o) {
-          return _callFinally(o, finallyFunction);
-        }, onError: (e) {
-          return _callFinally(null, finallyFunction, e);
-        });
+        return ret.then(
+          (o) {
+            return _callFinally(o, finallyFunction);
+          },
+          onError: (e) {
+            return _callFinally(null, finallyFunction, e);
+          },
+        );
       } else {
         return _callFinally(ret, finallyFunction);
       }
@@ -115,8 +140,11 @@ class _ErrorFunction<R> {
     }
   }
 
-  FutureOr<R?> _callFinally(Object? o, _FinallyFunction<R>? finallyFunction,
-      [Object? thrownError]) {
+  FutureOr<R?> _callFinally(
+    Object? o,
+    _FinallyFunction<R>? finallyFunction, [
+    Object? thrownError,
+  ]) {
     var r = o is R ? o : null;
     result = r;
     return _finally(r, finallyFunction, thrownError);
@@ -147,14 +175,17 @@ class _FinallyFunction<R> {
 
       var ret = function();
       if (ret is Future<void>) {
-        var future = ret.then((_) {
-          if (thrownError != null) {
-            throw thrownError;
-          }
-          return result;
-        }, onError: (e) {
-          throw e;
-        });
+        var future = ret.then(
+          (_) {
+            if (thrownError != null) {
+              throw thrownError;
+            }
+            return result;
+          },
+          onError: (e) {
+            throw e;
+          },
+        );
         _callFuture = future;
         return future;
       } else {
@@ -186,21 +217,28 @@ class _FinallyFunction<R> {
 ///   onFinally: () => cleanUp(),
 /// );
 /// ```
-FutureOr<R?> asyncTry<R>(FutureOr<R?> Function() tryBlock,
-    {FutureOr<R?> Function(R? r)? then,
-    Function? onError,
-    FutureOr<void> Function()? onFinally}) {
+FutureOr<R?> asyncTry<R>(
+  FutureOr<R?> Function() tryBlock, {
+  FutureOr<R?> Function(R? r)? then,
+  Function? onError,
+  FutureOr<void> Function()? onFinally,
+}) {
   var thenFunction = then != null ? _ThenFunction<R>(then) : null;
   var errorFunction = onError != null ? _ErrorFunction<R>(onError) : null;
-  var finallyFunction =
-      onFinally != null ? _FinallyFunction<R>(onFinally) : null;
+  var finallyFunction = onFinally != null
+      ? _FinallyFunction<R>(onFinally)
+      : null;
 
   try {
     var ret = tryBlock();
 
     if (ret is Future<R?>) {
       return _returnFuture<R>(
-          ret, thenFunction, errorFunction, finallyFunction);
+        ret,
+        thenFunction,
+        errorFunction,
+        finallyFunction,
+      );
     } else {
       return _returnValue<R>(ret, thenFunction, errorFunction, finallyFunction);
     }
@@ -309,22 +347,31 @@ FutureOr<R?> _returnValue<R>(
 ///
 /// ### Throws:
 /// - The last error from [tryBlock] if retries are exhausted and [throwOnRetryExhaustion] is `true`.
-FutureOr<R?> asyncRetry<R>(FutureOr<R?> Function() tryBlock,
-    {R? defaultValue,
-    bool throwOnRetryExhaustion = false,
-    int maxRetries = 3,
-    Duration? retryDelay,
-    Duration? Function(int retry)? computeDelay,
-    bool? Function(Object error, StackTrace stackTrace, int retries)?
-        onError}) {
+FutureOr<R?> asyncRetry<R>(
+  FutureOr<R?> Function() tryBlock, {
+  R? defaultValue,
+  bool throwOnRetryExhaustion = false,
+  int maxRetries = 3,
+  Duration? retryDelay,
+  Duration? Function(int retry)? computeDelay,
+  bool? Function(Object error, StackTrace stackTrace, int retries)? onError,
+}) {
   if (maxRetries < 0) {
     maxRetries = 0;
   }
 
   retryDelay ??= Duration(milliseconds: 1);
 
-  return _asyncRetryImpl(tryBlock, 0, maxRetries, defaultValue,
-      throwOnRetryExhaustion, retryDelay, computeDelay, onError);
+  return _asyncRetryImpl(
+    tryBlock,
+    0,
+    maxRetries,
+    defaultValue,
+    throwOnRetryExhaustion,
+    retryDelay,
+    computeDelay,
+    onError,
+  );
 }
 
 FutureOr<R?> _asyncRetryImpl<R>(
@@ -341,24 +388,37 @@ FutureOr<R?> _asyncRetryImpl<R>(
     var ret = tryBlock();
 
     if (ret is Future<R?>) {
-      return ret.then((r) => r,
-          onError: (e, s) => _asyncRetryOnError<R>(
-              tryBlock,
-              retries,
-              maxRetries,
-              defaultValue,
-              throwOnRetryExhaustion,
-              retryDelay,
-              computeDelay,
-              onError,
-              e,
-              s));
+      return ret.then(
+        (r) => r,
+        onError: (e, s) => _asyncRetryOnError<R>(
+          tryBlock,
+          retries,
+          maxRetries,
+          defaultValue,
+          throwOnRetryExhaustion,
+          retryDelay,
+          computeDelay,
+          onError,
+          e,
+          s,
+        ),
+      );
     } else {
       return ret;
     }
   } catch (e, s) {
-    return _asyncRetryOnError<R>(tryBlock, retries, maxRetries, defaultValue,
-        throwOnRetryExhaustion, retryDelay, computeDelay, onError, e, s);
+    return _asyncRetryOnError<R>(
+      tryBlock,
+      retries,
+      maxRetries,
+      defaultValue,
+      throwOnRetryExhaustion,
+      retryDelay,
+      computeDelay,
+      onError,
+      e,
+      s,
+    );
   }
 }
 
@@ -392,8 +452,16 @@ FutureOr<R?>? _asyncRetryOnError<R>(
 
   return Future.delayed(
     retryDelay,
-    () => _asyncRetryImpl<R>(tryBlock, retries + 1, maxRetries, defaultValue,
-        throwOnRetryExhaustion, retryDelay, computeDelay, onError),
+    () => _asyncRetryImpl<R>(
+      tryBlock,
+      retries + 1,
+      maxRetries,
+      defaultValue,
+      throwOnRetryExhaustion,
+      retryDelay,
+      computeDelay,
+      onError,
+    ),
   );
 }
 
@@ -401,244 +469,340 @@ typedef AsyncFunction<R> = FutureOr<R> Function();
 
 extension AsyncFunctionExtension<R> on AsyncFunction<R> {
   /// Alias to [asyncRetry].
-  FutureOr<R?> retry(
-          {R? defaultValue,
-          bool throwOnRetryExhaustion = false,
-          int maxRetries = 3,
-          Duration? retryDelay,
-          Duration? Function(int retry)? computeDelay,
-          bool? Function(Object error, StackTrace stackTrace, int retries)?
-              onError}) =>
-      asyncRetry<R>(this,
-          defaultValue: defaultValue,
-          throwOnRetryExhaustion: throwOnRetryExhaustion,
-          maxRetries: maxRetries,
-          retryDelay: retryDelay,
-          computeDelay: computeDelay,
-          onError: onError);
+  FutureOr<R?> retry({
+    R? defaultValue,
+    bool throwOnRetryExhaustion = false,
+    int maxRetries = 3,
+    Duration? retryDelay,
+    Duration? Function(int retry)? computeDelay,
+    bool? Function(Object error, StackTrace stackTrace, int retries)? onError,
+  }) => asyncRetry<R>(
+    this,
+    defaultValue: defaultValue,
+    throwOnRetryExhaustion: throwOnRetryExhaustion,
+    maxRetries: maxRetries,
+    retryDelay: retryDelay,
+    computeDelay: computeDelay,
+    onError: onError,
+  );
 }
 
 typedef AsyncFunction1<R, A> = FutureOr<R> Function(A a);
 
 extension AsyncFunctionExtension1<R, A> on AsyncFunction1<R, A> {
   /// Alias to [asyncRetry].
-  FutureOr<R?> retry(A a,
-          {R? defaultValue,
-          bool throwOnRetryExhaustion = false,
-          int maxRetries = 3,
-          Duration? retryDelay,
-          Duration? Function(int retry)? computeDelay,
-          bool? Function(Object error, StackTrace stackTrace, int retries)?
-              onError}) =>
-      asyncRetry<R>(() => this(a),
-          defaultValue: defaultValue,
-          throwOnRetryExhaustion: throwOnRetryExhaustion,
-          maxRetries: maxRetries,
-          retryDelay: retryDelay,
-          computeDelay: computeDelay,
-          onError: onError);
+  FutureOr<R?> retry(
+    A a, {
+    R? defaultValue,
+    bool throwOnRetryExhaustion = false,
+    int maxRetries = 3,
+    Duration? retryDelay,
+    Duration? Function(int retry)? computeDelay,
+    bool? Function(Object error, StackTrace stackTrace, int retries)? onError,
+  }) => asyncRetry<R>(
+    () => this(a),
+    defaultValue: defaultValue,
+    throwOnRetryExhaustion: throwOnRetryExhaustion,
+    maxRetries: maxRetries,
+    retryDelay: retryDelay,
+    computeDelay: computeDelay,
+    onError: onError,
+  );
 }
 
 typedef AsyncFunction2<R, A, B> = FutureOr<R> Function(A a, B b);
 
 extension AsyncFunctionExtension2<R, A, B> on AsyncFunction2<R, A, B> {
   /// Alias to [asyncRetry].
-  FutureOr<R?> retry(A a, B b,
-          {R? defaultValue,
-          bool throwOnRetryExhaustion = false,
-          int maxRetries = 3,
-          Duration? retryDelay,
-          Duration? Function(int retry)? computeDelay,
-          bool? Function(Object error, StackTrace stackTrace, int retries)?
-              onError}) =>
-      asyncRetry<R>(() => this(a, b),
-          defaultValue: defaultValue,
-          throwOnRetryExhaustion: throwOnRetryExhaustion,
-          maxRetries: maxRetries,
-          retryDelay: retryDelay,
-          computeDelay: computeDelay,
-          onError: onError);
+  FutureOr<R?> retry(
+    A a,
+    B b, {
+    R? defaultValue,
+    bool throwOnRetryExhaustion = false,
+    int maxRetries = 3,
+    Duration? retryDelay,
+    Duration? Function(int retry)? computeDelay,
+    bool? Function(Object error, StackTrace stackTrace, int retries)? onError,
+  }) => asyncRetry<R>(
+    () => this(a, b),
+    defaultValue: defaultValue,
+    throwOnRetryExhaustion: throwOnRetryExhaustion,
+    maxRetries: maxRetries,
+    retryDelay: retryDelay,
+    computeDelay: computeDelay,
+    onError: onError,
+  );
 }
 
 typedef AsyncFunction3<R, A, B, C> = FutureOr<R> Function(A a, B b, C c);
 
 extension AsyncFunctionExtension3<R, A, B, C> on AsyncFunction3<R, A, B, C> {
   /// Alias to [asyncRetry].
-  FutureOr<R?> retry(A a, B b, C c,
-          {R? defaultValue,
-          bool throwOnRetryExhaustion = false,
-          int maxRetries = 3,
-          Duration? retryDelay,
-          Duration? Function(int retry)? computeDelay,
-          bool? Function(Object error, StackTrace stackTrace, int retries)?
-              onError}) =>
-      asyncRetry<R>(() => this(a, b, c),
-          defaultValue: defaultValue,
-          throwOnRetryExhaustion: throwOnRetryExhaustion,
-          maxRetries: maxRetries,
-          retryDelay: retryDelay,
-          computeDelay: computeDelay,
-          onError: onError);
+  FutureOr<R?> retry(
+    A a,
+    B b,
+    C c, {
+    R? defaultValue,
+    bool throwOnRetryExhaustion = false,
+    int maxRetries = 3,
+    Duration? retryDelay,
+    Duration? Function(int retry)? computeDelay,
+    bool? Function(Object error, StackTrace stackTrace, int retries)? onError,
+  }) => asyncRetry<R>(
+    () => this(a, b, c),
+    defaultValue: defaultValue,
+    throwOnRetryExhaustion: throwOnRetryExhaustion,
+    maxRetries: maxRetries,
+    retryDelay: retryDelay,
+    computeDelay: computeDelay,
+    onError: onError,
+  );
 }
 
 typedef AsyncFunction4<R, A, B, C, D> = FutureOr<R> Function(
-    A a, B b, C c, D d);
+  A a,
+  B b,
+  C c,
+  D d,
+);
 
 extension AsyncFunctionExtension4<R, A, B, C, D>
     on AsyncFunction4<R, A, B, C, D> {
   /// Alias to [asyncRetry].
-  FutureOr<R?> retry(A a, B b, C c, D d,
-          {R? defaultValue,
-          bool throwOnRetryExhaustion = false,
-          int maxRetries = 3,
-          Duration? retryDelay,
-          Duration? Function(int retry)? computeDelay,
-          bool? Function(Object error, StackTrace stackTrace, int retries)?
-              onError}) =>
-      asyncRetry<R>(() => this(a, b, c, d),
-          defaultValue: defaultValue,
-          throwOnRetryExhaustion: throwOnRetryExhaustion,
-          maxRetries: maxRetries,
-          retryDelay: retryDelay,
-          computeDelay: computeDelay,
-          onError: onError);
+  FutureOr<R?> retry(
+    A a,
+    B b,
+    C c,
+    D d, {
+    R? defaultValue,
+    bool throwOnRetryExhaustion = false,
+    int maxRetries = 3,
+    Duration? retryDelay,
+    Duration? Function(int retry)? computeDelay,
+    bool? Function(Object error, StackTrace stackTrace, int retries)? onError,
+  }) => asyncRetry<R>(
+    () => this(a, b, c, d),
+    defaultValue: defaultValue,
+    throwOnRetryExhaustion: throwOnRetryExhaustion,
+    maxRetries: maxRetries,
+    retryDelay: retryDelay,
+    computeDelay: computeDelay,
+    onError: onError,
+  );
 }
 
 typedef AsyncFunction5<R, A, B, C, D, E> = FutureOr<R> Function(
-    A a, B b, C c, D d, E e);
+  A a,
+  B b,
+  C c,
+  D d,
+  E e,
+);
 
 extension AsyncFunctionExtension5<R, A, B, C, D, E>
     on AsyncFunction5<R, A, B, C, D, E> {
   /// Alias to [asyncRetry].
-  FutureOr<R?> retry(A a, B b, C c, D d, E e,
-          {R? defaultValue,
-          bool throwOnRetryExhaustion = false,
-          int maxRetries = 3,
-          Duration? retryDelay,
-          Duration? Function(int retry)? computeDelay,
-          bool? Function(Object error, StackTrace stackTrace, int retries)?
-              onError}) =>
-      asyncRetry<R>(() => this(a, b, c, d, e),
-          defaultValue: defaultValue,
-          throwOnRetryExhaustion: throwOnRetryExhaustion,
-          maxRetries: maxRetries,
-          retryDelay: retryDelay,
-          computeDelay: computeDelay,
-          onError: onError);
+  FutureOr<R?> retry(
+    A a,
+    B b,
+    C c,
+    D d,
+    E e, {
+    R? defaultValue,
+    bool throwOnRetryExhaustion = false,
+    int maxRetries = 3,
+    Duration? retryDelay,
+    Duration? Function(int retry)? computeDelay,
+    bool? Function(Object error, StackTrace stackTrace, int retries)? onError,
+  }) => asyncRetry<R>(
+    () => this(a, b, c, d, e),
+    defaultValue: defaultValue,
+    throwOnRetryExhaustion: throwOnRetryExhaustion,
+    maxRetries: maxRetries,
+    retryDelay: retryDelay,
+    computeDelay: computeDelay,
+    onError: onError,
+  );
 }
 
 typedef AsyncFunction6<R, A, B, C, D, E, F> = FutureOr<R> Function(
-    A a, B b, C c, D d, E e, F f);
+  A a,
+  B b,
+  C c,
+  D d,
+  E e,
+  F f,
+);
 
 extension AsyncFunctionExtension6<R, A, B, C, D, E, F>
     on AsyncFunction6<R, A, B, C, D, E, F> {
   /// Alias to [asyncRetry].
-  FutureOr<R?> retry(A a, B b, C c, D d, E e, F f,
-          {R? defaultValue,
-          bool throwOnRetryExhaustion = false,
-          int maxRetries = 3,
-          Duration? retryDelay,
-          Duration? Function(int retry)? computeDelay,
-          bool? Function(Object error, StackTrace stackTrace, int retries)?
-              onError}) =>
-      asyncRetry<R>(() => this(a, b, c, d, e, f),
-          defaultValue: defaultValue,
-          throwOnRetryExhaustion: throwOnRetryExhaustion,
-          maxRetries: maxRetries,
-          retryDelay: retryDelay,
-          computeDelay: computeDelay,
-          onError: onError);
+  FutureOr<R?> retry(
+    A a,
+    B b,
+    C c,
+    D d,
+    E e,
+    F f, {
+    R? defaultValue,
+    bool throwOnRetryExhaustion = false,
+    int maxRetries = 3,
+    Duration? retryDelay,
+    Duration? Function(int retry)? computeDelay,
+    bool? Function(Object error, StackTrace stackTrace, int retries)? onError,
+  }) => asyncRetry<R>(
+    () => this(a, b, c, d, e, f),
+    defaultValue: defaultValue,
+    throwOnRetryExhaustion: throwOnRetryExhaustion,
+    maxRetries: maxRetries,
+    retryDelay: retryDelay,
+    computeDelay: computeDelay,
+    onError: onError,
+  );
 }
 
 typedef AsyncFunction7<R, A, B, C, D, E, F, G> = FutureOr<R> Function(
-    A a, B b, C c, D d, E e, F f, G g);
+  A a,
+  B b,
+  C c,
+  D d,
+  E e,
+  F f,
+  G g,
+);
 
 extension AsyncFunctionExtension7<R, A, B, C, D, E, F, G>
     on AsyncFunction7<R, A, B, C, D, E, F, G> {
   /// Alias to [asyncRetry].
-  FutureOr<R?> retry(A a, B b, C c, D d, E e, F f, G g,
-          {R? defaultValue,
-          bool throwOnRetryExhaustion = false,
-          int maxRetries = 3,
-          Duration? retryDelay,
-          Duration? Function(int retry)? computeDelay,
-          bool? Function(Object error, StackTrace stackTrace, int retries)?
-              onError}) =>
-      asyncRetry<R>(() => this(a, b, c, d, e, f, g),
-          defaultValue: defaultValue,
-          throwOnRetryExhaustion: throwOnRetryExhaustion,
-          maxRetries: maxRetries,
-          retryDelay: retryDelay,
-          computeDelay: computeDelay,
-          onError: onError);
+  FutureOr<R?> retry(
+    A a,
+    B b,
+    C c,
+    D d,
+    E e,
+    F f,
+    G g, {
+    R? defaultValue,
+    bool throwOnRetryExhaustion = false,
+    int maxRetries = 3,
+    Duration? retryDelay,
+    Duration? Function(int retry)? computeDelay,
+    bool? Function(Object error, StackTrace stackTrace, int retries)? onError,
+  }) => asyncRetry<R>(
+    () => this(a, b, c, d, e, f, g),
+    defaultValue: defaultValue,
+    throwOnRetryExhaustion: throwOnRetryExhaustion,
+    maxRetries: maxRetries,
+    retryDelay: retryDelay,
+    computeDelay: computeDelay,
+    onError: onError,
+  );
 }
 
 typedef AsyncFunction8<R, A, B, C, D, E, F, G, H> = FutureOr<R> Function(
-    A a, B b, C c, D d, E e, F f, G g, H h);
+  A a,
+  B b,
+  C c,
+  D d,
+  E e,
+  F f,
+  G g,
+  H h,
+);
 
 extension AsyncFunctionExtension8<R, A, B, C, D, E, F, G, H>
     on AsyncFunction8<R, A, B, C, D, E, F, G, H> {
   /// Alias to [asyncRetry].
-  FutureOr<R?> retry(A a, B b, C c, D d, E e, F f, G g, H h,
-          {R? defaultValue,
-          bool throwOnRetryExhaustion = false,
-          int maxRetries = 3,
-          Duration? retryDelay,
-          Duration? Function(int retry)? computeDelay,
-          bool? Function(Object error, StackTrace stackTrace, int retries)?
-              onError}) =>
-      asyncRetry<R>(() => this(a, b, c, d, e, f, g, h),
-          defaultValue: defaultValue,
-          throwOnRetryExhaustion: throwOnRetryExhaustion,
-          maxRetries: maxRetries,
-          retryDelay: retryDelay,
-          computeDelay: computeDelay,
-          onError: onError);
+  FutureOr<R?> retry(
+    A a,
+    B b,
+    C c,
+    D d,
+    E e,
+    F f,
+    G g,
+    H h, {
+    R? defaultValue,
+    bool throwOnRetryExhaustion = false,
+    int maxRetries = 3,
+    Duration? retryDelay,
+    Duration? Function(int retry)? computeDelay,
+    bool? Function(Object error, StackTrace stackTrace, int retries)? onError,
+  }) => asyncRetry<R>(
+    () => this(a, b, c, d, e, f, g, h),
+    defaultValue: defaultValue,
+    throwOnRetryExhaustion: throwOnRetryExhaustion,
+    maxRetries: maxRetries,
+    retryDelay: retryDelay,
+    computeDelay: computeDelay,
+    onError: onError,
+  );
 }
 
 typedef AsyncFunction9<R, A, B, C, D, E, F, G, H, I> = FutureOr<R> Function(
-    A a, B b, C c, D d, E e, F f, G g, H h, I i);
+  A a,
+  B b,
+  C c,
+  D d,
+  E e,
+  F f,
+  G g,
+  H h,
+  I i,
+);
 
 extension AsyncFunctionExtension9<R, A, B, C, D, E, F, G, H, I>
     on AsyncFunction9<R, A, B, C, D, E, F, G, H, I> {
   /// Alias to [asyncRetry].
-  FutureOr<R?> retry(A a, B b, C c, D d, E e, F f, G g, H h, I i,
-          {R? defaultValue,
-          bool throwOnRetryExhaustion = false,
-          int maxRetries = 3,
-          Duration? retryDelay,
-          Duration? Function(int retry)? computeDelay,
-          bool? Function(Object error, StackTrace stackTrace, int retries)?
-              onError}) =>
-      asyncRetry<R>(() => this(a, b, c, d, e, f, g, h, i),
-          defaultValue: defaultValue,
-          throwOnRetryExhaustion: throwOnRetryExhaustion,
-          maxRetries: maxRetries,
-          retryDelay: retryDelay,
-          computeDelay: computeDelay,
-          onError: onError);
+  FutureOr<R?> retry(
+    A a,
+    B b,
+    C c,
+    D d,
+    E e,
+    F f,
+    G g,
+    H h,
+    I i, {
+    R? defaultValue,
+    bool throwOnRetryExhaustion = false,
+    int maxRetries = 3,
+    Duration? retryDelay,
+    Duration? Function(int retry)? computeDelay,
+    bool? Function(Object error, StackTrace stackTrace, int retries)? onError,
+  }) => asyncRetry<R>(
+    () => this(a, b, c, d, e, f, g, h, i),
+    defaultValue: defaultValue,
+    throwOnRetryExhaustion: throwOnRetryExhaustion,
+    maxRetries: maxRetries,
+    retryDelay: retryDelay,
+    computeDelay: computeDelay,
+    onError: onError,
+  );
 }
 
 typedef AsyncFunctionGeneric = Function;
 
 extension AsyncFunctionExtensionG on AsyncFunctionGeneric {
   /// Alias to [asyncRetry].
-  FutureOr<R?> retryWith<R>(
-      {List<dynamic>? args,
-      Map<Symbol, dynamic>? named,
-      R? defaultValue,
-      bool throwOnRetryExhaustion = false,
-      int maxRetries = 3,
-      Duration? retryDelay,
-      Duration? Function(int retry)? computeDelay,
-      bool? Function(Object error, StackTrace stackTrace, int retries)?
-          onError}) {
-    return asyncRetry<R>(() => Function.apply(this, args, named),
-        defaultValue: defaultValue,
-        throwOnRetryExhaustion: throwOnRetryExhaustion,
-        maxRetries: maxRetries,
-        retryDelay: retryDelay,
-        computeDelay: computeDelay,
-        onError: onError);
+  FutureOr<R?> retryWith<R>({
+    List<dynamic>? args,
+    Map<Symbol, dynamic>? named,
+    R? defaultValue,
+    bool throwOnRetryExhaustion = false,
+    int maxRetries = 3,
+    Duration? retryDelay,
+    Duration? Function(int retry)? computeDelay,
+    bool? Function(Object error, StackTrace stackTrace, int retries)? onError,
+  }) {
+    return asyncRetry<R>(
+      () => Function.apply(this, args, named),
+      defaultValue: defaultValue,
+      throwOnRetryExhaustion: throwOnRetryExhaustion,
+      maxRetries: maxRetries,
+      retryDelay: retryDelay,
+      computeDelay: computeDelay,
+      onError: onError,
+    );
   }
 }

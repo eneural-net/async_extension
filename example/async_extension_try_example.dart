@@ -28,9 +28,9 @@ void main() async {
     then: (n) => Future.delayed(Duration(milliseconds: 100), () => n! * 2),
     // `onFinally` also can be `async`:
     onFinally: () => Future.delayed(
-        Duration(milliseconds: 100),
-        () => print(
-            'Finally 3')), // `asyncTry` only returns after `onFinally` is executed.
+      Duration(milliseconds: 100),
+      () => print('Finally 3'),
+    ), // `asyncTry` only returns after `onFinally` is executed.
   );
 
   print(r3);

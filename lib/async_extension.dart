@@ -1,5 +1,5 @@
 /// Async extensions library.
-library async_extension;
+library;
 
 export 'dart:async';
 

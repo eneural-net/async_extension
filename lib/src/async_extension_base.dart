@@ -16,7 +16,9 @@ bool _isNotFuture(Type type) {
 Type _typeGetter<T>() => T;
 
 typedef TryCallOnError<R> = FutureOr<R> Function(
-    Object error, StackTrace stackTrace);
+  Object error,
+  StackTrace stackTrace,
+);
 
 typedef _FArgs0<R> = FutureOr<R> Function();
 
@@ -32,13 +34,18 @@ extension FutureOrFunctionArgs0Extension<R>
     }
   }
 
-  FutureOr<R2> tryCallThen<R2>(FutureOr<R2> Function(R value) onValue,
-      {FutureOr<R> Function(R value)? then, TryCallOnError<R2>? onError}) {
+  FutureOr<R2> tryCallThen<R2>(
+    FutureOr<R2> Function(R value) onValue, {
+    FutureOr<R> Function(R value)? then,
+    TryCallOnError<R2>? onError,
+  }) {
     var f = this;
 
     if (f is Future<_FArgs0<R>>) {
-      return f.then((f) => f.tryCallThen(onValue, onError: onError),
-          onError: onError);
+      return f.then(
+        (f) => f.tryCallThen(onValue, onError: onError),
+        onError: onError,
+      );
     } else {
       return f.tryCallThen(onValue, onError: onError);
     }
@@ -67,8 +74,11 @@ extension FunctionArgs0Extension<R> on FutureOr<R> Function() {
     }
   }
 
-  FutureOr<R2> tryCallThen<R2>(FutureOr<R2> Function(R value) onValue,
-      {FutureOr<R> Function(R value)? then, TryCallOnError<R2>? onError}) {
+  FutureOr<R2> tryCallThen<R2>(
+    FutureOr<R2> Function(R value) onValue, {
+    FutureOr<R> Function(R value)? then,
+    TryCallOnError<R2>? onError,
+  }) {
     var f = this;
 
     if (onError != null) {
@@ -116,13 +126,19 @@ extension FutureOrFunctionArgs1Extension<R, A>
     }
   }
 
-  FutureOr<R2> tryCallThen<R2>(A a, FutureOr<R2> Function(R value) onValue,
-      {FutureOr<R> Function(R value)? then, TryCallOnError<R2>? onError}) {
+  FutureOr<R2> tryCallThen<R2>(
+    A a,
+    FutureOr<R2> Function(R value) onValue, {
+    FutureOr<R> Function(R value)? then,
+    TryCallOnError<R2>? onError,
+  }) {
     var f = this;
 
     if (f is Future<_FArgs1<R, A>>) {
-      return f.then((f) => f.tryCallThen(a, onValue, onError: onError),
-          onError: onError);
+      return f.then(
+        (f) => f.tryCallThen(a, onValue, onError: onError),
+        onError: onError,
+      );
     } else {
       return f.tryCallThen(a, onValue, onError: onError);
     }
@@ -151,8 +167,12 @@ extension FunctionArgs1Extension<R, A> on FutureOr<R> Function(A a) {
     }
   }
 
-  FutureOr<R2> tryCallThen<R2>(A a, FutureOr<R2> Function(R value) onValue,
-      {FutureOr<R> Function(R value)? then, TryCallOnError<R2>? onError}) {
+  FutureOr<R2> tryCallThen<R2>(
+    A a,
+    FutureOr<R2> Function(R value) onValue, {
+    FutureOr<R> Function(R value)? then,
+    TryCallOnError<R2>? onError,
+  }) {
     var f = this;
 
     if (onError != null) {
@@ -200,13 +220,20 @@ extension FutureOrFunctionArgs2Extension<R, A, B>
     }
   }
 
-  FutureOr<R2> tryCallThen<R2>(A a, B b, FutureOr<R2> Function(R value) onValue,
-      {FutureOr<R> Function(R value)? then, TryCallOnError<R2>? onError}) {
+  FutureOr<R2> tryCallThen<R2>(
+    A a,
+    B b,
+    FutureOr<R2> Function(R value) onValue, {
+    FutureOr<R> Function(R value)? then,
+    TryCallOnError<R2>? onError,
+  }) {
     var f = this;
 
     if (f is Future<_FArgs2<R, A, B>>) {
-      return f.then((f) => f.tryCallThen(a, b, onValue, onError: onError),
-          onError: onError);
+      return f.then(
+        (f) => f.tryCallThen(a, b, onValue, onError: onError),
+        onError: onError,
+      );
     } else {
       return f.tryCallThen(a, b, onValue, onError: onError);
     }
@@ -235,8 +262,13 @@ extension FunctionArgs2Extension<R, A, B> on FutureOr<R> Function(A a, B b) {
     }
   }
 
-  FutureOr<R2> tryCallThen<R2>(A a, B b, FutureOr<R2> Function(R value) onValue,
-      {FutureOr<R> Function(R value)? then, TryCallOnError<R2>? onError}) {
+  FutureOr<R2> tryCallThen<R2>(
+    A a,
+    B b,
+    FutureOr<R2> Function(R value) onValue, {
+    FutureOr<R> Function(R value)? then,
+    TryCallOnError<R2>? onError,
+  }) {
     var f = this;
 
     if (onError != null) {
@@ -326,8 +358,10 @@ extension FutureOrExtension<T> on FutureOr<T> {
   ///
   /// - [validate] if returns `false` will resolve to [defaultValue].
   /// - If resolved value is null will return [defaultValue].
-  FutureOr<T> resolve(
-      {FutureOr<bool> Function(T val)? validate, T? defaultValue}) {
+  FutureOr<T> resolve({
+    FutureOr<bool> Function(T val)? validate,
+    T? defaultValue,
+  }) {
     if (validate == null && defaultValue == null) {
       return this;
     }
@@ -335,12 +369,17 @@ extension FutureOrExtension<T> on FutureOr<T> {
     var self = this;
 
     if (self is Future<T>) {
-      return self.then((value) =>
-          _validate(value, validate: validate, defaultValue: defaultValue)
-              as FutureOr<T>);
+      return self.then(
+        (value) =>
+            _validate(value, validate: validate, defaultValue: defaultValue)
+                as FutureOr<T>,
+      );
     } else {
-      return _validate<T>(this as T,
-          validate: validate, defaultValue: defaultValue) as FutureOr<T>;
+      return _validate<T>(
+        this as T,
+        validate: validate,
+        defaultValue: defaultValue,
+      ) as FutureOr<T>;
     }
   }
 
@@ -350,7 +389,9 @@ extension FutureOrExtension<T> on FutureOr<T> {
   ///
   /// See also [resolveOther].
   FutureOr<R> resolveBoth<R>(
-      FutureOr<T> other, FutureOr<R> Function(T val1, T val2) resolver) {
+    FutureOr<T> other,
+    FutureOr<R> Function(T val1, T val2) resolver,
+  ) {
     var self = this;
 
     if (self is Future<T>) {
@@ -377,7 +418,9 @@ extension FutureOrExtension<T> on FutureOr<T> {
   /// This method is similar to [resolveBoth], but accepts an [other] parameter
   /// with a different [Type] of `this` instance.
   FutureOr<R> resolveOther<R, E>(
-      FutureOr<E> other, FutureOr<R> Function(T val1, E val2) resolver) {
+    FutureOr<E> other,
+    FutureOr<R> Function(T val1, E val2) resolver,
+  ) {
     var self = this;
 
     if (self is Future<T>) {
@@ -401,8 +444,10 @@ extension FutureOrExtension<T> on FutureOr<T> {
 
   /// Validate `this` instance with [validate].
   /// Returns [defaultValue] if not valid or value is null.
-  FutureOr<T?> validate(FutureOr<bool> Function(T val)? validate,
-      {T? defaultValue}) {
+  FutureOr<T?> validate(
+    FutureOr<bool> Function(T val)? validate, {
+    T? defaultValue,
+  }) {
     if (validate == null && defaultValue == null) {
       return this;
     }
@@ -410,16 +455,21 @@ extension FutureOrExtension<T> on FutureOr<T> {
     var self = this;
 
     if (self is Future<T>) {
-      return self.then((value) =>
-          _validate(value, validate: validate, defaultValue: defaultValue)
-              as FutureOr<T>);
+      return self.then(
+        (value) =>
+            _validate(value, validate: validate, defaultValue: defaultValue)
+                as FutureOr<T>,
+      );
     } else {
       return _validate(self, validate: validate, defaultValue: defaultValue);
     }
   }
 
-  static FutureOr<T?> _validate<T>(T value,
-      {FutureOr<bool> Function(T val)? validate, T? defaultValue}) {
+  static FutureOr<T?> _validate<T>(
+    T value, {
+    FutureOr<bool> Function(T val)? validate,
+    T? defaultValue,
+  }) {
     if (validate != null) {
       var valid = validate(value);
       return valid.resolveMapped((ok) => ok ? value : defaultValue);
@@ -445,8 +495,10 @@ extension FutureOrExtension<T> on FutureOr<T> {
   ///   behavior at [Future.then], since `onError` will be called
   ///   only if `this` is a [Future], and not when it's a [T].
   /// - See [asyncTry].
-  FutureOr<R> then<R>(FutureOr<R> Function(T value) onValue,
-      {Function? onError}) {
+  FutureOr<R> then<R>(
+    FutureOr<R> Function(T value) onValue, {
+    Function? onError,
+  }) {
     var self = this;
 
     if (self is Future<T>) {
@@ -749,8 +801,10 @@ extension IterableFutureOrExtension<T> on Iterable<FutureOr<T>> {
 
   /// Resolves all elements and [validate] them.
   /// If an element is not valid will use [defaultValue].
-  FutureOr<List<T>> resolveAllValidated(bool Function(T e) validate,
-      {T? defaultValue}) {
+  FutureOr<List<T>> resolveAllValidated(
+    bool Function(T e) validate, {
+    T? defaultValue,
+  }) {
     var self = this;
 
     if (_isNotFuture(T) && self is Iterable<T>) {
@@ -840,7 +894,9 @@ extension FutureExtension<T> on Future<T> {
 
   /// Resolves `this` [Future] and [other] with [resolver].
   Future<R> resolveBoth<R>(
-      FutureOr<T> other, FutureOr<R> Function(T val1, T val2) resolver) {
+    FutureOr<T> other,
+    FutureOr<R> Function(T val1, T val2) resolver,
+  ) {
     if (other is Future<T>) {
       return then((v1) {
         return other.then((v2) => resolver(v1, v2));
@@ -871,8 +927,9 @@ extension FutureExtension<T> on Future<T> {
   /// This method is useful for handling success and failure uniformly
   /// while producing a transformed result.
   Future<R> whenResolved<R>(
-      FutureOr<R> Function(T? value, Object? error, StackTrace? stackTrace)
-          onResolve) {
+    FutureOr<R> Function(T? value, Object? error, StackTrace? stackTrace)
+    onResolve,
+  ) {
     return then(
       (v) => onResolve(v, null, null),
       onError: (e, s) => onResolve(null, e, s),
@@ -898,8 +955,10 @@ extension AsyncExtensionErrorLoggerExtension<T> on AsyncExtensionErrorLogger? {
 extension FutureOnErrorExtension<T> on Future<T> {
   /// Logs a [Future] error using [errorLogger] or [defaultAsyncExtensionErrorLogger]
   /// if parameter [logError] is `true`.
-  Future<T> logError(
-      {AsyncExtensionErrorLogger? errorLogger, bool logError = true}) async {
+  Future<T> logError({
+    AsyncExtensionErrorLogger? errorLogger,
+    bool logError = true,
+  }) async {
     try {
       return await this;
     } catch (e, s) {
@@ -912,10 +971,12 @@ extension FutureOnErrorExtension<T> on Future<T> {
   ///
   /// Logs the error using [errorLogger] or [defaultAsyncExtensionErrorLogger]
   /// if parameter [logError] is `true`.
-  Future<T> onErrorReturn(T onErrorValue,
-      {FutureOr<void> Function(Object e, StackTrace s)? onError,
-      AsyncExtensionErrorLogger? errorLogger,
-      bool logError = true}) async {
+  Future<T> onErrorReturn(
+    T onErrorValue, {
+    FutureOr<void> Function(Object e, StackTrace s)? onError,
+    AsyncExtensionErrorLogger? errorLogger,
+    bool logError = true,
+  }) async {
     try {
       return await this;
     } catch (e, s) {
@@ -954,10 +1015,11 @@ extension FutureNonNullOnErrorExtension<T extends Object> on Future<T> {
   ///
   /// Logs the error using [errorLogger] or [defaultAsyncExtensionErrorLogger]
   /// if parameter [logError] is `true`.
-  Future<T?> nullOnError(
-      {FutureOr<void> Function(Object e, StackTrace s)? onError,
-      AsyncExtensionErrorLogger? errorLogger,
-      bool logError = true}) async {
+  Future<T?> nullOnError({
+    FutureOr<void> Function(Object e, StackTrace s)? onError,
+    AsyncExtensionErrorLogger? errorLogger,
+    bool logError = true,
+  }) async {
     try {
       var r = await this;
       return r;
@@ -1042,11 +1104,12 @@ extension FutureNullableOnErrorExtension<T extends Object> on Future<T?> {
   ///
   /// Logs the error using [errorLogger] or [defaultAsyncExtensionErrorLogger]
   /// if parameter [logError] is `true`.
-  Future<T?> nullOnError(
-      {FutureOr<void> Function(Object e, StackTrace s)? onError,
-      FutureOr<void> Function(Object? e, StackTrace? s)? onErrorOrNull,
-      AsyncExtensionErrorLogger? errorLogger,
-      bool logError = true}) async {
+  Future<T?> nullOnError({
+    FutureOr<void> Function(Object e, StackTrace s)? onError,
+    FutureOr<void> Function(Object? e, StackTrace? s)? onErrorOrNull,
+    AsyncExtensionErrorLogger? errorLogger,
+    bool logError = true,
+  }) async {
     try {
       var r = await this;
       if (r == null && onErrorOrNull != null) {
@@ -1088,8 +1151,10 @@ extension IterableFutureExtension<T> on Iterable<Future<T>> {
   }
 
   /// Resolves this [Future]s and validates with [validate].
-  Future<List<T>> resolveAllValidated(bool Function(T e) validate,
-      {T? defaultValue}) {
+  Future<List<T>> resolveAllValidated(
+    bool Function(T e) validate, {
+    T? defaultValue,
+  }) {
     if (isEmpty) {
       return Future.value(<T>[]);
     }
@@ -1147,8 +1212,10 @@ extension MapFutureValueExtension<K, V> on Map<K, FutureOr<V>> {
     }
 
     var keys = this.keys.toList(growable: false);
-    var futureValues =
-        keys.map((k) => this[k]!).cast<FutureOr<V>>().toList(growable: false);
+    var futureValues = keys
+        .map((k) => this[k]!)
+        .cast<FutureOr<V>>()
+        .toList(growable: false);
 
     return futureValues.resolveAllJoined((values) {
       var entries = List.generate(values.length, (i) {
@@ -1171,8 +1238,10 @@ extension MapFutureValueNullableExtension<K, V extends Object>
     }
 
     var keys = this.keys.toList(growable: false);
-    var futureValues =
-        keys.map((k) => this[k]).cast<FutureOr<V?>>().toList(growable: false);
+    var futureValues = keys
+        .map((k) => this[k])
+        .cast<FutureOr<V?>>()
+        .toList(growable: false);
 
     return futureValues.resolveAllNullable().resolveMapped((values) {
       var entries = List.generate(values.length, (i) {
@@ -1624,8 +1693,12 @@ extension IterableAsyncExtension<T> on Iterable<T> {
     }
   }
 
-  Future<List<R>> _forEachAIterateAsync<R>(FutureOr<R> Function(T e) processor,
-      Iterator<T> itr, Future<R> r0Async, List<R>? results) async {
+  Future<List<R>> _forEachAIterateAsync<R>(
+    FutureOr<R> Function(T e) processor,
+    Iterator<T> itr,
+    Future<R> r0Async,
+    List<R>? results,
+  ) async {
     var r0 = await r0Async;
 
     if (results == null) {
@@ -1667,19 +1740,28 @@ class AsyncLoop<I> {
   ///
   /// - [init] is the initial value of [i]
   AsyncLoop(I init, this.condition, this.next, this.body)
-      :
-        // ignore: prefer_initializing_formals
-        i = init;
+    : // ignore: prefer_initializing_formals
+      i = init;
 
   static AsyncLoop forEach<T>(
-      Iterable<T> itr, FutureOr<bool> Function(T e) block) {
+    Iterable<T> itr,
+    FutureOr<bool> Function(T e) block,
+  ) {
     if (itr is List<T>) {
       return AsyncLoop<int>(
-          0, (i) => i < itr.length, (i) => i + 1, (i) => block(itr[i]));
+        0,
+        (i) => i < itr.length,
+        (i) => i + 1,
+        (i) => block(itr[i]),
+      );
     } else {
       var iterator = itr.iterator;
-      return AsyncLoop<int>(0, (i) => iterator.moveNext(), (i) => i + 1,
-          (_) => block(iterator.current));
+      return AsyncLoop<int>(
+        0,
+        (i) => iterator.moveNext(),
+        (i) => i + 1,
+        (_) => block(iterator.current),
+      );
     }
   }
 
@@ -1730,9 +1812,8 @@ class AsyncSequenceLoop {
   ///
   /// - [init] is the initial value of [i].
   AsyncSequenceLoop(int init, this.limit, this.body)
-      :
-        // ignore: prefer_initializing_formals
-        i = init;
+    : // ignore: prefer_initializing_formals
+      i = init;
 
   FutureOr<int> run() {
     return _runBody(i);
