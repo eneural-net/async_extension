@@ -13,7 +13,10 @@ typedef ComputeCall<V> = FutureOr<V> Function();
 /// [value] is non-null on success.
 /// [error] and [stackTrace] are non-null on failure.
 typedef PosComputeCall<V> = FutureOr<V> Function(
-    V? value, Object? error, StackTrace? stackTrace);
+  V? value,
+  Object? error,
+  StackTrace? stackTrace,
+);
 
 /// Lazily computes a value at most once and caches either the result or error.
 ///
@@ -38,7 +41,7 @@ class ComputeOnce<V> {
   ///
   /// If [resolve] is true, starts resolving immediately.
   ComputeOnce(ComputeCall<V> call, {this.posCompute, bool resolve = true})
-      : _call = _resolveCall(call) {
+    : _call = _resolveCall(call) {
     if (resolve) {
       resolveAsync();
     }
@@ -167,11 +170,14 @@ class ComputeOnce<V> {
         future = _future = call;
 
         if (posCompute != null) {
-          future = _future = future.then((v) {
-            return posCompute(v, null, null);
-          }, onError: (e, s) {
-            return posCompute(null, e, s);
-          });
+          future = _future = future.then(
+            (v) {
+              return posCompute(v, null, null);
+            },
+            onError: (e, s) {
+              return posCompute(null, e, s);
+            },
+          );
         }
 
         return _resolveFuture(future, throwError, onError, onErrorValue);
@@ -266,11 +272,14 @@ class ComputeOnce<V> {
 
     final posCompute = this.posCompute;
     if (posCompute != null) {
-      future = _future = future.then((v) {
-        return posCompute(v, null, null);
-      }, onError: (e, s) {
-        return posCompute(null, e, s);
-      });
+      future = _future = future.then(
+        (v) {
+          return posCompute(v, null, null);
+        },
+        onError: (e, s) {
+          return posCompute(null, e, s);
+        },
+      );
     }
 
     return _resolveFuture(future, throwError, onError, onErrorValue);
@@ -283,19 +292,22 @@ class ComputeOnce<V> {
       var msg = "Can't cast `onErrorValue` to `$V`: $onErrorValue";
       if (onErrorValue == null) {
         throw StateError(
-            "$this [throwError: false, `onError`: null ; `onErrorValue`: null]> $msg");
+          "$this [throwError: false, `onError`: null ; `onErrorValue`: null]> $msg",
+        );
       } else {
         throw StateError(
-            "$this [throwError: false, `onError`: null ; `onErrorValue`: `$onErrorValue`]> $msg");
+          "$this [throwError: false, `onError`: null ; `onErrorValue`: `$onErrorValue`]> $msg",
+        );
       }
     }
   }
 
   Future<V> _resolveFuture(
-      Future<V> future,
-      bool throwError,
-      FutureOr<V> Function(Object error, StackTrace stackTrace)? onError,
-      V? onErrorValue) {
+    Future<V> future,
+    bool throwError,
+    FutureOr<V> Function(Object error, StackTrace stackTrace)? onError,
+    V? onErrorValue,
+  ) {
     future.then(
       (value) {
         _result = (value: value, error: null, stackTrace: null);
@@ -335,9 +347,10 @@ class ComputeOnce<V> {
   /// Chains a callback to the resolved value.
   ///
   /// Equivalent to calling [resolveAsync] and then "[then]" on the resulting [Future].
-  Future<R> then<R>(FutureOr<R> Function(V value) onValue,
-          {Function? onError}) =>
-      resolveAsync().then(onValue, onError: onError);
+  Future<R> then<R>(
+    FutureOr<R> Function(V value) onValue, {
+    Function? onError,
+  }) => resolveAsync().then(onValue, onError: onError);
 
   /// Registers a callback to be executed when resolution completes,
   /// regardless of success or failure.
@@ -361,9 +374,9 @@ class ComputeOnce<V> {
   /// This method delegates to [resolveAsync] and then applies
   /// [Future.whenResolved] on the resulting [Future].
   Future<R> whenResolved<R>(
-          FutureOr<R> Function(V? value, Object? error, StackTrace? stackTrace)
-              onResolve) =>
-      resolveAsync().whenResolved(onResolve);
+    FutureOr<R> Function(V? value, Object? error, StackTrace? stackTrace)
+    onResolve,
+  ) => resolveAsync().whenResolved(onResolve);
 
   /// The class name of this compute implementation.
   ///
@@ -441,15 +454,22 @@ class ComputeOnceCache<K extends Object, V> {
   /// - [call] is executed at most once per key while retained.
   /// - [posCompute], if provided, is invoked after resolution and before the end of the retention period.
   /// - If [resolve] is true, the computation may resolve eagerly.
-  TimedComputeOnce<V> get(K key, ComputeCall<V> call,
-      {PosComputeCall<V>? posCompute, bool resolve = true}) {
+  TimedComputeOnce<V> get(
+    K key,
+    ComputeCall<V> call, {
+    PosComputeCall<V>? posCompute,
+    bool resolve = true,
+  }) {
     var computer = _calls[key];
     if (computer != null) {
       return computer;
     }
 
-    computer = _calls[key] =
-        TimedComputeOnce(call, posCompute: posCompute, resolve: resolve);
+    computer = _calls[key] = TimedComputeOnce(
+      call,
+      posCompute: posCompute,
+      resolve: resolve,
+    );
 
     computer.whenResolved((v, e, s) {
       final prev = _calls[key];
@@ -500,7 +520,8 @@ class ComputeOnceCache<K extends Object, V> {
 /// The callback receives a list of IDs and returns a list of values in the
 /// same order, either synchronously or asynchronously.
 typedef ComputeCallIDs<D extends Object, V> = FutureOr<List<V>> Function(
-    List<D> ids);
+  List<D> ids,
+);
 
 /// A [ComputeOnceCache] specialized for batched computations by ID.
 ///
@@ -519,10 +540,12 @@ class ComputeOnceCachedIDs<D extends Object, V>
   ///
   /// [compare] defines ID ordering and equality.
   /// [hash] defines how IDs are grouped internally.
-  ComputeOnceCachedIDs(
-      {super.retentionDuration, ComputeIDCompare<D>? compare, this.hash})
-      : compare =
-            _Comparer.resolveCompare<D>(compare) ?? _Comparer._defaultCompare;
+  ComputeOnceCachedIDs({
+    super.retentionDuration,
+    ComputeIDCompare<D>? compare,
+    this.hash,
+  }) : compare =
+           _Comparer.resolveCompare<D>(compare) ?? _Comparer._defaultCompare;
 
   /// Returns computations for the given [ids], reusing any overlapping
   /// in-flight computations.
@@ -542,8 +565,11 @@ class ComputeOnceCachedIDs<D extends Object, V>
   ///
   /// See [computeIDs].
   Map<ComputeIDs<D>, TimedComputeOnce<List<V>>> getByIDs(
-      List<D> ids, ComputeCallIDs<D, V> call,
-      {PosComputeCall<List<V>>? posCompute, bool resolve = true}) {
+    List<D> ids,
+    ComputeCallIDs<D, V> call, {
+    PosComputeCall<List<V>>? posCompute,
+    bool resolve = true,
+  }) {
     var calling = _calls.entries.where((e) => e.key.containsAny(ids)).toList();
 
     var callingIDs = calling.map((c) => c.key.ids);
@@ -568,8 +594,11 @@ class ComputeOnceCachedIDs<D extends Object, V>
       return computers;
     }
 
-    final idsNotCallingKey =
-        ComputeIDs<D>(idsNotCalling, compare: compare, hash: hash);
+    final idsNotCallingKey = ComputeIDs<D>(
+      idsNotCalling,
+      compare: compare,
+      hash: hash,
+    );
 
     var newComputer = get(
       idsNotCallingKey,
@@ -596,10 +625,18 @@ class ComputeOnceCachedIDs<D extends Object, V>
   /// pairs aligned with the input sequence.
   ///
   /// The result may be returned synchronously or asynchronously.
-  FutureOr<List<(D, V)>> computeIDs(List<D> ids, ComputeCallIDs<D, V> call,
-      {PosComputeCall<List<V>>? posCompute, bool resolve = true}) {
-    var computers =
-        getByIDs(ids, call, posCompute: posCompute, resolve: resolve);
+  FutureOr<List<(D, V)>> computeIDs(
+    List<D> ids,
+    ComputeCallIDs<D, V> call, {
+    PosComputeCall<List<V>>? posCompute,
+    bool resolve = true,
+  }) {
+    var computers = getByIDs(
+      ids,
+      call,
+      posCompute: posCompute,
+      resolve: resolve,
+    );
 
     return computers.computeAll().resolveMapped((results) {
       var allComputations = results.entries.map((e) {
@@ -650,8 +687,9 @@ class ComputeOnceCachedIDs<D extends Object, V>
       }
 
       if (allComputedValues.length <= 1) {
-        assert(allComputedValues.isEmpty ||
-            ids.contains(allComputedValues.first.$1));
+        assert(
+          allComputedValues.isEmpty || ids.contains(allComputedValues.first.$1),
+        );
 
         return allComputedValues;
       }
@@ -678,8 +716,10 @@ extension ListIdValuePairExtension<D extends Object, V> on List<(D, V)> {
   int binarySearchIndex(D id, ComputeIDCompare<D> compare) {
     if (isEmpty) return -1;
     var v0 = first.$2;
-    return _Comparer.binarySearchIndex<(D, V)>(
-        this, (id, v0), (a, b) => compare(a.$1, b.$1));
+    return _Comparer.binarySearchIndex<(D, V)>(this, (
+      id,
+      v0,
+    ), (a, b) => compare(a.$1, b.$1));
   }
 
   /// Returns the `(ID, value)` pair for [id], or `null` if not found.
@@ -720,9 +760,9 @@ class ComputeIDs<D extends Object> {
   /// IDs are copied from [ids], sorted using [compare], and duplicates
   /// are removed according to the comparator.
   ComputeIDs(List<D> ids, {ComputeIDCompare<D>? compare, this.hash})
-      : _ids = ids.toList(),
-        compare =
-            _Comparer.resolveCompare<D>(compare) ?? _Comparer._defaultCompare {
+    : _ids = ids.toList(),
+      compare =
+          _Comparer.resolveCompare<D>(compare) ?? _Comparer._defaultCompare {
     final compare = this.compare;
 
     _ids.sort(compare);
@@ -888,11 +928,15 @@ abstract class _Comparer {
       return a.compareTo(b);
     }
     throw StateError(
-        'No comparator provided and elements are not Comparable: ${a.runtimeType} <=> ${b.runtimeType}');
+      'No comparator provided and elements are not Comparable: ${a.runtimeType} <=> ${b.runtimeType}',
+    );
   }
 
   static int binarySearchIndex<D extends Object>(
-      List<D> ids, D value, ComputeIDCompare<D> compare) {
+    List<D> ids,
+    D value,
+    ComputeIDCompare<D> compare,
+  ) {
     int low = 0;
     int high = ids.length - 1;
 
@@ -915,7 +959,9 @@ abstract class _Comparer {
   static const int _hashMask = 0x7fffffff;
 
   static int computeHashcode<D extends Object>(
-      List<D>? list, ComputeIDHash<D>? hashFunction) {
+    List<D>? list,
+    ComputeIDHash<D>? hashFunction,
+  ) {
     if (list == null) return null.hashCode;
 
     hashFunction ??= _defaultHash;
@@ -954,11 +1000,13 @@ extension IterableComputeOnceExtension<V> on Iterable<ComputeOnce<V>> {
     bool throwError = true,
     FutureOr<V> Function(Object error, StackTrace stackTrace)? onError,
     V? onErrorValue,
-  }) =>
-      map((e) => e.resolve(
-          throwError: throwError,
-          onError: onError,
-          onErrorValue: onErrorValue)).resolveAll();
+  }) => map(
+    (e) => e.resolve(
+      throwError: throwError,
+      onError: onError,
+      onErrorValue: onErrorValue,
+    ),
+  ).resolveAll();
 
   /// Asynchronously resolves all computations and returns their results
   /// in iteration order.
@@ -968,11 +1016,13 @@ extension IterableComputeOnceExtension<V> on Iterable<ComputeOnce<V>> {
     bool throwError = true,
     Future<V> Function(Object error, StackTrace stackTrace)? onError,
     V? onErrorValue,
-  }) =>
-      map((e) => e.resolveAsync(
-          throwError: throwError,
-          onError: onError,
-          onErrorValue: onErrorValue)).resolveAll();
+  }) => map(
+    (e) => e.resolveAsync(
+      throwError: throwError,
+      onError: onError,
+      onErrorValue: onErrorValue,
+    ),
+  ).resolveAll();
 }
 
 /// Utilities to resolve all [TimedComputeOnce] values in a map keyed by
@@ -985,37 +1035,41 @@ extension MapComputeIDsExtension<D extends Object, V>
   /// Otherwise, [onError] or [onErrorValue] is used to produce a fallback value.
   ///
   /// The result may be returned synchronously or asynchronously.
-  FutureOr<Map<ComputeIDs<D>, V>> computeAll(
-          {bool throwError = true,
-          FutureOr<V> Function(Object error, StackTrace stackTrace)? onError,
-          V? onErrorValue}) =>
-      Map.fromEntries(
-        entries.map(
-          (e) => MapEntry(
-              e.key,
-              e.value.resolve(
-                  throwError: throwError,
-                  onError: onError,
-                  onErrorValue: onErrorValue)),
+  FutureOr<Map<ComputeIDs<D>, V>> computeAll({
+    bool throwError = true,
+    FutureOr<V> Function(Object error, StackTrace stackTrace)? onError,
+    V? onErrorValue,
+  }) => Map.fromEntries(
+    entries.map(
+      (e) => MapEntry(
+        e.key,
+        e.value.resolve(
+          throwError: throwError,
+          onError: onError,
+          onErrorValue: onErrorValue,
         ),
-      ).resolveAllValues();
+      ),
+    ),
+  ).resolveAllValues();
 
   /// Asynchronously resolves all computations and returns a map with the
   /// same keys.
   ///
   /// Semantics are identical to [computeAll], but always returns a [Future].
-  Future<Map<ComputeIDs<D>, V>> computeAllAsync(
-          {bool throwError = true,
-          Future<V> Function(Object error, StackTrace stackTrace)? onError,
-          V? onErrorValue}) =>
-      Map<ComputeIDs<D>, Future<V>>.fromEntries(
-        entries.map(
-          (e) => MapEntry(
-              e.key,
-              e.value.resolveAsync(
-                  throwError: throwError,
-                  onError: onError,
-                  onErrorValue: onErrorValue)),
+  Future<Map<ComputeIDs<D>, V>> computeAllAsync({
+    bool throwError = true,
+    Future<V> Function(Object error, StackTrace stackTrace)? onError,
+    V? onErrorValue,
+  }) => Map<ComputeIDs<D>, Future<V>>.fromEntries(
+    entries.map(
+      (e) => MapEntry(
+        e.key,
+        e.value.resolveAsync(
+          throwError: throwError,
+          onError: onError,
+          onErrorValue: onErrorValue,
         ),
-      ).resolveAllValues().asFuture;
+      ),
+    ),
+  ).resolveAllValues().asFuture;
 }

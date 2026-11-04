@@ -44,7 +44,9 @@ class Benchmark {
 
 /// Benchmark using a normal Dart `async` method:
 Future<Benchmark> doBenchmarkAwait(
-    Computation computation, int iterations) async {
+  Computation computation,
+  int iterations,
+) async {
   var init = DateTime.now();
 
   var sum = 0;
@@ -56,14 +58,17 @@ Future<Benchmark> doBenchmarkAwait(
 
   var end = DateTime.now();
   var time = Duration(
-      milliseconds: end.millisecondsSinceEpoch - init.millisecondsSinceEpoch);
+    milliseconds: end.millisecondsSinceEpoch - init.millisecondsSinceEpoch,
+  );
 
   return Benchmark('await', computation, sum, iterations, time);
 }
 
 /// Benchmark using a method optimized with `async_extension`:
 FutureOr<Benchmark> doBenchmarkOptimized(
-    Computation computation, int iterations) {
+  Computation computation,
+  int iterations,
+) {
   var init = DateTime.now();
 
   FutureOr<int> sum = 0;
@@ -76,7 +81,8 @@ FutureOr<Benchmark> doBenchmarkOptimized(
   return sum.resolveMapped((val) {
     var end = DateTime.now();
     var time = Duration(
-        milliseconds: end.millisecondsSinceEpoch - init.millisecondsSinceEpoch);
+      milliseconds: end.millisecondsSinceEpoch - init.millisecondsSinceEpoch,
+    );
 
     return Benchmark('optimized', computation, val, iterations, time);
   });
@@ -87,15 +93,23 @@ void main() async {
 
   // Run 10 sessions of benchmark to allow VM warm up:
   for (var session = 0; session < 10; ++session) {
-    var benchmarkAwaitSync =
-        await doBenchmarkAwait(ComputationSync(), iterations);
-    var benchmarkAwaitAsync =
-        await doBenchmarkAwait(ComputationAsync(), iterations);
+    var benchmarkAwaitSync = await doBenchmarkAwait(
+      ComputationSync(),
+      iterations,
+    );
+    var benchmarkAwaitAsync = await doBenchmarkAwait(
+      ComputationAsync(),
+      iterations,
+    );
 
-    var benchmarkOptimizedSync =
-        await doBenchmarkOptimized(ComputationSync(), iterations);
-    var benchmarkOptimizedAsync =
-        await doBenchmarkOptimized(ComputationAsync(), iterations);
+    var benchmarkOptimizedSync = await doBenchmarkOptimized(
+      ComputationSync(),
+      iterations,
+    );
+    var benchmarkOptimizedAsync = await doBenchmarkOptimized(
+      ComputationAsync(),
+      iterations,
+    );
 
     print('----------------------------------------------------');
     print('session[$session]> $benchmarkAwaitSync');

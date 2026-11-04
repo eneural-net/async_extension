@@ -16,8 +16,10 @@ void main() {
         f = 'final';
       }
 
-      expect(error,
-          isA<StateError>().having((e) => e.message, 'message', equals('e1')));
+      expect(
+        error,
+        isA<StateError>().having((e) => e.message, 'message', equals('e1')),
+      );
 
       expect(f, equals('final'));
     });
@@ -40,11 +42,15 @@ void main() {
         error = e;
       }
 
-      expect(error,
-          isA<StateError>().having((e) => e.message, 'message', equals('e1')));
+      expect(
+        error,
+        isA<StateError>().having((e) => e.message, 'message', equals('e1')),
+      );
 
-      expect(subError,
-          isA<StateError>().having((e) => e.message, 'message', equals('e1')));
+      expect(
+        subError,
+        isA<StateError>().having((e) => e.message, 'message', equals('e1')),
+      );
 
       expect(f, equals('final'));
     });
@@ -68,11 +74,15 @@ void main() {
         error = e;
       }
 
-      expect(error,
-          isA<StateError>().having((e) => e.message, 'message', equals('e2')));
+      expect(
+        error,
+        isA<StateError>().having((e) => e.message, 'message', equals('e2')),
+      );
 
-      expect(subError,
-          isA<StateError>().having((e) => e.message, 'message', equals('e1')));
+      expect(
+        subError,
+        isA<StateError>().having((e) => e.message, 'message', equals('e1')),
+      );
 
       expect(f, equals('final'));
     });
@@ -86,8 +96,8 @@ void main() {
 
       expect(call1.asFutureOr.tryCall(onError: (e, s) => -100), equals(100));
 
-      var call2 =
-          (() => DateTime.now().year > 2000 ? throw StateError("Error") : 100);
+      var call2 = (() =>
+          DateTime.now().year > 2000 ? throw StateError("Error") : 100);
 
       expect(call2.tryCall(onError: (e, s) => -100), equals(-100));
 
@@ -97,36 +107,48 @@ void main() {
     test('tryCallThen', () async {
       var call1 = (() => 100);
 
-      expect(call1.tryCallThen((v) => v * 10, onError: (e, s) => -100),
-          equals(1000));
+      expect(
+        call1.tryCallThen((v) => v * 10, onError: (e, s) => -100),
+        equals(1000),
+      );
 
       expect(
-          call1.asFutureOr.tryCallThen((v) => v * 10, onError: (e, s) => -100),
-          equals(1000));
+        call1.asFutureOr.tryCallThen((v) => v * 10, onError: (e, s) => -100),
+        equals(1000),
+      );
 
-      var call2 =
-          (() => DateTime.now().year > 2000 ? throw StateError("Error") : 100);
-
-      expect(call2.tryCallThen((v) => v * 10, onError: (e, s) => -100),
-          equals(-100));
+      var call2 = (() =>
+          DateTime.now().year > 2000 ? throw StateError("Error") : 100);
 
       expect(
-          call2.asFutureOr.tryCallThen((v) => v * 10, onError: (e, s) => -100),
-          equals(-100));
+        call2.tryCallThen((v) => v * 10, onError: (e, s) => -100),
+        equals(-100),
+      );
+
+      expect(
+        call2.asFutureOr.tryCallThen((v) => v * 10, onError: (e, s) => -100),
+        equals(-100),
+      );
 
       ///////
 
       expect(
-          call1.tryCallThen((v) => v > 0 ? throw StateError("Error") : v * 10,
-              onError: (e, s) => -1000),
-          equals(-1000));
+        call1.tryCallThen(
+          (v) => v > 0 ? throw StateError("Error") : v * 10,
+          onError: (e, s) => -1000,
+        ),
+        equals(-1000),
+      );
 
       expect(
-          await call1.tryCallThen(
-              (v) => Future.microtask(
-                  () => v > 0 ? throw StateError("Error") : v * 10),
-              onError: (e, s) => -1000),
-          equals(-1000));
+        await call1.tryCallThen(
+          (v) => Future.microtask(
+            () => v > 0 ? throw StateError("Error") : v * 10,
+          ),
+          onError: (e, s) => -1000,
+        ),
+        equals(-1000),
+      );
     });
   });
 
@@ -144,7 +166,9 @@ void main() {
       expect(call2.tryCall(3, onError: (e, s) => -100), equals(-100));
 
       expect(
-          call2.asFutureOr.tryCall(3, onError: (e, s) => -100), equals(-100));
+        call2.asFutureOr.tryCall(3, onError: (e, s) => -100),
+        equals(-100),
+      );
     });
 
     test('tryCall (async)', () async {
@@ -152,55 +176,69 @@ void main() {
 
       expect(await call1.tryCall(2, onError: (e, s) => -100), equals(20));
 
-      expect(await call1.asFutureOr.tryCall(2, onError: (e, s) => -100),
-          equals(20));
+      expect(
+        await call1.asFutureOr.tryCall(2, onError: (e, s) => -100),
+        equals(20),
+      );
 
       var call2 = ((int n) async =>
           DateTime.now().year > 2000 ? throw StateError("Error") : n * 10);
 
       expect(await call2.tryCall(3, onError: (e, s) => -100), equals(-100));
 
-      expect(await call2.asFutureOr.tryCall(3, onError: (e, s) => -100),
-          equals(-100));
+      expect(
+        await call2.asFutureOr.tryCall(3, onError: (e, s) => -100),
+        equals(-100),
+      );
     });
 
     test('tryCallThen', () async {
       var call1 = ((int n) => n * 10);
 
-      expect(call1.tryCallThen(2, (v) => v * 10, onError: (e, s) => -100),
-          equals(200));
+      expect(
+        call1.tryCallThen(2, (v) => v * 10, onError: (e, s) => -100),
+        equals(200),
+      );
 
       expect(
-          call1.asFutureOr
-              .tryCallThen(2, (v) => v * 10, onError: (e, s) => -100),
-          equals(200));
+        call1.asFutureOr.tryCallThen(2, (v) => v * 10, onError: (e, s) => -100),
+        equals(200),
+      );
 
       var call2 = ((int n) =>
           DateTime.now().year > 2000 ? throw StateError("Error") : n * 10);
 
-      expect(call2.tryCallThen(3, (v) => v * 10, onError: (e, s) => -100),
-          equals(-100));
+      expect(
+        call2.tryCallThen(3, (v) => v * 10, onError: (e, s) => -100),
+        equals(-100),
+      );
 
       expect(
-          call2.asFutureOr
-              .tryCallThen(3, (v) => v * 10, onError: (e, s) => -100),
-          equals(-100));
+        call2.asFutureOr.tryCallThen(3, (v) => v * 10, onError: (e, s) => -100),
+        equals(-100),
+      );
 
       ///////
 
       expect(
-          call1.tryCallThen(
-              2, (v) => v > 0 ? throw StateError("Error") : v * 10,
-              onError: (e, s) => -1000),
-          equals(-1000));
+        call1.tryCallThen(
+          2,
+          (v) => v > 0 ? throw StateError("Error") : v * 10,
+          onError: (e, s) => -1000,
+        ),
+        equals(-1000),
+      );
 
       expect(
-          await call1.tryCallThen(
-              2,
-              (v) => Future.microtask(
-                  () => v > 0 ? throw StateError("Error") : v * 10),
-              onError: (e, s) => -1000),
-          equals(-1000));
+        await call1.tryCallThen(
+          2,
+          (v) => Future.microtask(
+            () => v > 0 ? throw StateError("Error") : v * 10,
+          ),
+          onError: (e, s) => -1000,
+        ),
+        equals(-1000),
+      );
     });
   });
 
@@ -211,13 +249,17 @@ void main() {
       expect(call1.tryCall(2, 3, onError: (e, s) => -100), equals(6));
 
       expect(
-          call1.asFutureOr.tryCall(2, 3, onError: (e, s) => -100), equals(6));
+        call1.asFutureOr.tryCall(2, 3, onError: (e, s) => -100),
+        equals(6),
+      );
 
       var call2 = ((int n, int m) =>
           DateTime.now().year > 2000 ? throw StateError("Error") : n * m);
 
-      expect(call2.asFutureOr.tryCall(2, 3, onError: (e, s) => -100),
-          equals(-100));
+      expect(
+        call2.asFutureOr.tryCall(2, 3, onError: (e, s) => -100),
+        equals(-100),
+      );
 
       expect(call2.tryCall(2, 3, onError: (e, s) => -100), equals(-100));
     });
@@ -227,14 +269,18 @@ void main() {
 
       expect(await call1.tryCall(2, 3, onError: (e, s) => -100), equals(6));
 
-      expect(await call1.asFutureOr.tryCall(2, 3, onError: (e, s) => -100),
-          equals(6));
+      expect(
+        await call1.asFutureOr.tryCall(2, 3, onError: (e, s) => -100),
+        equals(6),
+      );
 
       var call2 = ((int n, int m) async =>
           DateTime.now().year > 2000 ? throw StateError("Error") : n * m);
 
-      expect(await call2.asFutureOr.tryCall(2, 3, onError: (e, s) => -100),
-          equals(-100));
+      expect(
+        await call2.asFutureOr.tryCall(2, 3, onError: (e, s) => -100),
+        equals(-100),
+      );
 
       expect(await call2.tryCall(2, 3, onError: (e, s) => -100), equals(-100));
     });
@@ -243,40 +289,61 @@ void main() {
       var call1 = ((int n, int m) => n * m);
 
       expect(
-          call1.asFutureOr
-              .tryCallThen(2, 3, (v) => v * 10, onError: (e, s) => -100),
-          equals(60));
+        call1.asFutureOr.tryCallThen(
+          2,
+          3,
+          (v) => v * 10,
+          onError: (e, s) => -100,
+        ),
+        equals(60),
+      );
 
-      expect(call1.tryCallThen(2, 3, (v) => v * 10, onError: (e, s) => -100),
-          equals(60));
+      expect(
+        call1.tryCallThen(2, 3, (v) => v * 10, onError: (e, s) => -100),
+        equals(60),
+      );
 
       var call2 = ((int n, int m) =>
           DateTime.now().year > 2000 ? throw StateError("Error") : n * m);
 
-      expect(call2.tryCallThen(2, 3, (v) => v * 10, onError: (e, s) => -100),
-          equals(-100));
+      expect(
+        call2.tryCallThen(2, 3, (v) => v * 10, onError: (e, s) => -100),
+        equals(-100),
+      );
 
       expect(
-          call2.asFutureOr
-              .tryCallThen(2, 3, (v) => v * 10, onError: (e, s) => -100),
-          equals(-100));
+        call2.asFutureOr.tryCallThen(
+          2,
+          3,
+          (v) => v * 10,
+          onError: (e, s) => -100,
+        ),
+        equals(-100),
+      );
 
       ///////
 
       expect(
-          call1.tryCallThen(
-              2, 3, (v) => v > 0 ? throw StateError("Error") : v * 10,
-              onError: (e, s) => -1000),
-          equals(-1000));
+        call1.tryCallThen(
+          2,
+          3,
+          (v) => v > 0 ? throw StateError("Error") : v * 10,
+          onError: (e, s) => -1000,
+        ),
+        equals(-1000),
+      );
 
       expect(
-          await call1.tryCallThen(
-              2,
-              3,
-              (v) => Future.microtask(
-                  () => v > 0 ? throw StateError("Error") : v * 10),
-              onError: (e, s) => -1000),
-          equals(-1000));
+        await call1.tryCallThen(
+          2,
+          3,
+          (v) => Future.microtask(
+            () => v > 0 ? throw StateError("Error") : v * 10,
+          ),
+          onError: (e, s) => -1000,
+        ),
+        equals(-1000),
+      );
     });
   });
 
@@ -379,76 +446,114 @@ void main() {
     });
 
     test('resolve: validate', () async {
-      expect(_futureOrMultiply(10, 2).resolve(validate: _validateEven),
-          equals(20));
-      expect(await _futureOrMultiply(10, 2).resolve(validate: _validateEven),
-          equals(20));
+      expect(
+        _futureOrMultiply(10, 2).resolve(validate: _validateEven),
+        equals(20),
+      );
+      expect(
+        await _futureOrMultiply(10, 2).resolve(validate: _validateEven),
+        equals(20),
+      );
 
       expect(
-          _futureOrMultiply(-10, 2).resolve(validate: _validateEven) is Future,
-          isTrue);
-      expect(await _futureOrMultiply(-10, 2).resolve(validate: _validateEven),
-          equals(-20));
+        _futureOrMultiply(-10, 2).resolve(validate: _validateEven) is Future,
+        isTrue,
+      );
+      expect(
+        await _futureOrMultiply(-10, 2).resolve(validate: _validateEven),
+        equals(-20),
+      );
 
       expect(
-          _futureOrMultiply(11, 3)
-              .resolve(validate: _validateEven, defaultValue: 0),
-          equals(0));
+        _futureOrMultiply(
+          11,
+          3,
+        ).resolve(validate: _validateEven, defaultValue: 0),
+        equals(0),
+      );
       expect(
-          await _futureOrMultiply(11, 3)
-              .resolve(validate: _validateEven, defaultValue: 0),
-          equals(0));
+        await _futureOrMultiply(
+          11,
+          3,
+        ).resolve(validate: _validateEven, defaultValue: 0),
+        equals(0),
+      );
 
       expect(
-          _futureOrMultiply(-11, 3)
-              .resolve(validate: _validateEven, defaultValue: 0) is Future<int>,
-          isTrue);
+        _futureOrMultiply(
+          -11,
+          3,
+        ).resolve(validate: _validateEven, defaultValue: 0) is Future<int>,
+        isTrue,
+      );
       expect(
-          await _futureOrMultiply(-11, 3)
-              .resolve(validate: _validateEven, defaultValue: 0),
-          equals(0));
+        await _futureOrMultiply(
+          -11,
+          3,
+        ).resolve(validate: _validateEven, defaultValue: 0),
+        equals(0),
+      );
     });
 
     test('resolveMapped', () async {
       expect(await _futureOrMultiply(10, 2).resolveWithValue(123), equals(123));
 
       expect(
-          await _futureOrMultiply(10, -2).resolveWithValue(123), equals(123));
+        await _futureOrMultiply(10, -2).resolveWithValue(123),
+        equals(123),
+      );
 
       expect(
-          await _futureOrMultiply(-10, -2).resolveWithValue(123), equals(123));
+        await _futureOrMultiply(-10, -2).resolveWithValue(123),
+        equals(123),
+      );
     });
 
     test('resolveMapped', () async {
       expect(
-          _futureOrMultiply(10, 2).resolveMapped((n) => n * 10), equals(200));
-      expect(await _futureOrMultiply(10, 2).resolveMapped((n) => n * 10),
-          equals(200));
+        _futureOrMultiply(10, 2).resolveMapped((n) => n * 10),
+        equals(200),
+      );
       expect(
-          await _futureOrMultiply(10, 2).resolveMapped((n) => n * 10).asFuture,
-          equals(200));
+        await _futureOrMultiply(10, 2).resolveMapped((n) => n * 10),
+        equals(200),
+      );
+      expect(
+        await _futureOrMultiply(10, 2).resolveMapped((n) => n * 10).asFuture,
+        equals(200),
+      );
 
       expect(
-          _futureOrMultiply(-10, 2).resolveMapped((n) => n * 10) is Future<int>,
-          isTrue);
-      expect(await _futureOrMultiply(-10, 2).resolveMapped((n) => n * 10),
-          equals(-200));
+        _futureOrMultiply(-10, 2).resolveMapped((n) => n * 10) is Future<int>,
+        isTrue,
+      );
       expect(
-          await _futureOrMultiply(-10, 2).resolveMapped((n) => n * 10).asFuture,
-          equals(-200));
+        await _futureOrMultiply(-10, 2).resolveMapped((n) => n * 10),
+        equals(-200),
+      );
+      expect(
+        await _futureOrMultiply(-10, 2).resolveMapped((n) => n * 10).asFuture,
+        equals(-200),
+      );
     });
 
     test('then', () async {
       expect(_futureOrMultiply(10, 2).then((n) => n * 10), equals(200));
       expect(await _futureOrMultiply(10, 2).then((n) => n * 10), equals(200));
-      expect(await _futureOrMultiply(10, 2).then((n) => n * 10).asFuture,
-          equals(200));
+      expect(
+        await _futureOrMultiply(10, 2).then((n) => n * 10).asFuture,
+        equals(200),
+      );
 
       expect(
-          _futureOrMultiply(-10, 2).then((n) => n * 10) is Future<int>, isTrue);
+        _futureOrMultiply(-10, 2).then((n) => n * 10) is Future<int>,
+        isTrue,
+      );
       expect(await _futureOrMultiply(-10, 2).then((n) => n * 10), equals(-200));
-      expect(await _futureOrMultiply(-10, 2).then((n) => n * 10).asFuture,
-          equals(-200));
+      expect(
+        await _futureOrMultiply(-10, 2).then((n) => n * 10).asFuture,
+        equals(-200),
+      );
     });
 
     test('then error', () async {
@@ -464,63 +569,97 @@ void main() {
     test('resolveWith', () async {
       expect(_futureOrMultiply(10, 2).resolveWith(() => 1000), equals(1000));
       expect(
-          await _futureOrMultiply(10, 2).resolveWith(() => 1000), equals(1000));
-      expect(await _futureOrMultiply(10, 2).resolveWith(() => 1000).asFuture,
-          equals(1000));
+        await _futureOrMultiply(10, 2).resolveWith(() => 1000),
+        equals(1000),
+      );
+      expect(
+        await _futureOrMultiply(10, 2).resolveWith(() => 1000).asFuture,
+        equals(1000),
+      );
 
-      expect(_futureOrMultiply(-10, 2).resolveWith(() => -1000) is Future<int>,
-          isTrue);
-      expect(await _futureOrMultiply(-10, 2).resolveWith(() => -1000),
-          equals(-1000));
-      expect(await _futureOrMultiply(-10, 2).resolveWith(() => -1000).asFuture,
-          equals(-1000));
+      expect(
+        _futureOrMultiply(-10, 2).resolveWith(() => -1000) is Future<int>,
+        isTrue,
+      );
+      expect(
+        await _futureOrMultiply(-10, 2).resolveWith(() => -1000),
+        equals(-1000),
+      );
+      expect(
+        await _futureOrMultiply(-10, 2).resolveWith(() => -1000).asFuture,
+        equals(-1000),
+      );
     });
 
     test('resolveBoth', () async {
       expect(
-          await _futureOrMultiply(10, 2)
-              .resolveBoth(_futureOrMultiply(20, 2), (v1, v2) => v1 + v2),
-          equals(60));
+        await _futureOrMultiply(
+          10,
+          2,
+        ).resolveBoth(_futureOrMultiply(20, 2), (v1, v2) => v1 + v2),
+        equals(60),
+      );
 
       expect(
-          await _futureOrMultiply(10, 2)
-              .resolveBoth(_futureOrMultiply(-20, 2), (v1, v2) => v1 + v2),
-          equals(-20));
+        await _futureOrMultiply(
+          10,
+          2,
+        ).resolveBoth(_futureOrMultiply(-20, 2), (v1, v2) => v1 + v2),
+        equals(-20),
+      );
 
       expect(
-          await _futureOrMultiply(-10, 2)
-              .resolveBoth(_futureOrMultiply(20, 2), (v1, v2) => v1 + v2),
-          equals(20));
+        await _futureOrMultiply(
+          -10,
+          2,
+        ).resolveBoth(_futureOrMultiply(20, 2), (v1, v2) => v1 + v2),
+        equals(20),
+      );
 
       expect(
-          await _futureOrMultiply(-10, 2)
-              .resolveBoth(_futureOrMultiply(-20, 2), (v1, v2) => v1 + v2),
-          equals(-60));
+        await _futureOrMultiply(
+          -10,
+          2,
+        ).resolveBoth(_futureOrMultiply(-20, 2), (v1, v2) => v1 + v2),
+        equals(-60),
+      );
     });
 
     test('resolveOther', () async {
       expect(
-          await _futureOrMultiply(10, 2)
-              .resolveOther(_futureOrMultiply(20, 2), (v1, v2) => '$v1,$v2'),
-          equals('20,40'));
+        await _futureOrMultiply(
+          10,
+          2,
+        ).resolveOther(_futureOrMultiply(20, 2), (v1, v2) => '$v1,$v2'),
+        equals('20,40'),
+      );
 
       expect(
-          await _futureOrMultiply(10, 2)
-              .resolveOther('foo', (v1, v2) => '$v1,$v2'),
-          equals('20,foo'));
+        await _futureOrMultiply(
+          10,
+          2,
+        ).resolveOther('foo', (v1, v2) => '$v1,$v2'),
+        equals('20,foo'),
+      );
 
       expect(
-          await _futureOrMultiply(10, 2)
-              .resolveOther(Future.value('bar'), (v1, v2) => '$v1,$v2'),
-          equals('20,bar'));
+        await _futureOrMultiply(
+          10,
+          2,
+        ).resolveOther(Future.value('bar'), (v1, v2) => '$v1,$v2'),
+        equals('20,bar'),
+      );
 
       expect(
-          await Future.value('foo')
-              .resolveOther(Future.value('bar'), (v1, v2) => '$v1,$v2'),
-          equals('foo,bar'));
+        await Future.value('foo')
+            .resolveOther(Future.value('bar'), (v1, v2) => '$v1,$v2'),
+        equals('foo,bar'),
+      );
 
-      expect(await Future.value('foo').resolveOther(200, (v1, v2) => '$v1,$v2'),
-          equals('foo,200'));
+      expect(
+        await Future.value('foo').resolveOther(200, (v1, v2) => '$v1,$v2'),
+        equals('foo,200'),
+      );
     });
 
     test('AsyncLoop 1', () async {
@@ -652,59 +791,84 @@ void main() {
     });
 
     test('FutureOr operators +,-,*,/,~/ int', () async {
-      expect(await (_futureOrMultiply(10, 2) + _futureOrMultiply(20, 2)),
-          equals(60));
+      expect(
+        await (_futureOrMultiply(10, 2) + _futureOrMultiply(20, 2)),
+        equals(60),
+      );
 
-      expect(await (_futureOrMultiply(10, 2) - _futureOrMultiply(20, 2)),
-          equals(-20));
+      expect(
+        await (_futureOrMultiply(10, 2) - _futureOrMultiply(20, 2)),
+        equals(-20),
+      );
 
-      expect(await (_futureOrMultiply(10, 2) * _futureOrMultiply(20, 2)),
-          equals(800));
+      expect(
+        await (_futureOrMultiply(10, 2) * _futureOrMultiply(20, 2)),
+        equals(800),
+      );
 
-      expect(await (_futureOrMultiply(10, 2) / _futureOrMultiply(20, 2)),
-          equals(0.5));
+      expect(
+        await (_futureOrMultiply(10, 2) / _futureOrMultiply(20, 2)),
+        equals(0.5),
+      );
 
-      expect(await (_futureOrMultiply(20, 2) ~/ _futureOrMultiply(10, 2)),
-          equals(2));
+      expect(
+        await (_futureOrMultiply(20, 2) ~/ _futureOrMultiply(10, 2)),
+        equals(2),
+      );
     });
 
     test('FutureOr operators +,-,*,/,~/ double', () async {
       expect(
-          await (_futureOrMultiply(10.0, 2.0) + _futureOrMultiply(20.0, 2.0)),
-          equals(60));
+        await (_futureOrMultiply(10.0, 2.0) + _futureOrMultiply(20.0, 2.0)),
+        equals(60),
+      );
 
       expect(
-          await (_futureOrMultiply(10.0, 2.0) - _futureOrMultiply(20.0, 2.0)),
-          equals(-20));
+        await (_futureOrMultiply(10.0, 2.0) - _futureOrMultiply(20.0, 2.0)),
+        equals(-20),
+      );
 
       expect(
-          await (_futureOrMultiply(10.0, 2.0) * _futureOrMultiply(20.0, 2.0)),
-          equals(800));
+        await (_futureOrMultiply(10.0, 2.0) * _futureOrMultiply(20.0, 2.0)),
+        equals(800),
+      );
 
       expect(
-          await (_futureOrMultiply(10.0, 2.0) / _futureOrMultiply(20.0, 2.0)),
-          equals(0.5));
+        await (_futureOrMultiply(10.0, 2.0) / _futureOrMultiply(20.0, 2.0)),
+        equals(0.5),
+      );
 
       expect(
-          await (_futureOrMultiply(20.0, 2.0) ~/ _futureOrMultiply(10.0, 2.0)),
-          equals(2));
+        await (_futureOrMultiply(20.0, 2.0) ~/ _futureOrMultiply(10.0, 2.0)),
+        equals(2),
+      );
     });
 
     test('FutureOr operators +,-,*,/,~/ num', () async {
-      expect(await (_futureOrMultiply(10.0, 2) + _futureOrMultiply(20, 2)),
-          equals(60));
+      expect(
+        await (_futureOrMultiply(10.0, 2) + _futureOrMultiply(20, 2)),
+        equals(60),
+      );
 
-      expect(await (_futureOrMultiply(10.0, 2) - _futureOrMultiply(20, 2)),
-          equals(-20));
+      expect(
+        await (_futureOrMultiply(10.0, 2) - _futureOrMultiply(20, 2)),
+        equals(-20),
+      );
 
-      expect(await (_futureOrMultiply(10.0, 2) * _futureOrMultiply(20, 2)),
-          equals(800));
+      expect(
+        await (_futureOrMultiply(10.0, 2) * _futureOrMultiply(20, 2)),
+        equals(800),
+      );
 
-      expect(await (_futureOrMultiply(10.0, 2) / _futureOrMultiply(20, 2)),
-          equals(0.5));
+      expect(
+        await (_futureOrMultiply(10.0, 2) / _futureOrMultiply(20, 2)),
+        equals(0.5),
+      );
 
-      expect(await (_futureOrMultiply(20.0, 2) ~/ _futureOrMultiply(10, 2)),
-          equals(2));
+      expect(
+        await (_futureOrMultiply(20.0, 2) ~/ _futureOrMultiply(10, 2)),
+        equals(2),
+      );
     });
 
     test('Future operators +,-,*,/,~/ int', () async {
@@ -733,19 +897,29 @@ void main() {
 
     test('Future operators +,-,*,/,~/ num', () async {
       expect(
-          await (Future<num>.value(10.0) + Future<num>.value(20)), equals(30));
+        await (Future<num>.value(10.0) + Future<num>.value(20)),
+        equals(30),
+      );
 
       expect(
-          await (Future<num>.value(20.0) - Future<num>.value(10)), equals(10));
+        await (Future<num>.value(20.0) - Future<num>.value(10)),
+        equals(10),
+      );
 
-      expect(await (Future<num>.value(20.0) * Future<num>.value(10.0)),
-          equals(200));
+      expect(
+        await (Future<num>.value(20.0) * Future<num>.value(10.0)),
+        equals(200),
+      );
 
-      expect(await (Future<num>.value(10.0) / Future<num>.value(20.0)),
-          equals(0.5));
+      expect(
+        await (Future<num>.value(10.0) / Future<num>.value(20.0)),
+        equals(0.5),
+      );
 
-      expect(await (Future<num>.value(20.0) ~/ Future<num>.value(10.0)),
-          equals(2));
+      expect(
+        await (Future<num>.value(20.0) ~/ Future<num>.value(10.0)),
+        equals(2),
+      );
     });
 
     test('Future + FutureOr operators +,-,*,/,~/ num', () async {
@@ -768,9 +942,10 @@ void main() {
       expect(await ((20 as FutureOr<int>) - Future<int>.value(10)), equals(10));
 
       expect(
-          // ignore: unnecessary_cast
-          await ((20 as FutureOr<int>) * Future<int>.value(10)),
-          equals(200));
+        // ignore: unnecessary_cast
+        await ((20 as FutureOr<int>) * Future<int>.value(10)),
+        equals(200),
+      );
 
       // ignore: unnecessary_cast
       expect(await ((20 as FutureOr<int>) / Future<int>.value(10)), equals(2));
@@ -790,24 +965,35 @@ void main() {
     });
 
     test('type', () async {
-      expect(_futureOrMultiply(10, 2).validate(_validateEven, defaultValue: 0),
-          equals(20));
+      expect(
+        _futureOrMultiply(10, 2).validate(_validateEven, defaultValue: 0),
+        equals(20),
+      );
 
       expect(
-          _futureOrMultiply(-10, 2).validate(_validateEven, defaultValue: 0)
-              is Future<int?>,
-          isTrue);
+        _futureOrMultiply(-10, 2).validate(_validateEven, defaultValue: 0)
+            is Future<int?>,
+        isTrue,
+      );
       expect(
-          await _futureOrMultiply(-10, 2)
-              .validate(_validateEven, defaultValue: 0),
-          equals(-20));
+        await _futureOrMultiply(
+          -10,
+          2,
+        ).validate(_validateEven, defaultValue: 0),
+        equals(-20),
+      );
 
-      expect(_futureOrMultiply(11, 3).validate(_validateEven, defaultValue: 0),
-          equals(0));
       expect(
-          await _futureOrMultiply(-11, 3)
-              .validate(_validateEven, defaultValue: 0),
-          equals(0));
+        _futureOrMultiply(11, 3).validate(_validateEven, defaultValue: 0),
+        equals(0),
+      );
+      expect(
+        await _futureOrMultiply(
+          -11,
+          3,
+        ).validate(_validateEven, defaultValue: 0),
+        equals(0),
+      );
     });
 
     test('onResolve', () async {
@@ -816,8 +1002,10 @@ void main() {
       expect(onResolve1, equals([123]));
 
       var onResolve2 = <int>[];
-      var ret =
-          _futureOrMultiply(-10, 2).onResolve((r) => onResolve2.add(-123));
+      var ret = _futureOrMultiply(
+        -10,
+        2,
+      ).onResolve((r) => onResolve2.add(-123));
       expect(onResolve2, isEmpty);
       await ret;
       expect(onResolve2, equals([-123]));
@@ -831,12 +1019,15 @@ void main() {
       expect(Future.value(123).genericType, equals(int));
 
       expect(
-          await Future.value(110)
-              .resolveBoth(Future.value(220), (v1, v2) => v1 + v2),
-          equals(330));
+        await Future.value(110)
+            .resolveBoth(Future.value(220), (v1, v2) => v1 + v2),
+        equals(330),
+      );
 
-      expect(await Future.value(110).resolveBoth(220, (v1, v2) => v1 + v2),
-          equals(330));
+      expect(
+        await Future.value(110).resolveBoth(220, (v1, v2) => v1 + v2),
+        equals(330),
+      );
     });
   });
 
@@ -865,34 +1056,41 @@ void main() {
       logger(e, s) => loggedErrors.add((e, s));
 
       expect(
-          await Future.microtask(() => 1)
-              .onErrorReturn(-1, errorLogger: logger),
-          equals(1));
+        await Future.microtask(() => 1).onErrorReturn(-1, errorLogger: logger),
+        equals(1),
+      );
       expect(loggedErrors, isEmpty);
       expect(errors, isEmpty);
 
       expect(
-          await Future<int>.microtask(() => throw StateError(''))
-              .onErrorReturn(-2, errorLogger: logger),
-          equals(-2));
+        await Future<int>.microtask(() => throw StateError(''))
+            .onErrorReturn(-2, errorLogger: logger),
+        equals(-2),
+      );
 
       expect(loggedErrors.length, equals(1));
       expect(errors, isEmpty);
 
       expect(
-          await Future<int>.microtask(() => 3).onErrorReturn(-2,
-              errorLogger: logger, onError: (e, s) => errors.add(e)),
-          equals(3));
+        await Future<int>.microtask(() => 3).onErrorReturn(
+          -2,
+          errorLogger: logger,
+          onError: (e, s) => errors.add(e),
+        ),
+        equals(3),
+      );
 
       expect(loggedErrors.length, equals(1));
       expect(errors, isEmpty);
 
       expect(
-          await Future<int>.microtask(() => throw StateError('')).onErrorReturn(
-              -2,
-              errorLogger: logger,
-              onError: (e, s) => errors.add(e)),
-          equals(-2));
+        await Future<int>.microtask(() => throw StateError('')).onErrorReturn(
+          -2,
+          errorLogger: logger,
+          onError: (e, s) => errors.add(e),
+        ),
+        equals(-2),
+      );
 
       expect(loggedErrors.length, equals(2));
       expect(errors.length, equals(1));
@@ -906,23 +1104,27 @@ void main() {
 
       logger(e, s) => loggedErrors.add((e, s));
 
-      expect(await Future.microtask(() => 1).nullOnError(errorLogger: logger),
-          equals(1));
+      expect(
+        await Future.microtask(() => 1).nullOnError(errorLogger: logger),
+        equals(1),
+      );
       expect(loggedErrors, isEmpty);
       expect(errors, isEmpty);
 
       expect(
-          await Future<int>.microtask(() => throw StateError(''))
-              .nullOnError(errorLogger: logger),
-          isNull);
+        await Future<int>.microtask(() => throw StateError(''))
+            .nullOnError(errorLogger: logger),
+        isNull,
+      );
 
       expect(loggedErrors.length, equals(1));
       expect(errors, isEmpty);
 
       expect(
-          await Future<int>.microtask(() => throw StateError('')).nullOnError(
-              errorLogger: logger, onError: (e, s) => errors.add(e)),
-          isNull);
+        await Future<int>.microtask(() => throw StateError(''))
+            .nullOnError(errorLogger: logger, onError: (e, s) => errors.add(e)),
+        isNull,
+      );
 
       expect(loggedErrors.length, equals(2));
       expect(errors.length, equals(1));
@@ -937,22 +1139,26 @@ void main() {
       var errors = [];
 
       expect(
-          await Future.microtask(() => 1).onComplete(
-              onSuccess: (r) => success.add(r),
-              onError: (e, s) => errors.add(e),
-              errorLogger: logger),
-          equals(1));
+        await Future.microtask(() => 1).onComplete(
+          onSuccess: (r) => success.add(r),
+          onError: (e, s) => errors.add(e),
+          errorLogger: logger,
+        ),
+        equals(1),
+      );
 
       expect(loggedErrors, isEmpty);
       expect(success, equals([1]));
       expect(errors, isEmpty);
 
       expect(
-          await Future<int>.microtask(() => throw StateError('')).onComplete(
-              onSuccess: (r) => success.add(r),
-              onError: (e, s) => errors.add(e),
-              errorLogger: logger),
-          isNull);
+        await Future<int>.microtask(() => throw StateError('')).onComplete(
+          onSuccess: (r) => success.add(r),
+          onError: (e, s) => errors.add(e),
+          errorLogger: logger,
+        ),
+        isNull,
+      );
 
       expect(loggedErrors.length, equals(1));
       expect(success, equals([1]));
@@ -968,40 +1174,48 @@ void main() {
       logger(e, s) => loggedErrors.add((e, s));
 
       expect(
-          await Future<int?>.microtask(() => 1)
-              .nullOnError(errorLogger: logger),
-          equals(1));
+        await Future<int?>.microtask(() => 1).nullOnError(errorLogger: logger),
+        equals(1),
+      );
       expect(loggedErrors, isEmpty);
       expect(errors, isEmpty);
 
       expect(
-          await Future<int?>.microtask(() => throw StateError(''))
-              .nullOnError(errorLogger: logger),
-          isNull);
+        await Future<int?>.microtask(() => throw StateError(''))
+            .nullOnError(errorLogger: logger),
+        isNull,
+      );
 
       expect(loggedErrors.length, equals(1));
       expect(errors, isEmpty);
 
       expect(
-          await Future<int?>.microtask(() => throw StateError('')).nullOnError(
-              errorLogger: logger, onError: (e, s) => errors.add(e)),
-          isNull);
+        await Future<int?>.microtask(() => throw StateError(''))
+            .nullOnError(errorLogger: logger, onError: (e, s) => errors.add(e)),
+        isNull,
+      );
 
       expect(loggedErrors.length, equals(2));
       expect(errors.length, equals(1));
 
       expect(
-          await Future<int?>.microtask(() => throw StateError('')).nullOnError(
-              errorLogger: logger, onErrorOrNull: (e, s) => errors.add(e)),
-          isNull);
+        await Future<int?>.microtask(() => throw StateError('')).nullOnError(
+          errorLogger: logger,
+          onErrorOrNull: (e, s) => errors.add(e),
+        ),
+        isNull,
+      );
 
       expect(loggedErrors.length, equals(3));
       expect(errors.length, equals(2));
 
       expect(
-          await Future<int?>.microtask(() => null).nullOnError(
-              errorLogger: logger, onErrorOrNull: (e, s) => errors.add(e)),
-          isNull);
+        await Future<int?>.microtask(() => null).nullOnError(
+          errorLogger: logger,
+          onErrorOrNull: (e, s) => errors.add(e),
+        ),
+        isNull,
+      );
 
       expect(loggedErrors.length, equals(3));
       expect(errors.length, equals(3));
@@ -1016,66 +1230,78 @@ void main() {
       var errors = [];
 
       expect(
-          await Future<int?>.microtask(() => 1).onComplete(
-              onSuccess: (r) => success.add(r),
-              onError: (e, s) => errors.add(e),
-              errorLogger: logger),
-          equals(1));
+        await Future<int?>.microtask(() => 1).onComplete(
+          onSuccess: (r) => success.add(r),
+          onError: (e, s) => errors.add(e),
+          errorLogger: logger,
+        ),
+        equals(1),
+      );
 
       expect(loggedErrors, isEmpty);
       expect(success, equals([1]));
       expect(errors, isEmpty);
 
       expect(
-          await Future<int?>.microtask(() => 2).onComplete(
-              onSuccess: (r) => success.add(r),
-              onErrorOrNull: (e, s) => errors.add(e),
-              errorLogger: logger),
-          equals(2));
+        await Future<int?>.microtask(() => 2).onComplete(
+          onSuccess: (r) => success.add(r),
+          onErrorOrNull: (e, s) => errors.add(e),
+          errorLogger: logger,
+        ),
+        equals(2),
+      );
 
       expect(loggedErrors, isEmpty);
       expect(success, equals([1, 2]));
       expect(errors, isEmpty);
 
       expect(
-          await Future<int?>.microtask(() => throw StateError('')).onComplete(
-              onSuccess: (r) => success.add(r),
-              onError: (e, s) => errors.add(e),
-              errorLogger: logger),
-          isNull);
+        await Future<int?>.microtask(() => throw StateError('')).onComplete(
+          onSuccess: (r) => success.add(r),
+          onError: (e, s) => errors.add(e),
+          errorLogger: logger,
+        ),
+        isNull,
+      );
 
       expect(loggedErrors.length, equals(1));
       expect(success, equals([1, 2]));
       expect(errors.length, equals(1));
 
       expect(
-          await Future<int?>.microtask(() => throw StateError('')).onComplete(
-              onSuccess: (r) => success.add(r),
-              onErrorOrNull: (e, s) => errors.add(e),
-              errorLogger: logger),
-          isNull);
+        await Future<int?>.microtask(() => throw StateError('')).onComplete(
+          onSuccess: (r) => success.add(r),
+          onErrorOrNull: (e, s) => errors.add(e),
+          errorLogger: logger,
+        ),
+        isNull,
+      );
 
       expect(loggedErrors.length, equals(2));
       expect(success, equals([1, 2]));
       expect(errors.length, equals(2));
 
       expect(
-          await Future<int?>.microtask(() => null).onComplete(
-              onSuccess: (r) => success.add(r),
-              onError: (e, s) => errors.add(e),
-              errorLogger: logger),
-          isNull);
+        await Future<int?>.microtask(() => null).onComplete(
+          onSuccess: (r) => success.add(r),
+          onError: (e, s) => errors.add(e),
+          errorLogger: logger,
+        ),
+        isNull,
+      );
 
       expect(loggedErrors.length, equals(2));
       expect(success, equals([1, 2, null]));
       expect(errors.length, equals(2));
 
       expect(
-          await Future<int?>.microtask(() => null).onComplete(
-              onSuccess: (r) => success.add(r),
-              onErrorOrNull: (e, s) => errors.add(e),
-              errorLogger: logger),
-          isNull);
+        await Future<int?>.microtask(() => null).onComplete(
+          onSuccess: (r) => success.add(r),
+          onErrorOrNull: (e, s) => errors.add(e),
+          errorLogger: logger,
+        ),
+        isNull,
+      );
 
       expect(loggedErrors.length, equals(2));
       expect(success, equals([1, 2, null]));
@@ -1091,45 +1317,53 @@ void main() {
       var errors = [];
 
       expect(
-          await Future<int?>.microtask(() => 1).onCompleteNotNull(
-              onSuccess: (r) => success.add(r),
-              onErrorOrNull: (e, s) => errors.add(e),
-              errorLogger: logger),
-          equals(1));
+        await Future<int?>.microtask(() => 1).onCompleteNotNull(
+          onSuccess: (r) => success.add(r),
+          onErrorOrNull: (e, s) => errors.add(e),
+          errorLogger: logger,
+        ),
+        equals(1),
+      );
 
       expect(loggedErrors, isEmpty);
       expect(success, equals([1]));
       expect(errors, isEmpty);
 
       expect(
-          await Future<int?>.microtask(() => 2).onCompleteNotNull(
-              onSuccess: (r) => success.add(r),
-              onErrorOrNull: (e, s) => errors.add(e),
-              errorLogger: logger),
-          equals(2));
+        await Future<int?>.microtask(() => 2).onCompleteNotNull(
+          onSuccess: (r) => success.add(r),
+          onErrorOrNull: (e, s) => errors.add(e),
+          errorLogger: logger,
+        ),
+        equals(2),
+      );
 
       expect(loggedErrors, isEmpty);
       expect(success, equals([1, 2]));
       expect(errors, isEmpty);
 
       expect(
-          await Future<int?>.microtask(() => throw StateError(''))
-              .onCompleteNotNull(
-                  onSuccess: (r) => success.add(r),
-                  onErrorOrNull: (e, s) => errors.add(e),
-                  errorLogger: logger),
-          isNull);
+        await Future<int?>.microtask(() => throw StateError(''))
+            .onCompleteNotNull(
+              onSuccess: (r) => success.add(r),
+              onErrorOrNull: (e, s) => errors.add(e),
+              errorLogger: logger,
+            ),
+        isNull,
+      );
 
       expect(loggedErrors.length, equals(1));
       expect(success, equals([1, 2]));
       expect(errors.length, equals(1));
 
       expect(
-          await Future<int?>.microtask(() => null).onCompleteNotNull(
-              onSuccess: (r) => success.add(r),
-              onErrorOrNull: (e, s) => errors.add(e),
-              errorLogger: logger),
-          isNull);
+        await Future<int?>.microtask(() => null).onCompleteNotNull(
+          onSuccess: (r) => success.add(r),
+          onErrorOrNull: (e, s) => errors.add(e),
+          errorLogger: logger,
+        ),
+        isNull,
+      );
 
       expect(loggedErrors.length, equals(1));
       expect(success, equals([1, 2]));
@@ -1267,32 +1501,46 @@ void main() {
       expect(l.toList().map((e) => e).resolveAll(), equals([20, 40]));
 
       expect(l.resolveAll() as List<int>, equals([20, 40]));
-      expect((l.resolveAll() as List<int>).map((e) => e).resolveAll(),
-          equals([20, 40]));
+      expect(
+        (l.resolveAll() as List<int>).map((e) => e).resolveAll(),
+        equals([20, 40]),
+      );
 
       expect(l.resolveAllWith(() => 123), equals(123));
       expect(
-          (l.resolveAll() as List<int>).resolveAllWith(() => 123), equals(123));
+        (l.resolveAll() as List<int>).resolveAllWith(() => 123),
+        equals(123),
+      );
 
       expect(l.resolveAllWithValue(456), equals(456));
       expect(
-          (l.resolveAll() as List<int>).resolveAllWithValue(456), equals(456));
+        (l.resolveAll() as List<int>).resolveAllWithValue(456),
+        equals(456),
+      );
 
       expect(l.resolveAllMapped((value) => value * 10), equals([200, 400]));
       expect(
-          (l.resolveAll() as List<int>).resolveAllMapped((value) => value * 10),
-          equals([200, 400]));
-
-      expect(l.resolveAllThen((value) => value.reduce((v, e) => v * e)),
-          equals(800));
-
-      expect(l.resolveAllValidated((v) => v > 30, defaultValue: 101),
-          equals([101, 40]));
+        (l.resolveAll() as List<int>).resolveAllMapped((value) => value * 10),
+        equals([200, 400]),
+      );
 
       expect(
-          (l.resolveAll() as List<int>)
-              .resolveAllValidated((v) => v > 30, defaultValue: 101),
-          equals([101, 40]));
+        l.resolveAllThen((value) => value.reduce((v, e) => v * e)),
+        equals(800),
+      );
+
+      expect(
+        l.resolveAllValidated((v) => v > 30, defaultValue: 101),
+        equals([101, 40]),
+      );
+
+      expect(
+        (l.resolveAll() as List<int>).resolveAllValidated(
+          (v) => v > 30,
+          defaultValue: 101,
+        ),
+        equals([101, 40]),
+      );
 
       expect(l.selectResolved(), equals([20, 40]));
       expect(l.selectFutures(), isEmpty);
@@ -1305,8 +1553,10 @@ void main() {
 
       expect(l.resolveAllMapped((v) => v * 10), equals([200, 400]));
 
-      expect(l.resolveAllValidated(_validateEven, defaultValue: 0),
-          equals([20, 40]));
+      expect(
+        l.resolveAllValidated(_validateEven, defaultValue: 0),
+        equals([20, 40]),
+      );
 
       expect(l.resolveAllJoined((l) => l.join()), equals('2040'));
 
@@ -1316,36 +1566,49 @@ void main() {
 
       expect(l2.resolveAllJoined((l) => l.join()), equals('3063'));
 
-      expect((l2.resolveAll() as List<int>).resolveAllJoined((l) => l.join()),
-          equals('3063'));
+      expect(
+        (l2.resolveAll() as List<int>).resolveAllJoined((l) => l.join()),
+        equals('3063'),
+      );
 
-      expect(l2.resolveAllValidated(_validateEven, defaultValue: 0).isResolved,
-          isTrue);
-      expect(l2.resolveAllValidated(_validateEven, defaultValue: 0),
-          equals([30, 0]));
+      expect(
+        l2.resolveAllValidated(_validateEven, defaultValue: 0).isResolved,
+        isTrue,
+      );
+      expect(
+        l2.resolveAllValidated(_validateEven, defaultValue: 0),
+        equals([30, 0]),
+      );
 
       expect(l2.resolveAllReduced((a, b) => a + b), equals(93));
 
-      expect((l2.resolveAll() as List<int>).resolveAllReduced((a, b) => a + b),
-          equals(93));
-
-      expect(await [Future.value(10), Future.value(20)].resolveAll(),
-          equals([10, 20]));
-
-      expect(await [Future.value(10), Future.value(20), 30].resolveAll(),
-          equals([10, 20, 30]));
+      expect(
+        (l2.resolveAll() as List<int>).resolveAllReduced((a, b) => a + b),
+        equals(93),
+      );
 
       expect(
-          await [
-            Future.value(Future.value([1, 2])),
-            Future.value(Future.value([3, 4])),
-            [5, 6]
-          ].resolveAll(),
-          equals([
-            [1, 2],
-            [3, 4],
-            [5, 6]
-          ]));
+        await [Future.value(10), Future.value(20)].resolveAll(),
+        equals([10, 20]),
+      );
+
+      expect(
+        await [Future.value(10), Future.value(20), 30].resolveAll(),
+        equals([10, 20, 30]),
+      );
+
+      expect(
+        await [
+          Future.value(Future.value([1, 2])),
+          Future.value(Future.value([3, 4])),
+          [5, 6],
+        ].resolveAll(),
+        equals([
+          [1, 2],
+          [3, 4],
+          [5, 6],
+        ]),
+      );
     });
 
     test('Not All Resolved ; Not All Future', () async {
@@ -1354,20 +1617,28 @@ void main() {
       expect(l.isAllResolved, isFalse);
       expect(l.isAllFuture, isFalse);
 
-      expect(l.allAsList.map((e) => e is num ? e : 'future'),
-          equals([20, 'future']));
-      expect(l.map((e) => e).allAsList.map((e) => e is num ? e : 'future'),
-          equals([20, 'future']));
+      expect(
+        l.allAsList.map((e) => e is num ? e : 'future'),
+        equals([20, 'future']),
+      );
+      expect(
+        l.map((e) => e).allAsList.map((e) => e is num ? e : 'future'),
+        equals([20, 'future']),
+      );
 
       expect(await l.resolveAll(), equals([20, -40]));
       expect(await l.resolveAllWith(() => 123), equals(123));
       expect(await l.resolveAllWithValue(456), equals(456));
 
       expect(
-          await l.resolveAllMapped((value) => value * 10), equals([200, -400]));
+        await l.resolveAllMapped((value) => value * 10),
+        equals([200, -400]),
+      );
 
-      expect(await l.resolveAllThen((value) => value.reduce((v, e) => v * e)),
-          equals(-800));
+      expect(
+        await l.resolveAllThen((value) => value.reduce((v, e) => v * e)),
+        equals(-800),
+      );
 
       expect(l.selectResolved(), equals([20]));
       expect(l.selectFutures().length, equals(1));
@@ -1381,10 +1652,14 @@ void main() {
       expect(l.resolveAllMapped((v) => v * 10).isResolved, isFalse);
       expect(await l.resolveAllMapped((v) => v * 10), equals([200, -400]));
 
-      expect(l.resolveAllValidated(_validateEven, defaultValue: 0).isResolved,
-          isFalse);
-      expect(await l.resolveAllValidated(_validateEven, defaultValue: 0),
-          equals([20, -40]));
+      expect(
+        l.resolveAllValidated(_validateEven, defaultValue: 0).isResolved,
+        isFalse,
+      );
+      expect(
+        await l.resolveAllValidated(_validateEven, defaultValue: 0),
+        equals([20, -40]),
+      );
 
       expect(await l.resolveAllJoined((l) => l.join()), equals('20-40'));
 
@@ -1392,22 +1667,30 @@ void main() {
 
       var l2 = [_futureOrMultiply(10, 3), _futureOrMultiply(-21, 3)];
 
-      expect(l2.resolveAllValidated(_validateEven, defaultValue: 0).isResolved,
-          isFalse);
-      expect(await l2.resolveAllValidated(_validateEven, defaultValue: 0),
-          equals([30, 0]));
       expect(
-          await l2.asFutures
-              .resolveAllValidated(_validateEven, defaultValue: 0),
-          equals([30, 0]));
+        l2.resolveAllValidated(_validateEven, defaultValue: 0).isResolved,
+        isFalse,
+      );
+      expect(
+        await l2.resolveAllValidated(_validateEven, defaultValue: 0),
+        equals([30, 0]),
+      );
+      expect(
+        await l2.asFutures.resolveAllValidated(_validateEven, defaultValue: 0),
+        equals([30, 0]),
+      );
 
       expect(await l2.resolveAllJoined((l) => l.join()), equals('30-63'));
-      expect(await l2.asFutures.resolveAllJoined((l) => l.join()),
-          equals('30-63'));
+      expect(
+        await l2.asFutures.resolveAllJoined((l) => l.join()),
+        equals('30-63'),
+      );
 
       expect(await l2.resolveAllReduced((a, b) => a + b), equals(-33));
       expect(
-          await l2.asFutures.resolveAllReduced((a, b) => a + b), equals(-33));
+        await l2.asFutures.resolveAllReduced((a, b) => a + b),
+        equals(-33),
+      );
     });
 
     test('All Future', () async {
@@ -1416,8 +1699,10 @@ void main() {
       expect(l.isAllResolved, isFalse);
       expect(l.isAllFuture, isTrue);
 
-      expect(l.allAsList.map((e) => e is num ? e : 'future'),
-          equals(['future', 'future']));
+      expect(
+        l.allAsList.map((e) => e is num ? e : 'future'),
+        equals(['future', 'future']),
+      );
 
       expect(l.selectResolved().isEmpty, isTrue);
       expect(l.selectFutures().length, equals(2));
@@ -1431,11 +1716,15 @@ void main() {
       expect(l.resolveAll().isResolved, isFalse);
       expect(await l.asFutures.resolveAll(), equals([-20, -40]));
 
-      expect(await l.asFutures.resolveAllMapped((v) => v * 10),
-          equals([-200, -400]));
+      expect(
+        await l.asFutures.resolveAllMapped((v) => v * 10),
+        equals([-200, -400]),
+      );
 
-      expect(await l.asFutures.resolveAllJoined((l) => l.join()),
-          equals('-20-40'));
+      expect(
+        await l.asFutures.resolveAllJoined((l) => l.join()),
+        equals('-20-40'),
+      );
 
       expect(await l.asFutures.resolveAllReduced((a, b) => a + b), equals(-60));
 
@@ -1460,7 +1749,9 @@ void main() {
       StateError? noElementError;
       try {
         expect(
-            await [].asFutures.resolveAllReduced((a, b) => a + b), equals(-60));
+          await [].asFutures.resolveAllReduced((a, b) => a + b),
+          equals(-60),
+        );
       } catch (e) {
         noElementError = e as StateError;
       }
@@ -1480,15 +1771,17 @@ void main() {
       expect(l.asFuturesNullable.length, equals(3));
       expect(l.waitFuturesNullable(), equals([]));
       expect(await l.asFuturesNullable.resolveAll(), equals([20, 40, null]));
-      expect(await l.asFuturesNullable.waitFuturesNullable(),
-          equals([20, 40, null]));
+      expect(
+        await l.asFuturesNullable.waitFuturesNullable(),
+        equals([20, 40, null]),
+      );
     });
 
     test('All Futures + null', () async {
       var l = <Future<num>?>[
         Future<num>.value(10 * 2),
         Future<num>.value(20 * 2),
-        null
+        null,
       ];
 
       expect(l.selectFuturesNullable().length, 2);
@@ -1520,8 +1813,10 @@ void main() {
 
       expect(l.selectFuturesNullable().length, equals(2));
 
-      expect(await l.selectFuturesNullable().waitFuturesNullable(),
-          equals([-20, -40]));
+      expect(
+        await l.selectFuturesNullable().waitFuturesNullable(),
+        equals([-20, -40]),
+      );
 
       expect(l.selectFuturesNullable().resolveAll(), isA<Future<List<int?>>>());
       expect(await l.selectFuturesNullable().resolveAll(), equals([-20, -40]));
@@ -1532,70 +1827,91 @@ void main() {
 
   group('IterableFutureOrExtensionNullable', () {
     test('whereNotNull', () async {
-      expect(await [20, null, Future.value(40)].whereNotNullSync().resolveAll(),
-          equals([20, 40]));
+      expect(
+        await [20, null, Future.value(40)].whereNotNullSync().resolveAll(),
+        equals([20, 40]),
+      );
 
       expect(
-          await [20, null, Future.value(40)]
-              .map((e) => e)
-              .whereNotNullSync()
-              .resolveAll(),
-          equals([20, 40]));
+        await [
+          20,
+          null,
+          Future.value(40),
+        ].map((e) => e).whereNotNullSync().resolveAll(),
+        equals([20, 40]),
+      );
 
-      expect(await [20, Future.value(40)].whereNotNullSync().resolveAll(),
-          equals([20, 40]));
+      expect(
+        await [20, Future.value(40)].whereNotNullSync().resolveAll(),
+        equals([20, 40]),
+      );
 
       expect(await [20, 40].whereNotNullSync().resolveAll(), equals([20, 40]));
       expect([20, 40].whereNotNullSync().resolveAll(), equals([20, 40]));
 
-      expect(await [20, null, 40].whereNotNullSync().resolveAll(),
-          equals([20, 40]));
+      expect(
+        await [20, null, 40].whereNotNullSync().resolveAll(),
+        equals([20, 40]),
+      );
       expect([20, null, 40].whereNotNullSync().resolveAll(), equals([20, 40]));
 
-      expect([20, null, 40].map((e) => e).whereNotNullSync().resolveAll(),
-          equals([20, 40]));
+      expect(
+        [20, null, 40].map((e) => e).whereNotNullSync().resolveAll(),
+        equals([20, 40]),
+      );
     });
 
     test('whereNotNullResolved', () async {
       expect([20, null, Future.value(40)].whereNotNullResolved(), equals([20]));
 
-      expect([20, null, Future.value(40)].map((e) => e).whereNotNullResolved(),
-          equals([20]));
+      expect(
+        [20, null, Future.value(40)].map((e) => e).whereNotNullResolved(),
+        equals([20]),
+      );
 
       expect([20, Future.value(40)].whereNotNullResolved(), equals([20]));
 
       expect([20, null, 40].whereNotNullResolved(), equals([20, 40]));
 
-      expect([20, null, 40].map((e) => e).whereNotNullResolved(),
-          equals([20, 40]));
+      expect(
+        [20, null, 40].map((e) => e).whereNotNullResolved(),
+        equals([20, 40]),
+      );
 
       expect([20, 40].whereNotNullResolved(), equals([20, 40]));
     });
 
     test('resolveAllNotNull', () async {
-      expect(await ([20, null, Future.value(40)].resolveAllNotNull()),
-          equals([20, 40]));
+      expect(
+        await ([20, null, Future.value(40)].resolveAllNotNull()),
+        equals([20, 40]),
+      );
 
       expect(
-          await ([20, null, Future.value(40)]
-              .map((e) => e)
-              .resolveAllNotNull()),
-          equals([20, 40]));
+        await ([20, null, Future.value(40)].map((e) => e).resolveAllNotNull()),
+        equals([20, 40]),
+      );
 
       expect(await ([20, null, 40].resolveAllNotNull()), equals([20, 40]));
 
       expect(
-          await ([20, Future.value(40)].resolveAllNotNull()), equals([20, 40]));
+        await ([20, Future.value(40)].resolveAllNotNull()),
+        equals([20, 40]),
+      );
 
       expect(await ([20, 40].resolveAllNotNull()), equals([20, 40]));
 
       expect(([20, null, 40].resolveAllNotNull()), equals([20, 40]));
 
       expect(
-          ([20, null, 40].map((e) => e).resolveAllNotNull()), equals([20, 40]));
+        ([20, null, 40].map((e) => e).resolveAllNotNull()),
+        equals([20, 40]),
+      );
 
-      expect((<FutureOr<int?>>[20, null, 40].map((e) => e).resolveAllNotNull()),
-          equals([20, 40]));
+      expect(
+        (<FutureOr<int?>>[20, null, 40].map((e) => e).resolveAllNotNull()),
+        equals([20, 40]),
+      );
 
       expect(([20, 40].resolveAllNotNull()), equals([20, 40]));
 
@@ -1604,27 +1920,36 @@ void main() {
 
     test('resolveAllNullable', () async {
       expect(
-          await ([20, null, 40].resolveAllNullable()), equals([20, null, 40]));
+        await ([20, null, 40].resolveAllNullable()),
+        equals([20, null, 40]),
+      );
 
       expect(await ([20, 30, 40].resolveAllNullable()), equals([20, 30, 40]));
 
-      expect(await ([20, 30, 40].map((e) => e).resolveAllNullable()),
-          equals([20, 30, 40]));
-
-      expect(await (<dynamic>[20, 30, 40].resolveAllNullable()),
-          equals([20, 30, 40]));
-
-      expect(await ([20, null, 40].map((e) => e).resolveAllNullable()),
-          equals([20, null, 40]));
-
-      expect(await ([20, null, Future.value(40)].resolveAllNullable()),
-          equals([20, null, 40]));
+      expect(
+        await ([20, 30, 40].map((e) => e).resolveAllNullable()),
+        equals([20, 30, 40]),
+      );
 
       expect(
-          await ([20, null, Future.value(40)]
-              .map((e) => e)
-              .resolveAllNullable()),
-          equals([20, null, 40]));
+        await (<dynamic>[20, 30, 40].resolveAllNullable()),
+        equals([20, 30, 40]),
+      );
+
+      expect(
+        await ([20, null, 40].map((e) => e).resolveAllNullable()),
+        equals([20, null, 40]),
+      );
+
+      expect(
+        await ([20, null, Future.value(40)].resolveAllNullable()),
+        equals([20, null, 40]),
+      );
+
+      expect(
+        await ([20, null, Future.value(40)].map((e) => e).resolveAllNullable()),
+        equals([20, null, 40]),
+      );
     });
   });
 
@@ -1654,76 +1979,96 @@ void main() {
 
   group('MapFutureValueExtension', () {
     test('resolveAllValues', () async {
-      expect(await {'a': 1, 'b': Future.value(2)}.resolveAllValues(),
-          equals({'a': 1, 'b': 2}));
+      expect(
+        await {'a': 1, 'b': Future.value(2)}.resolveAllValues(),
+        equals({'a': 1, 'b': 2}),
+      );
 
       expect(
-          await {'a': 1, 'b': 2}.resolveAllValues(), equals({'a': 1, 'b': 2}));
+        await {'a': 1, 'b': 2}.resolveAllValues(),
+        equals({'a': 1, 'b': 2}),
+      );
     });
 
     test('resolveAllValuesNullable', () async {
       var map0 = <String, int?>{'a': 1, 'b': 2, 'c': null};
-      expect(await map0.resolveAllValuesNullable(),
-          equals({'a': 1, 'b': 2, 'c': null}));
+      expect(
+        await map0.resolveAllValuesNullable(),
+        equals({'a': 1, 'b': 2, 'c': null}),
+      );
 
       var map1 = <String, FutureOr<int?>>{
         'a': 1,
         'b': Future<int>.value(2),
-        'c': null
+        'c': null,
       };
-      expect(await map1.resolveAllValuesNullable(),
-          equals({'a': 1, 'b': 2, 'c': null}));
+      expect(
+        await map1.resolveAllValuesNullable(),
+        equals({'a': 1, 'b': 2, 'c': null}),
+      );
 
       var map2 = <String, FutureOr<int?>>{
         'a': 1,
         'b': 2,
-        'c': Future<int?>.value(null)
+        'c': Future<int?>.value(null),
       };
-      expect(await map2.resolveAllValuesNullable(),
-          equals({'a': 1, 'b': 2, 'c': null}));
+      expect(
+        await map2.resolveAllValuesNullable(),
+        equals({'a': 1, 'b': 2, 'c': null}),
+      );
 
       var map3 = <String, FutureOr<int?>>{
         'a': 1,
         'b': null,
         'c': Future.value(null),
-        'd': Future.value(4)
+        'd': Future.value(4),
       };
-      expect(await map3.resolveAllValuesNullable(),
-          equals({'a': 1, 'b': null, 'c': null, 'd': 4}));
+      expect(
+        await map3.resolveAllValuesNullable(),
+        equals({'a': 1, 'b': null, 'c': null, 'd': 4}),
+      );
 
       var map4 = <String, Object?>{
         'a': 1,
         'b': null,
         'c': Future.value(null),
-        'd': Future.value(4)
+        'd': Future.value(4),
       };
-      expect(await map4.resolveAllValuesNullable(),
-          equals({'a': 1, 'b': null, 'c': null, 'd': 4}));
+      expect(
+        await map4.resolveAllValuesNullable(),
+        equals({'a': 1, 'b': null, 'c': null, 'd': 4}),
+      );
 
       var map5 = <String, dynamic>{
         'a': 1,
         'b': null,
         'c': Future.value(null),
-        'd': Future.value(4)
+        'd': Future.value(4),
       };
-      expect(await map5.resolveAllValuesNullable(),
-          equals({'a': 1, 'b': null, 'c': null, 'd': 4}));
+      expect(
+        await map5.resolveAllValuesNullable(),
+        equals({'a': 1, 'b': null, 'c': null, 'd': 4}),
+      );
 
       var map6 = <String, Object>{
         'a': 1,
         'b': 2,
         'c': Future.value(null),
-        'd': Future.value(4)
+        'd': Future.value(4),
       };
-      expect(await map6.resolveAllValuesNullable(),
-          equals({'a': 1, 'b': 2, 'c': null, 'd': 4}));
+      expect(
+        await map6.resolveAllValuesNullable(),
+        equals({'a': 1, 'b': 2, 'c': null, 'd': 4}),
+      );
     });
   });
 
   group('MapFutureKeyExtension', () {
     test('resolveAllKeys', () async {
-      expect(await {Future.value('a'): 1, 'b': 2}.resolveAllKeys(),
-          equals({'a': 1, 'b': 2}));
+      expect(
+        await {Future.value('a'): 1, 'b': 2}.resolveAllKeys(),
+        equals({'a': 1, 'b': 2}),
+      );
 
       expect(await {'a': 1, 'b': 2}.resolveAllKeys(), equals({'a': 1, 'b': 2}));
     });
@@ -1732,12 +2077,18 @@ void main() {
   group('MapFutureExtension', () {
     test('resolveAllEntries', () async {
       expect(
-          await {Future.value('a'): 1, 'b': 2, 'c': Future.value(3)}
-              .resolveAllEntries(),
-          equals({'a': 1, 'b': 2, 'c': 3}));
+        await {
+          Future.value('a'): 1,
+          'b': 2,
+          'c': Future.value(3),
+        }.resolveAllEntries(),
+        equals({'a': 1, 'b': 2, 'c': 3}),
+      );
 
-      expect(await {'a': 1, 'b': 2, 'c': 3}.resolveAllEntries(),
-          equals({'a': 1, 'b': 2, 'c': 3}));
+      expect(
+        await {'a': 1, 'b': 2, 'c': 3}.resolveAllEntries(),
+        equals({'a': 1, 'b': 2, 'c': 3}),
+      );
     });
   });
 
@@ -1746,33 +2097,39 @@ void main() {
       var l1 = <MapEntry<String, FutureOr<int>>>[
         MapEntry('a', 1),
         MapEntry('b', 2),
-        MapEntry('c', 3)
+        MapEntry('c', 3),
       ];
 
-      expect(Map.fromEntries(await l1.resolveAllValues()),
-          equals({'a': 1, 'b': 2, 'c': 3}));
+      expect(
+        Map.fromEntries(await l1.resolveAllValues()),
+        equals({'a': 1, 'b': 2, 'c': 3}),
+      );
     });
 
     test('resolveAllValues (async)', () async {
       var l1 = [
         MapEntry('a', Future.value(1)),
         MapEntry('b', Future.value(2)),
-        MapEntry('c', Future.value(3))
+        MapEntry('c', Future.value(3)),
       ];
 
-      expect(Map.fromEntries(await l1.resolveAllValues()),
-          equals({'a': 1, 'b': 2, 'c': 3}));
+      expect(
+        Map.fromEntries(await l1.resolveAllValues()),
+        equals({'a': 1, 'b': 2, 'c': 3}),
+      );
     });
 
     test('resolveAllValues (sync, async)', () async {
       var l1 = [
         MapEntry('a', 1),
         MapEntry('b', Future.value(2)),
-        MapEntry('c', Future.value(3))
+        MapEntry('c', Future.value(3)),
       ];
 
-      expect(Map.fromEntries(await l1.resolveAllValues()),
-          equals({'a': 1, 'b': 2, 'c': 3}));
+      expect(
+        Map.fromEntries(await l1.resolveAllValues()),
+        equals({'a': 1, 'b': 2, 'c': 3}),
+      );
     });
   });
 
@@ -1781,33 +2138,39 @@ void main() {
       var l1 = <MapEntry<FutureOr<String>, int>>[
         MapEntry('a', 1),
         MapEntry('b', 2),
-        MapEntry('c', 3)
+        MapEntry('c', 3),
       ];
 
-      expect(Map.fromEntries(await l1.resolveAllKeys()),
-          equals({'a': 1, 'b': 2, 'c': 3}));
+      expect(
+        Map.fromEntries(await l1.resolveAllKeys()),
+        equals({'a': 1, 'b': 2, 'c': 3}),
+      );
     });
 
     test('resolveAllKeys (async)', () async {
       var l1 = <MapEntry<FutureOr<String>, int>>[
         MapEntry(Future.value('a'), 1),
         MapEntry(Future.value('b'), 2),
-        MapEntry(Future.value('c'), 3)
+        MapEntry(Future.value('c'), 3),
       ];
 
-      expect(Map.fromEntries(await l1.resolveAllKeys()),
-          equals({'a': 1, 'b': 2, 'c': 3}));
+      expect(
+        Map.fromEntries(await l1.resolveAllKeys()),
+        equals({'a': 1, 'b': 2, 'c': 3}),
+      );
     });
 
     test('resolveAllKeys (sync, async)', () async {
       var l1 = <MapEntry<FutureOr<String>, int>>[
         MapEntry('a', 1),
         MapEntry(Future.value('b'), 2),
-        MapEntry(Future.value('c'), 3)
+        MapEntry(Future.value('c'), 3),
       ];
 
-      expect(Map.fromEntries(await l1.resolveAllKeys()),
-          equals({'a': 1, 'b': 2, 'c': 3}));
+      expect(
+        Map.fromEntries(await l1.resolveAllKeys()),
+        equals({'a': 1, 'b': 2, 'c': 3}),
+      );
     });
   });
 
@@ -1816,33 +2179,39 @@ void main() {
       var l1 = <MapEntry<FutureOr<String>, FutureOr<int>>>[
         MapEntry('a', 1),
         MapEntry('b', 2),
-        MapEntry('c', 3)
+        MapEntry('c', 3),
       ];
 
-      expect(Map.fromEntries(await l1.resolveAllEntries()),
-          equals({'a': 1, 'b': 2, 'c': 3}));
+      expect(
+        Map.fromEntries(await l1.resolveAllEntries()),
+        equals({'a': 1, 'b': 2, 'c': 3}),
+      );
     });
 
     test('resolveAllEntries (async)', () async {
       var l1 = <MapEntry<FutureOr<String>, FutureOr<int>>>[
         MapEntry(Future.value('a'), Future.value(1)),
         MapEntry(Future.value('b'), Future.value(2)),
-        MapEntry(Future.value('c'), Future.value(3))
+        MapEntry(Future.value('c'), Future.value(3)),
       ];
 
-      expect(Map.fromEntries(await l1.resolveAllEntries()),
-          equals({'a': 1, 'b': 2, 'c': 3}));
+      expect(
+        Map.fromEntries(await l1.resolveAllEntries()),
+        equals({'a': 1, 'b': 2, 'c': 3}),
+      );
     });
 
     test('resolveAllEntries (sync, async)', () async {
       var l1 = <MapEntry<FutureOr<String>, FutureOr<int>>>[
         MapEntry('a', 1),
         MapEntry(Future.value('b'), Future.value(2)),
-        MapEntry(Future.value('c'), Future.value(3))
+        MapEntry(Future.value('c'), Future.value(3)),
       ];
 
-      expect(Map.fromEntries(await l1.resolveAllEntries()),
-          equals({'a': 1, 'b': 2, 'c': 3}));
+      expect(
+        Map.fromEntries(await l1.resolveAllEntries()),
+        equals({'a': 1, 'b': 2, 'c': 3}),
+      );
     });
   });
 
@@ -1858,13 +2227,17 @@ void main() {
 
       var k2 = _Key(2);
       expect(await cache[k2], isNull);
-      expect(await cache.putIfAbsentAsync(k2, () => Future.value('b')),
-          equals('b'));
+      expect(
+        await cache.putIfAbsentAsync(k2, () => Future.value('b')),
+        equals('b'),
+      );
       expect(await cache[k2], equals('b'));
       expect(cache[k2], isA<Future<String>>());
 
-      expect(await cache.putIfAbsentAsync(null, () => Future.value('y')),
-          equals('y'));
+      expect(
+        await cache.putIfAbsentAsync(null, () => Future.value('y')),
+        equals('y'),
+      );
       expect(await cache.putIfAbsentAsync(null, () => 'x'), equals('x'));
     });
   });
@@ -1883,8 +2256,10 @@ void main() {
       var k2 = _Key(2);
       expect(cache[k2], isNull);
       expect(await cache[k2], isNull);
-      expect(await cache.putIfAbsentAsync(k2, () => Future.value('b')),
-          equals('b'));
+      expect(
+        await cache.putIfAbsentAsync(k2, () => Future.value('b')),
+        equals('b'),
+      );
       expect(await cache[k2], equals('b'));
       expect(cache[k2], equals('b'));
 
@@ -1893,8 +2268,10 @@ void main() {
       expect(cache.putIfAbsentAsync(k3, () => 'c'), equals('c'));
       expect(cache[k3], equals('c'));
 
-      expect(await cache.putIfAbsentAsync(null, () => Future.value('y')),
-          equals('y'));
+      expect(
+        await cache.putIfAbsentAsync(null, () => Future.value('y')),
+        equals('y'),
+      );
       expect(cache.putIfAbsentAsync(null, () => 'x'), equals('x'));
     });
   });
@@ -1915,19 +2292,22 @@ void main() {
     test('forEachAsync (async)', () async {
       var l1 = [1, 2, 3];
 
-      expect(await l1.forEachAsync((e) => Future.value(e * 100)),
-          equals([100, 200, 300]));
+      expect(
+        await l1.forEachAsync((e) => Future.value(e * 100)),
+        equals([100, 200, 300]),
+      );
     });
 
     test('forEachAsync (sync, async...)', () async {
       var l1 = [1, 2, 3];
 
       expect(
-          await l1.forEachAsync((e) {
-            if (e == 1) return 10;
-            return Future.value(e * 100);
-          }),
-          equals([10, 200, 300]));
+        await l1.forEachAsync((e) {
+          if (e == 1) return 10;
+          return Future.value(e * 100);
+        }),
+        equals([10, 200, 300]),
+      );
     });
   });
 
@@ -1938,34 +2318,36 @@ void main() {
       expect(await asyncTry<int>(() => Future.value(123)), equals(123));
 
       expect(
-          await asyncTry<int>(
-              () => _asFuture(() => Future.value(123), delayMs: 50)),
-          equals(123));
+        await asyncTry<int>(
+          () => _asFuture(() => Future.value(123), delayMs: 50),
+        ),
+        equals(123),
+      );
     });
 
     test('then', () async {
       expect(asyncTry<int>(() => 123, then: (n) => n! * 2), equals(246));
 
       expect(
-          await asyncTry<int>(
-            () => Future.value(123),
-            then: (n) => n! * 2,
-          ),
-          equals(246));
+        await asyncTry<int>(() => Future.value(123), then: (n) => n! * 2),
+        equals(246),
+      );
 
       expect(
-          await asyncTry<int>(
-            () => _asFuture(() => 123, delayMs: 50),
-            then: (n) => n! * 2,
-          ),
-          equals(246));
+        await asyncTry<int>(
+          () => _asFuture(() => 123, delayMs: 50),
+          then: (n) => n! * 2,
+        ),
+        equals(246),
+      );
 
       expect(
-          await asyncTry<int>(
-            () => _asFuture(() => 123, delayMs: 50),
-            then: (n) => Future.value(n! * 3),
-          ),
-          equals(369));
+        await asyncTry<int>(
+          () => _asFuture(() => 123, delayMs: 50),
+          then: (n) => Future.value(n! * 3),
+        ),
+        equals(369),
+      );
     });
 
     test('then+catch+delay+error', () async {
@@ -1973,70 +2355,79 @@ void main() {
 
       var error1 = <StateError>[];
       expect(
-          await asyncTry<int>(
-            () => Future.value(123),
-            then: (n) => throw StateError('e1'),
-            onError: (e) => error1.add(e),
-          ),
-          isNull);
+        await asyncTry<int>(
+          () => Future.value(123),
+          then: (n) => throw StateError('e1'),
+          onError: (e) => error1.add(e),
+        ),
+        isNull,
+      );
       expect(error1.map((e) => e.message), equals(['e1']));
 
       var error2 = <StateError>[];
       expect(
-          await asyncTry<int>(
-            () => _asFuture(() => 123, delayMs: 50),
-            then: (n) => throw StateError('e2'),
-            onError: (e) => error2.add(e),
-          ),
-          isNull);
+        await asyncTry<int>(
+          () => _asFuture(() => 123, delayMs: 50),
+          then: (n) => throw StateError('e2'),
+          onError: (e) => error2.add(e),
+        ),
+        isNull,
+      );
       expect(error2.map((e) => e.message), equals(['e2']));
 
       var error3 = <StateError>[];
       expect(
-          await asyncTry<int>(
-            () => _asFuture(() => 123, delayMs: 50),
-            then: (n) => _asFuture(() => throw StateError('e3'), delayMs: 50),
-            onError: (e) => error3.add(e),
-          ),
-          isNull);
+        await asyncTry<int>(
+          () => _asFuture(() => 123, delayMs: 50),
+          then: (n) => _asFuture(() => throw StateError('e3'), delayMs: 50),
+          onError: (e) => error3.add(e),
+        ),
+        isNull,
+      );
       expect(error3.map((e) => e.message), equals(['e3']));
     });
 
     test('error+catch', () async {
       var error1 = <StateError>[];
       expect(
-          asyncTry<int>(() => throw StateError('e1'), onError: (e) {
+        asyncTry<int>(
+          () => throw StateError('e1'),
+          onError: (e) {
             error1.add(e);
             return -1;
-          }),
-          equals(-1));
+          },
+        ),
+        equals(-1),
+      );
       expect(error1.map((e) => e.message), equals(['e1']));
 
       var error2 = <StateError>[];
       var stack2 = <StackTrace>[];
       expect(
-          await asyncTry<int>(
-            () => Future.microtask(() => throw StateError('e2')),
-            onError: (e, s) {
-              error2.add(e);
-              stack2.add(s);
-              return -2;
-            },
-          ),
-          equals(-2));
+        await asyncTry<int>(
+          () => Future.microtask(() => throw StateError('e2')),
+          onError: (e, s) {
+            error2.add(e);
+            stack2.add(s);
+            return -2;
+          },
+        ),
+        equals(-2),
+      );
       expect(error2.map((e) => e.message), equals(['e2']));
       expect(stack2.length, equals(1));
 
       var error3 = <StateError>[];
       expect(
-          await asyncTry<int>(
-            () => Future.microtask(() => throw StateError('e3')),
-            onError: (e) {
-              error3.add(e);
-              return _asFuture(() => -3, delayMs: 50);
-            },
-          ),
-          equals(-3));
+        await asyncTry<int>(
+          () => Future.microtask(() => throw StateError('e3')),
+          onError: (e) {
+            error3.add(e);
+            return _asFuture(() => -3, delayMs: 50);
+          },
+        ),
+        equals(-3),
+      );
       expect(error3.map((e) => e.message), equals(['e3']));
     });
 
@@ -2055,7 +2446,8 @@ void main() {
       FutureOr<int?> ret2;
       try {
         ret2 = await asyncTry<int>(
-            () => _asFuture(() => throw StateError('e2'), delayMs: 50));
+          () => _asFuture(() => throw StateError('e2'), delayMs: 50),
+        );
       } catch (e) {
         error2.add(e as StateError);
       }
@@ -2066,40 +2458,42 @@ void main() {
     test('finally', () async {
       var finally1 = <int>[];
       expect(
-          asyncTry<int>(
-            () => 123,
-            onFinally: () => finally1.add(1),
-          ),
-          equals(123));
+        asyncTry<int>(() => 123, onFinally: () => finally1.add(1)),
+        equals(123),
+      );
       expect(finally1, equals([1]));
 
       var finally2 = <int>[];
       expect(
-          await asyncTry<int>(
-            () => Future.value(123),
-            onFinally: () => finally2.add(2),
-          ),
-          equals(123));
+        await asyncTry<int>(
+          () => Future.value(123),
+          onFinally: () => finally2.add(2),
+        ),
+        equals(123),
+      );
       expect(finally2, equals([2]));
 
       var finally3 = <int>[];
       expect(
-          await asyncTry<int>(
-            () => _asFuture(
-                () => _asFuture(() => Future.value(111), delayMs: 50),
-                delayMs: 50),
-            onFinally: () => finally3.add(3),
+        await asyncTry<int>(
+          () => _asFuture(
+            () => _asFuture(() => Future.value(111), delayMs: 50),
+            delayMs: 50,
           ),
-          equals(111));
+          onFinally: () => finally3.add(3),
+        ),
+        equals(111),
+      );
       expect(finally3, equals([3]));
 
       var finally4 = <int>[];
       expect(
-          await asyncTry<int>(
-            () => Future.value(123),
-            onFinally: () => _asFuture(() => finally4.add(4), delayMs: 50),
-          ),
-          equals(123));
+        await asyncTry<int>(
+          () => Future.value(123),
+          onFinally: () => _asFuture(() => finally4.add(4), delayMs: 50),
+        ),
+        equals(123),
+      );
       expect(finally4, equals([4]));
     });
 
@@ -2108,8 +2502,10 @@ void main() {
       var finally1 = <int>[];
       FutureOr<int?> ret1;
       try {
-        ret1 = asyncTry<int>(() => throw StateError('e1'),
-            onFinally: () => finally1.add(1));
+        ret1 = asyncTry<int>(
+          () => throw StateError('e1'),
+          onFinally: () => finally1.add(1),
+        );
       } catch (e) {
         error1.add(e as StateError);
       }
@@ -2122,8 +2518,9 @@ void main() {
       FutureOr<int?> ret2;
       try {
         ret2 = await asyncTry<int>(
-            () => _asFuture(() => throw StateError('e2'), delayMs: 50),
-            onFinally: () => finally2.add(2));
+          () => _asFuture(() => throw StateError('e2'), delayMs: 50),
+          onFinally: () => finally2.add(2),
+        );
       } catch (e) {
         error2.add(e as StateError);
       }
@@ -2137,12 +2534,14 @@ void main() {
       var finally1 = <int>[];
       FutureOr<int?> ret1;
       try {
-        ret1 = asyncTry<int>(() => throw StateError('e1'),
-            // ignore: void_checks
-            onFinally: () {
-          finally1.add(1);
-          throw StateError('fe1');
-        });
+        ret1 = asyncTry<int>(
+          () => throw StateError('e1'),
+          // ignore: void_checks
+          onFinally: () {
+            finally1.add(1);
+            throw StateError('fe1');
+          },
+        );
       } catch (e) {
         error1.add(e as StateError);
       }
@@ -2155,12 +2554,13 @@ void main() {
       FutureOr<int?> ret2;
       try {
         ret2 = await asyncTry<int>(
-            () => _asFuture(() => throw StateError('e2'), delayMs: 50),
-            // ignore: void_checks
-            onFinally: () => _asFuture(() {
-                  finally2.add(2);
-                  throw StateError('fe2');
-                }));
+          () => _asFuture(() => throw StateError('e2'), delayMs: 50),
+          // ignore: void_checks
+          onFinally: () => _asFuture(() {
+            finally2.add(2);
+            throw StateError('fe2');
+          }),
+        );
       } catch (e) {
         error2.add(e as StateError);
       }
@@ -2172,42 +2572,46 @@ void main() {
     test('then+finally', () async {
       var finally1 = <int>[];
       expect(
-          asyncTry<int>(
-            () => 123,
-            then: (n) => n! * 2,
-            onFinally: () => finally1.add(1),
-          ),
-          equals(246));
+        asyncTry<int>(
+          () => 123,
+          then: (n) => n! * 2,
+          onFinally: () => finally1.add(1),
+        ),
+        equals(246),
+      );
       expect(finally1, equals([1]));
 
       var finally2 = <int>[];
       expect(
-          await asyncTry<int>(
-            () => Future.value(123),
-            then: (n) => n! * 2,
-            onFinally: () => finally2.add(2),
-          ),
-          equals(246));
+        await asyncTry<int>(
+          () => Future.value(123),
+          then: (n) => n! * 2,
+          onFinally: () => finally2.add(2),
+        ),
+        equals(246),
+      );
       expect(finally2, equals([2]));
 
       var finally3 = <int>[];
       expect(
-          await asyncTry<int>(
-            () => _asFuture(() => 123, delayMs: 50),
-            then: (n) => n! * 2,
-            onFinally: () => finally3.add(3),
-          ),
-          equals(246));
+        await asyncTry<int>(
+          () => _asFuture(() => 123, delayMs: 50),
+          then: (n) => n! * 2,
+          onFinally: () => finally3.add(3),
+        ),
+        equals(246),
+      );
       expect(finally3, equals([3]));
 
       var finally4 = <int>[];
       expect(
-          await asyncTry<int>(
-            () => _asFuture(() => 123, delayMs: 50),
-            then: (n) => _asFuture(() => n! * 2, delayMs: 50),
-            onFinally: () => _asFuture(() => finally4.add(4), delayMs: 50),
-          ),
-          equals(246));
+        await asyncTry<int>(
+          () => _asFuture(() => 123, delayMs: 50),
+          then: (n) => _asFuture(() => n! * 2, delayMs: 50),
+          onFinally: () => _asFuture(() => finally4.add(4), delayMs: 50),
+        ),
+        equals(246),
+      );
       expect(finally4, equals([4]));
     });
 
@@ -2215,30 +2619,32 @@ void main() {
       var error1 = <StateError>[];
       var finally1 = <int>[];
       expect(
-          asyncTry<int>(
-            () => throw StateError('e1'),
-            onError: (e) {
-              error1.add(e);
-              return -1;
-            },
-            onFinally: () => finally1.add(1),
-          ),
-          equals(-1));
+        asyncTry<int>(
+          () => throw StateError('e1'),
+          onError: (e) {
+            error1.add(e);
+            return -1;
+          },
+          onFinally: () => finally1.add(1),
+        ),
+        equals(-1),
+      );
       expect(error1.map((e) => e.message), equals(['e1']));
       expect(finally1, equals([1]));
 
       var error2 = <StateError>[];
       var finally2 = <int>[];
       expect(
-          await asyncTry<int>(
-            () => Future.microtask(() => throw StateError('e2')),
-            onError: (e) {
-              error2.add(e);
-              return -2;
-            },
-            onFinally: () => finally2.add(2),
-          ),
-          equals(-2));
+        await asyncTry<int>(
+          () => Future.microtask(() => throw StateError('e2')),
+          onError: (e) {
+            error2.add(e);
+            return -2;
+          },
+          onFinally: () => finally2.add(2),
+        ),
+        equals(-2),
+      );
       expect(error2.map((e) => e.message), equals(['e2']));
       expect(finally2, equals([2]));
     });
@@ -2247,26 +2653,28 @@ void main() {
       var error1 = <StateError>[];
       var finally1 = <int>[];
       expect(
-          asyncTry<int>(
-            () => throw StateError('e1'),
-            then: (n) => n! * 2,
-            onError: (e) => error1.add(e),
-            onFinally: () => finally1.add(1),
-          ),
-          isNull);
+        asyncTry<int>(
+          () => throw StateError('e1'),
+          then: (n) => n! * 2,
+          onError: (e) => error1.add(e),
+          onFinally: () => finally1.add(1),
+        ),
+        isNull,
+      );
       expect(error1.map((e) => e.message), equals(['e1']));
       expect(finally1, equals([1]));
 
       var error2 = <StateError>[];
       var finally2 = <int>[];
       expect(
-          await asyncTry<int>(
-            () => _asFuture(() => throw StateError('e2'), delayMs: 50),
-            then: (n) => n! * 2,
-            onError: (e) => error2.add(e),
-            onFinally: () => finally2.add(2),
-          ),
-          isNull);
+        await asyncTry<int>(
+          () => _asFuture(() => throw StateError('e2'), delayMs: 50),
+          then: (n) => n! * 2,
+          onError: (e) => error2.add(e),
+          onFinally: () => finally2.add(2),
+        ),
+        isNull,
+      );
       expect(error2.map((e) => e.message), equals(['e2']));
       expect(finally2, equals([2]));
     });
@@ -2275,26 +2683,28 @@ void main() {
       var error1 = <StateError>[];
       var finally1 = <int>[];
       expect(
-          asyncTry<int>(
-            () => 123,
-            then: (n) => throw StateError('e1'),
-            onError: (e) => error1.add(e),
-            onFinally: () => finally1.add(1),
-          ),
-          isNull);
+        asyncTry<int>(
+          () => 123,
+          then: (n) => throw StateError('e1'),
+          onError: (e) => error1.add(e),
+          onFinally: () => finally1.add(1),
+        ),
+        isNull,
+      );
       expect(error1.map((e) => e.message), equals(['e1']));
       expect(finally1, equals([1]));
 
       var error2 = <StateError>[];
       var finally2 = <int>[];
       expect(
-          await asyncTry<int>(
-            () => Future.value(123),
-            then: (n) => throw StateError('e2'),
-            onError: (e) => error2.add(e),
-            onFinally: () => finally2.add(2),
-          ),
-          isNull);
+        await asyncTry<int>(
+          () => Future.value(123),
+          then: (n) => throw StateError('e2'),
+          onError: (e) => error2.add(e),
+          onFinally: () => finally2.add(2),
+        ),
+        isNull,
+      );
       expect(error2.map((e) => e.message), equals(['e2']));
       expect(finally2, equals([2]));
     });
@@ -2303,24 +2713,26 @@ void main() {
       var error1 = <StateError>[];
       var finally1 = <int>[];
       expect(
-          asyncTry<int>(
-            () => throw StateError('e1'),
-            onError: (e) => error1.add(e),
-            onFinally: () => finally1.add(1),
-          ),
-          isNull);
+        asyncTry<int>(
+          () => throw StateError('e1'),
+          onError: (e) => error1.add(e),
+          onFinally: () => finally1.add(1),
+        ),
+        isNull,
+      );
       expect(error1.map((e) => e.message), equals(['e1']));
       expect(finally1, equals([1]));
 
       var error2 = <StateError>[];
       var finally2 = <int>[];
       expect(
-          await asyncTry<int>(
-            () => _asFuture(() => throw StateError('e2')),
-            onError: (e) => error2.add(e),
-            onFinally: () => finally2.add(2),
-          ),
-          isNull);
+        await asyncTry<int>(
+          () => _asFuture(() => throw StateError('e2')),
+          onError: (e) => error2.add(e),
+          onFinally: () => finally2.add(2),
+        ),
+        isNull,
+      );
       expect(error2.map((e) => e.message), equals(['e2']));
       expect(finally2, equals([2]));
     });
@@ -2328,23 +2740,27 @@ void main() {
     test('error+finally', () async {
       var finally1 = <int>[];
       await expectLater(
-          () => asyncTry<int>(
-                () => throw StateError('e1'),
-                onFinally: () => finally1.add(1),
-              ),
-          throwsA(isA<StateError>()
-              .having((e) => e.message, 'message', equals('e1'))));
+        () => asyncTry<int>(
+          () => throw StateError('e1'),
+          onFinally: () => finally1.add(1),
+        ),
+        throwsA(
+          isA<StateError>().having((e) => e.message, 'message', equals('e1')),
+        ),
+      );
       expect(finally1, equals([1]));
 
       var finally2 = <int>[];
 
       await expectLater(
-          () => asyncTry<int>(
-                () => _asFuture(() => throw StateError('e2')),
-                onFinally: () => _asFuture(() => finally2.add(2)),
-              ),
-          throwsA(isA<StateError>()
-              .having((e) => e.message, 'message', equals('e2'))));
+        () => asyncTry<int>(
+          () => _asFuture(() => throw StateError('e2')),
+          onFinally: () => _asFuture(() => finally2.add(2)),
+        ),
+        throwsA(
+          isA<StateError>().having((e) => e.message, 'message', equals('e2')),
+        ),
+      );
 
       expect(finally2, equals([2]));
     });
@@ -2353,16 +2769,18 @@ void main() {
       var error1 = <StateError>[];
       var finally1 = <int>[];
       expect(
-          () => asyncTry<int>(
-                () => throw StateError('e1'),
-                onError: (e) {
-                  error1.add(e);
-                  throw e;
-                },
-                onFinally: () => finally1.add(1),
-              ),
-          throwsA(isA<StateError>()
-              .having((e) => e.message, 'message', equals('e1'))));
+        () => asyncTry<int>(
+          () => throw StateError('e1'),
+          onError: (e) {
+            error1.add(e);
+            throw e;
+          },
+          onFinally: () => finally1.add(1),
+        ),
+        throwsA(
+          isA<StateError>().having((e) => e.message, 'message', equals('e1')),
+        ),
+      );
 
       expect(error1.map((e) => e.message), equals(['e1']));
       expect(finally1, equals([1]));
@@ -2371,16 +2789,18 @@ void main() {
       var finally2 = <int>[];
 
       await expectLater(
-          () => asyncTry<int>(
-                () => _asFuture(() => throw StateError('e2')),
-                onError: (e) {
-                  error2.add(e);
-                  throw e;
-                },
-                onFinally: () => _asFuture(() => finally2.add(2)),
-              ),
-          throwsA(isA<StateError>()
-              .having((e) => e.message, 'message', equals('e2'))));
+        () => asyncTry<int>(
+          () => _asFuture(() => throw StateError('e2')),
+          onError: (e) {
+            error2.add(e);
+            throw e;
+          },
+          onFinally: () => _asFuture(() => finally2.add(2)),
+        ),
+        throwsA(
+          isA<StateError>().having((e) => e.message, 'message', equals('e2')),
+        ),
+      );
 
       expect(error2.map((e) => e.message), equals(['e2']));
       expect(finally2, equals([2]));
@@ -2389,16 +2809,18 @@ void main() {
       var finally3 = <int>[];
 
       await expectLater(
-          () => asyncTry<int>(
-                () => _asFuture(() => throw StateError('e3')),
-                onError: (e) => _asFuture(() {
-                  error3.add(e);
-                  throw e;
-                }),
-                onFinally: () => _asFuture(() => finally3.add(2)),
-              ),
-          throwsA(isA<StateError>()
-              .having((e) => e.message, 'message', equals('e3'))));
+        () => asyncTry<int>(
+          () => _asFuture(() => throw StateError('e3')),
+          onError: (e) => _asFuture(() {
+            error3.add(e);
+            throw e;
+          }),
+          onFinally: () => _asFuture(() => finally3.add(2)),
+        ),
+        throwsA(
+          isA<StateError>().having((e) => e.message, 'message', equals('e3')),
+        ),
+      );
 
       expect(error3.map((e) => e.message), equals(['e3']));
       expect(finally3, equals([2]));
@@ -2409,20 +2831,22 @@ void main() {
 
       var finally1 = <int>[];
       expect(
-          () => asyncTry<int>(
-                () => throw StateError('e1'),
-                onError: (e) {
-                  error1.add(e);
-                  throw e;
-                },
-                // ignore: void_checks
-                onFinally: () {
-                  finally1.add(1);
-                  throw StateError('fe1');
-                },
-              ),
-          throwsA(isA<StateError>()
-              .having((e) => e.message, 'message', equals('fe1'))));
+        () => asyncTry<int>(
+          () => throw StateError('e1'),
+          onError: (e) {
+            error1.add(e);
+            throw e;
+          },
+          // ignore: void_checks
+          onFinally: () {
+            finally1.add(1);
+            throw StateError('fe1');
+          },
+        ),
+        throwsA(
+          isA<StateError>().having((e) => e.message, 'message', equals('fe1')),
+        ),
+      );
 
       expect(error1.map((e) => e.message), equals(['e1']));
       expect(finally1, equals([1]));
@@ -2431,20 +2855,22 @@ void main() {
       var finally2 = <int>[];
 
       await expectLater(
-          () => asyncTry<int>(
-                () => _asFuture<int>(() => throw StateError('e2')),
-                onError: (e) {
-                  error2.add(e);
-                  throw e;
-                },
-                // ignore: void_checks
-                onFinally: () => _asFuture(() {
-                  finally2.add(2);
-                  throw StateError('fe2');
-                }),
-              ),
-          throwsA(isA<StateError>()
-              .having((e) => e.message, 'message', equals('fe2'))));
+        () => asyncTry<int>(
+          () => _asFuture<int>(() => throw StateError('e2')),
+          onError: (e) {
+            error2.add(e);
+            throw e;
+          },
+          // ignore: void_checks
+          onFinally: () => _asFuture(() {
+            finally2.add(2);
+            throw StateError('fe2');
+          }),
+        ),
+        throwsA(
+          isA<StateError>().having((e) => e.message, 'message', equals('fe2')),
+        ),
+      );
 
       expect(error2.map((e) => e.message), equals(['e2']));
       expect(finally2, equals([2]));
@@ -2456,14 +2882,18 @@ void main() {
       var errors = [];
 
       expect(
-          await asyncRetry(() => 1000,
-              defaultValue: -1,
-              maxRetries: 2,
-              retryDelay: Duration.zero, onError: (e, s, r) {
+        await asyncRetry(
+          () => 1000,
+          defaultValue: -1,
+          maxRetries: 2,
+          retryDelay: Duration.zero,
+          onError: (e, s, r) {
             errors.add(e);
             return null;
-          }),
-          equals(1000));
+          },
+        ),
+        equals(1000),
+      );
 
       expect(errors, isEmpty);
     });
@@ -2474,24 +2904,28 @@ void main() {
       var errorCount = 0;
 
       expect(
-          await asyncRetry(
-              () {
-                if (errorCount == 1) return 1000;
-                throw StateError('Force error#${++errorCount}');
-              },
-              defaultValue: -1,
-              maxRetries: 3,
-              retryDelay: Duration.zero,
-              onError: (e, s, r) {
-                errors.add(e);
-                return null;
-              }),
-          equals(1000));
+        await asyncRetry(
+          () {
+            if (errorCount == 1) return 1000;
+            throw StateError('Force error#${++errorCount}');
+          },
+          defaultValue: -1,
+          maxRetries: 3,
+          retryDelay: Duration.zero,
+          onError: (e, s, r) {
+            errors.add(e);
+            return null;
+          },
+        ),
+        equals(1000),
+      );
 
       expect(errors.length, equals(1));
       expect(errors.whereType<StateError>().length, equals(1));
-      expect(errors.whereType<StateError>().map((e) => e.message),
-          equals(['Force error#1']));
+      expect(
+        errors.whereType<StateError>().map((e) => e.message),
+        equals(['Force error#1']),
+      );
     });
 
     test('error 2/4', () async {
@@ -2501,37 +2935,43 @@ void main() {
       var errorCount = 0;
 
       expect(
-          await asyncRetry(
-              () {
-                if (errorCount == 2) return 1000;
-                throw StateError('Force error#${++errorCount}');
-              },
-              defaultValue: -1,
-              maxRetries: 3,
-              retryDelay: Duration.zero,
-              computeDelay: (r) {
-                var d = switch (r) {
-                  0 => Duration(milliseconds: 0),
-                  1 => Duration(milliseconds: 1),
-                  _ => Duration.zero,
-                };
-                delays.add(d);
-                return d;
-              },
-              onError: (e, s, r) {
-                errors.add(e);
-                return null;
-              }),
-          equals(1000));
+        await asyncRetry(
+          () {
+            if (errorCount == 2) return 1000;
+            throw StateError('Force error#${++errorCount}');
+          },
+          defaultValue: -1,
+          maxRetries: 3,
+          retryDelay: Duration.zero,
+          computeDelay: (r) {
+            var d = switch (r) {
+              0 => Duration(milliseconds: 0),
+              1 => Duration(milliseconds: 1),
+              _ => Duration.zero,
+            };
+            delays.add(d);
+            return d;
+          },
+          onError: (e, s, r) {
+            errors.add(e);
+            return null;
+          },
+        ),
+        equals(1000),
+      );
 
       expect(errors.length, equals(2));
       expect(errors.whereType<StateError>().length, equals(2));
-      expect(errors.whereType<StateError>().map((e) => e.message),
-          equals(['Force error#1', 'Force error#2']));
+      expect(
+        errors.whereType<StateError>().map((e) => e.message),
+        equals(['Force error#1', 'Force error#2']),
+      );
 
       expect(delays.length, equals(2));
-      expect(delays,
-          equals([Duration(milliseconds: 0), Duration(milliseconds: 1)]));
+      expect(
+        delays,
+        equals([Duration(milliseconds: 0), Duration(milliseconds: 1)]),
+      );
     });
 
     test('error 3/4', () async {
@@ -2540,25 +2980,29 @@ void main() {
       var errorCount = 0;
 
       expect(
-          await asyncRetry(
-              () {
-                if (errorCount == 3) return 1000;
-                throw StateError('Force error#${++errorCount}');
-              },
-              defaultValue: -1,
-              maxRetries: 3,
-              retryDelay: Duration.zero,
-              computeDelay: (r) => null,
-              onError: (e, s, r) {
-                errors.add(e);
-                return null;
-              }),
-          equals(1000));
+        await asyncRetry(
+          () {
+            if (errorCount == 3) return 1000;
+            throw StateError('Force error#${++errorCount}');
+          },
+          defaultValue: -1,
+          maxRetries: 3,
+          retryDelay: Duration.zero,
+          computeDelay: (r) => null,
+          onError: (e, s, r) {
+            errors.add(e);
+            return null;
+          },
+        ),
+        equals(1000),
+      );
 
       expect(errors.length, equals(3));
       expect(errors.whereType<StateError>().length, equals(3));
-      expect(errors.whereType<StateError>().map((e) => e.message),
-          equals(['Force error#1', 'Force error#2', 'Force error#3']));
+      expect(
+        errors.whereType<StateError>().map((e) => e.message),
+        equals(['Force error#1', 'Force error#2', 'Force error#3']),
+      );
     });
 
     test('error 4/4', () async {
@@ -2567,30 +3011,33 @@ void main() {
       var errorCount = 0;
 
       expect(
-          await asyncRetry(
-              () {
-                if (errorCount == 4) return 1000;
-                throw StateError('Force error#${++errorCount}');
-              },
-              defaultValue: -1,
-              maxRetries: 3,
-              retryDelay: Duration.zero,
-              onError: (e, s, r) {
-                errors.add(e);
-                return null;
-              }),
-          equals(-1));
+        await asyncRetry(
+          () {
+            if (errorCount == 4) return 1000;
+            throw StateError('Force error#${++errorCount}');
+          },
+          defaultValue: -1,
+          maxRetries: 3,
+          retryDelay: Duration.zero,
+          onError: (e, s, r) {
+            errors.add(e);
+            return null;
+          },
+        ),
+        equals(-1),
+      );
 
       expect(errors.length, equals(4));
       expect(errors.whereType<StateError>().length, equals(4));
       expect(
-          errors.whereType<StateError>().map((e) => e.message),
-          equals([
-            'Force error#1',
-            'Force error#2',
-            'Force error#3',
-            'Force error#4'
-          ]));
+        errors.whereType<StateError>().map((e) => e.message),
+        equals([
+          'Force error#1',
+          'Force error#2',
+          'Force error#3',
+          'Force error#4',
+        ]),
+      );
     });
 
     test('all errors', () async {
@@ -2599,20 +3046,25 @@ void main() {
       var errorCount = 0;
 
       expect(
-          await asyncRetry(
-              () => throw StateError('Force error#${++errorCount}'),
-              defaultValue: -1,
-              maxRetries: 2,
-              retryDelay: Duration.zero, onError: (e, s, r) {
+        await asyncRetry(
+          () => throw StateError('Force error#${++errorCount}'),
+          defaultValue: -1,
+          maxRetries: 2,
+          retryDelay: Duration.zero,
+          onError: (e, s, r) {
             errors.add(e);
             return null;
-          }),
-          equals(-1));
+          },
+        ),
+        equals(-1),
+      );
 
       expect(errors.length, equals(3));
       expect(errors.whereType<StateError>().length, equals(3));
-      expect(errors.whereType<StateError>().map((e) => e.message),
-          equals(['Force error#1', 'Force error#2', 'Force error#3']));
+      expect(
+        errors.whereType<StateError>().map((e) => e.message),
+        equals(['Force error#1', 'Force error#2', 'Force error#3']),
+      );
     });
 
     test('all errors (no defaultValue)', () async {
@@ -2621,19 +3073,24 @@ void main() {
       var errorCount = 0;
 
       expect(
-          await asyncRetry(
-              () => throw StateError('Force error#${++errorCount}'),
-              maxRetries: 2,
-              retryDelay: Duration.zero, onError: (e, s, r) {
+        await asyncRetry(
+          () => throw StateError('Force error#${++errorCount}'),
+          maxRetries: 2,
+          retryDelay: Duration.zero,
+          onError: (e, s, r) {
             errors.add(e);
             return null;
-          }),
-          isNull);
+          },
+        ),
+        isNull,
+      );
 
       expect(errors.length, equals(3));
       expect(errors.whereType<StateError>().length, equals(3));
-      expect(errors.whereType<StateError>().map((e) => e.message),
-          equals(['Force error#1', 'Force error#2', 'Force error#3']));
+      expect(
+        errors.whereType<StateError>().map((e) => e.message),
+        equals(['Force error#1', 'Force error#2', 'Force error#3']),
+      );
     });
 
     test('all errors (throwOnRetryExhaustion)', () async {
@@ -2642,20 +3099,25 @@ void main() {
       var errorCount = 0;
 
       await expectLater(
-          () => asyncRetry(
-                  () => throw StateError('Force error#${++errorCount}'),
-                  maxRetries: 2,
-                  throwOnRetryExhaustion: true,
-                  retryDelay: Duration.zero, onError: (e, s, r) {
-                errors.add(e);
-                return null;
-              }),
-          throwsStateError);
+        () => asyncRetry(
+          () => throw StateError('Force error#${++errorCount}'),
+          maxRetries: 2,
+          throwOnRetryExhaustion: true,
+          retryDelay: Duration.zero,
+          onError: (e, s, r) {
+            errors.add(e);
+            return null;
+          },
+        ),
+        throwsStateError,
+      );
 
       expect(errors.length, equals(3));
       expect(errors.whereType<StateError>().length, equals(3));
-      expect(errors.whereType<StateError>().map((e) => e.message),
-          equals(['Force error#1', 'Force error#2', 'Force error#3']));
+      expect(
+        errors.whereType<StateError>().map((e) => e.message),
+        equals(['Force error#1', 'Force error#2', 'Force error#3']),
+      );
     });
   });
 
@@ -2666,15 +3128,17 @@ void main() {
       int f() => 1000;
 
       expect(
-          await f.retry(
-              defaultValue: -1,
-              maxRetries: 2,
-              retryDelay: Duration.zero,
-              onError: (e, s, r) {
-                errors.add(e);
-                return null;
-              }),
-          equals(1000));
+        await f.retry(
+          defaultValue: -1,
+          maxRetries: 2,
+          retryDelay: Duration.zero,
+          onError: (e, s, r) {
+            errors.add(e);
+            return null;
+          },
+        ),
+        equals(1000),
+      );
 
       expect(errors, isEmpty);
     });
@@ -2690,20 +3154,24 @@ void main() {
       }
 
       expect(
-          await f.retry(
-              defaultValue: -1,
-              maxRetries: 3,
-              retryDelay: Duration.zero,
-              onError: (e, s, r) {
-                errors.add(e);
-                return null;
-              }),
-          equals(1000));
+        await f.retry(
+          defaultValue: -1,
+          maxRetries: 3,
+          retryDelay: Duration.zero,
+          onError: (e, s, r) {
+            errors.add(e);
+            return null;
+          },
+        ),
+        equals(1000),
+      );
 
       expect(errors.length, equals(1));
       expect(errors.whereType<StateError>().length, equals(1));
-      expect(errors.whereType<StateError>().map((e) => e.message),
-          equals(['Force error#1']));
+      expect(
+        errors.whereType<StateError>().map((e) => e.message),
+        equals(['Force error#1']),
+      );
     });
 
     test('f(a) error 1/4', () async {
@@ -2717,19 +3185,25 @@ void main() {
       }
 
       expect(
-          await f.retry(2,
-              defaultValue: -1,
-              maxRetries: 3,
-              retryDelay: Duration.zero, onError: (e, s, r) {
+        await f.retry(
+          2,
+          defaultValue: -1,
+          maxRetries: 3,
+          retryDelay: Duration.zero,
+          onError: (e, s, r) {
             errors.add(e);
             return null;
-          }),
-          equals(2000));
+          },
+        ),
+        equals(2000),
+      );
 
       expect(errors.length, equals(1));
       expect(errors.whereType<StateError>().length, equals(1));
-      expect(errors.whereType<StateError>().map((e) => e.message),
-          equals(['Force error#1']));
+      expect(
+        errors.whereType<StateError>().map((e) => e.message),
+        equals(['Force error#1']),
+      );
     });
 
     test('f(a,b) error 1/4', () async {
@@ -2743,19 +3217,26 @@ void main() {
       }
 
       expect(
-          await f.retry(2, 4,
-              defaultValue: -1,
-              maxRetries: 3,
-              retryDelay: Duration.zero, onError: (e, s, r) {
+        await f.retry(
+          2,
+          4,
+          defaultValue: -1,
+          maxRetries: 3,
+          retryDelay: Duration.zero,
+          onError: (e, s, r) {
             errors.add(e);
             return null;
-          }),
-          equals(500));
+          },
+        ),
+        equals(500),
+      );
 
       expect(errors.length, equals(1));
       expect(errors.whereType<StateError>().length, equals(1));
-      expect(errors.whereType<StateError>().map((e) => e.message),
-          equals(['Force error#1']));
+      expect(
+        errors.whereType<StateError>().map((e) => e.message),
+        equals(['Force error#1']),
+      );
     });
 
     test('f(a,b,c) error 1/4', () async {
@@ -2769,19 +3250,27 @@ void main() {
       }
 
       expect(
-          await f.retry(2, 4, 1,
-              defaultValue: -1,
-              maxRetries: 3,
-              retryDelay: Duration.zero, onError: (e, s, r) {
+        await f.retry(
+          2,
+          4,
+          1,
+          defaultValue: -1,
+          maxRetries: 3,
+          retryDelay: Duration.zero,
+          onError: (e, s, r) {
             errors.add(e);
             return null;
-          }),
-          equals(501));
+          },
+        ),
+        equals(501),
+      );
 
       expect(errors.length, equals(1));
       expect(errors.whereType<StateError>().length, equals(1));
-      expect(errors.whereType<StateError>().map((e) => e.message),
-          equals(['Force error#1']));
+      expect(
+        errors.whereType<StateError>().map((e) => e.message),
+        equals(['Force error#1']),
+      );
     });
 
     test('f(a,b,c,d) error 1/4', () async {
@@ -2795,19 +3284,28 @@ void main() {
       }
 
       expect(
-          await f.retry(2, 4, 2, 3,
-              defaultValue: -1,
-              maxRetries: 3,
-              retryDelay: Duration.zero, onError: (e, s, r) {
+        await f.retry(
+          2,
+          4,
+          2,
+          3,
+          defaultValue: -1,
+          maxRetries: 3,
+          retryDelay: Duration.zero,
+          onError: (e, s, r) {
             errors.add(e);
             return null;
-          }),
-          equals(506));
+          },
+        ),
+        equals(506),
+      );
 
       expect(errors.length, equals(1));
       expect(errors.whereType<StateError>().length, equals(1));
-      expect(errors.whereType<StateError>().map((e) => e.message),
-          equals(['Force error#1']));
+      expect(
+        errors.whereType<StateError>().map((e) => e.message),
+        equals(['Force error#1']),
+      );
     });
 
     test('f(a,b,c,d,e) error 1/4', () async {
@@ -2821,19 +3319,29 @@ void main() {
       }
 
       expect(
-          await f.retry(2, 4, 2, 3, 1,
-              defaultValue: -1,
-              maxRetries: 3,
-              retryDelay: Duration.zero, onError: (e, s, r) {
+        await f.retry(
+          2,
+          4,
+          2,
+          3,
+          1,
+          defaultValue: -1,
+          maxRetries: 3,
+          retryDelay: Duration.zero,
+          onError: (e, s, r) {
             errors.add(e);
             return null;
-          }),
-          equals(507));
+          },
+        ),
+        equals(507),
+      );
 
       expect(errors.length, equals(1));
       expect(errors.whereType<StateError>().length, equals(1));
-      expect(errors.whereType<StateError>().map((e) => e.message),
-          equals(['Force error#1']));
+      expect(
+        errors.whereType<StateError>().map((e) => e.message),
+        equals(['Force error#1']),
+      );
     });
 
     test('f(a,b,c,d,e,f) error 1/4', () async {
@@ -2847,19 +3355,30 @@ void main() {
       }
 
       expect(
-          await f.retry(2, 4, 2, 3, 1, 5,
-              defaultValue: -1,
-              maxRetries: 3,
-              retryDelay: Duration.zero, onError: (e, s, r) {
+        await f.retry(
+          2,
+          4,
+          2,
+          3,
+          1,
+          5,
+          defaultValue: -1,
+          maxRetries: 3,
+          retryDelay: Duration.zero,
+          onError: (e, s, r) {
             errors.add(e);
             return null;
-          }),
-          equals(510));
+          },
+        ),
+        equals(510),
+      );
 
       expect(errors.length, equals(1));
       expect(errors.whereType<StateError>().length, equals(1));
-      expect(errors.whereType<StateError>().map((e) => e.message),
-          equals(['Force error#1']));
+      expect(
+        errors.whereType<StateError>().map((e) => e.message),
+        equals(['Force error#1']),
+      );
     });
 
     test('f(a,b,c,d,e,f,g) error 1/4', () async {
@@ -2873,19 +3392,31 @@ void main() {
       }
 
       expect(
-          await f.retry(2, 4, 2, 3, 1, 5, 2,
-              defaultValue: -1,
-              maxRetries: 3,
-              retryDelay: Duration.zero, onError: (e, s, r) {
+        await f.retry(
+          2,
+          4,
+          2,
+          3,
+          1,
+          5,
+          2,
+          defaultValue: -1,
+          maxRetries: 3,
+          retryDelay: Duration.zero,
+          onError: (e, s, r) {
             errors.add(e);
             return null;
-          }),
-          equals(508));
+          },
+        ),
+        equals(508),
+      );
 
       expect(errors.length, equals(1));
       expect(errors.whereType<StateError>().length, equals(1));
-      expect(errors.whereType<StateError>().map((e) => e.message),
-          equals(['Force error#1']));
+      expect(
+        errors.whereType<StateError>().map((e) => e.message),
+        equals(['Force error#1']),
+      );
     });
 
     test('f(a,b,c,d,e,f,g,h) error 1/4', () async {
@@ -2899,19 +3430,32 @@ void main() {
       }
 
       expect(
-          await f.retry(2, 4, 2, 3, 1, 5, 2, 3,
-              defaultValue: -1,
-              maxRetries: 3,
-              retryDelay: Duration.zero, onError: (e, s, r) {
+        await f.retry(
+          2,
+          4,
+          2,
+          3,
+          1,
+          5,
+          2,
+          3,
+          defaultValue: -1,
+          maxRetries: 3,
+          retryDelay: Duration.zero,
+          onError: (e, s, r) {
             errors.add(e);
             return null;
-          }),
-          equals(511));
+          },
+        ),
+        equals(511),
+      );
 
       expect(errors.length, equals(1));
       expect(errors.whereType<StateError>().length, equals(1));
-      expect(errors.whereType<StateError>().map((e) => e.message),
-          equals(['Force error#1']));
+      expect(
+        errors.whereType<StateError>().map((e) => e.message),
+        equals(['Force error#1']),
+      );
     });
 
     test('f(a,b,c,d,e,f,g,h,i) error 1/4', () async {
@@ -2925,19 +3469,33 @@ void main() {
       }
 
       expect(
-          await f.retry(2, 4, 2, 3, 1, 5, 2, 3, 1,
-              defaultValue: -1,
-              maxRetries: 3,
-              retryDelay: Duration.zero, onError: (e, s, r) {
+        await f.retry(
+          2,
+          4,
+          2,
+          3,
+          1,
+          5,
+          2,
+          3,
+          1,
+          defaultValue: -1,
+          maxRetries: 3,
+          retryDelay: Duration.zero,
+          onError: (e, s, r) {
             errors.add(e);
             return null;
-          }),
-          equals(510));
+          },
+        ),
+        equals(510),
+      );
 
       expect(errors.length, equals(1));
       expect(errors.whereType<StateError>().length, equals(1));
-      expect(errors.whereType<StateError>().map((e) => e.message),
-          equals(['Force error#1']));
+      expect(
+        errors.whereType<StateError>().map((e) => e.message),
+        equals(['Force error#1']),
+      );
     });
 
     test('f(a, b:, c:) error 1/4', () async {
@@ -2951,22 +3509,26 @@ void main() {
       }
 
       expect(
-          await f.retryWith<int>(
-              args: [2],
-              named: {#m: 4, #o: 3},
-              defaultValue: -1,
-              maxRetries: 3,
-              retryDelay: Duration.zero,
-              onError: (e, s, r) {
-                errors.add(e);
-                return null;
-              }),
-          equals(503));
+        await f.retryWith<int>(
+          args: [2],
+          named: {#m: 4, #o: 3},
+          defaultValue: -1,
+          maxRetries: 3,
+          retryDelay: Duration.zero,
+          onError: (e, s, r) {
+            errors.add(e);
+            return null;
+          },
+        ),
+        equals(503),
+      );
 
       expect(errors.length, equals(1));
       expect(errors.whereType<StateError>().length, equals(1));
-      expect(errors.whereType<StateError>().map((e) => e.message),
-          equals(['Force error#1']));
+      expect(
+        errors.whereType<StateError>().map((e) => e.message),
+        equals(['Force error#1']),
+      );
     });
   });
 
@@ -3032,19 +3594,12 @@ void main() {
     });
 
     test('resolveAll async', () async {
-      final it = <FutureOr<int>>[
-        1,
-        Future.value(2),
-        Future.value(3),
-      ];
+      final it = <FutureOr<int>>[1, Future.value(2), Future.value(3)];
       expect(await it.resolveAll(), [1, 2, 3]);
     });
 
     test('resolveAllMapped', () async {
-      final it = <FutureOr<int>>[
-        Future.value(2),
-        3,
-      ];
+      final it = <FutureOr<int>>[Future.value(2), 3];
       final r = await it.resolveAllMapped((v) => v * 10);
       expect(r, [20, 30]);
     });
@@ -3101,8 +3656,11 @@ Future<T> _asFuture<T>(FutureOr<T> Function() f, {int delayMs = 1}) =>
 
 /// Multiply [a] * [b], and returns `int` for positive [a] and
 /// a [Future] for negative [a].
-FutureOr<T> _futureOrMultiply<T extends num>(T a, T b,
-    [bool throwError = false]) {
+FutureOr<T> _futureOrMultiply<T extends num>(
+  T a,
+  T b, [
+  bool throwError = false,
+]) {
   if (a > 0) {
     if (throwError) {
       throw StateError('Error');
