@@ -25,6 +25,12 @@ FutureOr<R?> _completeError<R>(
   _ErrorFunction<R>? errorFunction,
   _FinallyFunction<R>? finallyFunction,
 ) {
+  // An error thrown by `onFinally` is never handled by `onError`
+  // (as in a Dart `try/catch/finally`): it always propagates.
+  if (finallyFunction != null && finallyFunction.isFinallyError(error)) {
+    Error.throwWithStackTrace(error, stackTrace);
+  }
+
   if (errorFunction != null) {
     return errorFunction.call(error, stackTrace, finallyFunction);
   } else if (finallyFunction != null) {
@@ -162,8 +168,23 @@ class _FinallyFunction<R> {
 
   Future<R?>? _callFuture;
 
+  /// The error (and its stack trace) synchronously thrown by [function].
+  ({Object error, StackTrace stackTrace})? _syncError;
+
+  /// Returns `true` if [error] is the error synchronously thrown by [function].
+  bool isFinallyError(Object error) {
+    var syncError = _syncError;
+    return syncError != null && identical(syncError.error, error);
+  }
+
   FutureOr<R?> call([R? r, Object? thrownError]) {
     if (_called) {
+      var syncError = _syncError;
+      if (syncError != null) {
+        // A throwing `onFinally` replaces any result (Dart `finally` semantics).
+        Error.throwWithStackTrace(syncError.error, syncError.stackTrace);
+      }
+
       if (_callFuture != null) {
         return _callFuture!;
       } else {
@@ -173,7 +194,13 @@ class _FinallyFunction<R> {
       _called = true;
       result = r;
 
-      var ret = function();
+      FutureOr<void> ret;
+      try {
+        ret = function();
+      } catch (e, s) {
+        _syncError = (error: e, stackTrace: s);
+        rethrow;
+      }
       if (ret is Future<void>) {
         var future = ret.then(
           (_) {
@@ -204,6 +231,8 @@ class _FinallyFunction<R> {
 /// - [then]: A function called after [tryBlock] completes successfully, receiving its result.
 /// - [onError]: A callback invoked if [tryBlock] or [then] throws an error, similar to [Future.then]'s `onError` parameter.
 /// - [onFinally]: Always called after [tryBlock], [then], and [onError], regardless of success or failure.
+///   As in a Dart `finally` block, if [onFinally] throws (or returns a failed [Future]),
+///   its error replaces the result and is never passed to [onError].
 ///
 /// ### Returns:
 /// - Result of [tryBlock] passed to [then], or an error handled by [onError]. [onFinally] is always executed.
