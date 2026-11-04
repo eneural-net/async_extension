@@ -59,24 +59,40 @@ void main() {
           expect(await (a() ~/ b()), equals(3));
         });
 
-        test('resolveBoth error propagation ($desc)', () async {
-          FutureOr<int> failing() => asyncB
-              ? Future<int>.error(StateError('b'))
-              : throw StateError('b');
+        test(
+          'resolveBoth / resolveOther with a failed Future ($desc)',
+          () async {
+            // A failed Future fails the result, without calling the resolver.
+            // (A sync error can't reach these methods: it is thrown while
+            // building the argument.) When both are async only `a` fails here;
+            // both failing is covered by a dedicated test below.
+            if (!asyncA && !asyncB) return;
 
-          // A sync error is thrown synchronously when building `other`,
-          // so only the async case reaches `resolveBoth`:
-          if (asyncB) {
+            var resolverCalls = 0;
+            FutureOr<int> a() =>
+                asyncA ? Future<int>.error(StateError('a')) : 1;
+            FutureOr<int> b() => asyncB
+                ? (asyncA
+                      ? Future.value(2)
+                      : Future<int>.error(StateError('b')))
+                : 2;
+
             await expectLater(
               Future.sync(
-                () => _v(1, async: asyncA).resolveBoth(failing(), (a, b) => a),
+                () => a().resolveBoth(b(), (x, y) => resolverCalls++),
               ),
-              throwsA(_stateError('b')),
+              throwsA(_stateError(asyncA ? 'a' : 'b')),
             );
-          } else {
-            expect(failing, throwsA(_stateError('b')));
-          }
-        });
+            await expectLater(
+              Future.sync(
+                () =>
+                    a().resolveOther<int, int>(b(), (x, y) => resolverCalls++),
+              ),
+              throwsA(_stateError(asyncA ? 'a' : 'b')),
+            );
+            expect(resolverCalls, equals(0));
+          },
+        );
 
         test('resolver throwing ($desc)', () async {
           FutureOr<int> call() => _v(1, async: asyncA).resolveBoth(
@@ -243,6 +259,28 @@ void main() {
         }
       });
     }
+
+    test('resolveBoth with both Futures failing: the error of `other` is '
+        'unhandled (current behaviour)', () async {
+      // `resolveBoth`/`resolveOther` only listen to `other` after `this`
+      // resolves (like `await a; await b;`), so when both fail the error
+      // of `other` reaches the zone as an uncaught error.
+      var uncaught = <Object>[];
+      Object? result;
+
+      await runZonedGuarded(() async {
+        try {
+          await Future<int>.error(StateError('a'))
+              .resolveBoth(Future<int>.error(StateError('b')), (x, y) => x + y);
+        } catch (e) {
+          result = e;
+        }
+      }, (e, s) => uncaught.add(e));
+      await _settle();
+
+      expect(result, _stateError('a'));
+      expect(uncaught, [_stateError('b')]);
+    });
 
     test('nested FutureOr values are flattened by Future.value', () async {
       FutureOr<FutureOr<int>> nested = Future.value(Future.value(1));

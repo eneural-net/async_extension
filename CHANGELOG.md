@@ -27,7 +27,7 @@
     `tryCall`/`tryCallThen`, iterable/map helpers, loops, `asyncRetry` edge cases and `ComputeOnce`/
     `ComputeOnceCache`/`ComputeOnceCachedIDs` with many concurrent resolvers.
   - Added `async_extension_integration_test.dart`: multi-step pipelines combining several helpers.
-  - Tests: 244 -> 485.
+  - Tests: 244 -> 486.
   - Line coverage: 99.1% -> 99.3%.
 
 ## 1.2.23
