@@ -183,7 +183,9 @@ class _FinallyFunction<R> {
       if (syncError != null) {
         // A throwing `onFinally` replaces any result (Dart `finally` semantics).
         Error.throwWithStackTrace(syncError.error, syncError.stackTrace);
-      } else if (_callFuture != null) {
+      }
+
+      if (_callFuture != null) {
         return _callFuture!;
       } else {
         return result;
